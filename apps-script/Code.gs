@@ -380,9 +380,11 @@ function syncEspn_(full, maxDays) {
   var cap = maxDays || 4;
   if (days.length > cap) days = days.slice(0, cap - 1).concat(days.indexOf(last) >= 0 ? [last] : days.slice(cap - 1, cap));
   days.forEach(function (sp) {
-    var r = syncDay_(sp, TODAY, now, M);
-    if (r.live) live = r.live;
-    log.push('day ' + sp + ': ' + r.msg);
+    try {
+      var r = syncDay_(sp, TODAY, now, M);
+      if (r.live) live = r.live;
+      log.push('day ' + sp + ': ' + r.msg);
+    } catch (e) { log.push('day ' + sp + ' failed: ' + e); }
   });
   saveMeta_(M);
 
