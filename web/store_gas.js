@@ -2,7 +2,7 @@ const Store={db:null,user:null,uid:null,local:false,canAdmin:true,url:"",
   _d:{},_rev:{},_w:[],_t:null,_busy:null,_dirty:false,
   async init(){
     this.url=(window.DF_CONFIG||{}).backend||"";
-    try{const q=new URLSearchParams(location.search).get("backend");if(q)localStorage.setItem("dfBackend",q);this.url=localStorage.getItem("dfBackend")||this.url;}catch(e){}
+    try{const k="dfBackend_"+((window.DF_CONFIG||{}).env||""),q=new URLSearchParams(location.search).get("backend");if(q)localStorage.setItem(k,q);if(!this.url)this.url=localStorage.getItem(k)||"";}catch(e){}
     try{this.uid=localStorage.getItem("dfDevice");if(!this.uid){this.uid="dev_"+Math.random().toString(36).slice(2,12);localStorage.setItem("dfDevice",this.uid);}}catch(e){this.uid="dev";}
     if(!this.url){this.local=true;this.uid=this.uid||"local";return;}
     this.db={backend:this.url};
