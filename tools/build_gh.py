@@ -37,7 +37,9 @@ d = sub(d, "const b=SESSION&&BADGES?.[SESSION.h];", "const b=SESSION&&BADGES?.[b
 d = sub(d, "BADGES={...BADGES,[h]:{role:\"commish\",team:null}};", "BADGES={...BADGES,[bid(h)]:{role:\"commish\",team:null}};", "setup badge")
 d = sub(d, "const b=BADGES?.[h];GATE.busy=false;", "const b=BADGES?.[bid(h)];GATE.busy=false;", "login badge")
 i = d.rindex("</script>")
-d = d[:i] + w("gas_tail.js") + "\n" + d[i:]
+gs = open(os.path.join(ROOT, "apps-script", "Code.gs"), encoding="utf-8").read()
+tail = sub(w("gas_tail.js"), '/*FEED_SRC*/""', json.dumps(gs).replace("</", "<\\/"), "feed source")
+d = d[:i] + tail + "\n" + d[i:]
 
 c = r("c_views.js")
 c = sub(c, "const b=BADGES?.[h];\n", "const b=BADGES?.[bid(h)];\n", "codes badge")

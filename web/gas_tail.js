@@ -16,14 +16,90 @@ function bid(h){if(!h)return "";if(bid.m[h])return bid.m[h];
     [a,c,d,e,f,g,k,m].forEach((x,i)=>H[i]=(H[i]+x)|0);}
   return bid.m[h]=H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");}
 bid.m={};
-ERR.cloud="Data updates from ESPN automatically: every minute while games are on, hourly otherwise.";
+/* ESPN FEED: ESPN's box-score feed refuses Google's servers but allows browsers, so
+   the app pulls it. One open device at a time holds the "feed" lease (refresh/feed,
+   2.5 minutes, renewed each minute) and runs the same pull code as the Apps Script
+   backend (Code.gs, below) in a background worker: every minute while games are
+   on, a full pull (injuries, news, ownership) once an hour. Results are saved for
+   everyone; unchanged docs are skipped. */
+const FEED_SRC=/*FEED_SRC*/"";
+const FEED_SHIMS=`var __props={},__cache={},__meta=null,__in={},__out=[];
+var PropertiesService={getScriptProperties:function(){return {getProperty:function(k){return k in __props?__props[k]:null},setProperty:function(k,v){__props[k]=String(v)},deleteProperty:function(k){delete __props[k]},getProperties:function(){return Object.assign({},__props)}}}};
+var CacheService={getScriptCache:function(){return {get:function(k){var x=__cache[k];return x&&x.e>Date.now()?x.v:null},put:function(k,v,s){__cache[k]={v:v,e:Date.now()+(s||600)*1000}},remove:function(k){delete __cache[k]}}}};
+var Utilities={sleep:function(){},formatDate:function(d,tz,f){var p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(d).forEach(function(x){p[x.type]=x.value});
+  return f.replace("yyyy",p.year).replace("MM",p.month).replace("dd",p.day).replace("H",String(+p.hour)).replace("m",String(+p.minute));}};
+function __get(u,h){var x=new XMLHttpRequest();try{x.open("GET",u,false);for(var k in h||{})x.setRequestHeader(k,h[k]);x.send();}catch(e){return {getResponseCode:function(){return 0},getContentText:function(){return ""}};}
+  return {getResponseCode:function(){return x.status},getContentText:function(){return x.responseText}};}
+var UrlFetchApp={fetch:function(u,o){return __get(u,o&&o.headers)},fetchAll:function(rs){return rs.map(function(r){return __get(r.url,r.headers)})}};
+var LockService={getScriptLock:function(){return {waitLock:function(){},releaseLock:function(){}}}};
+var SpreadsheetApp={},ContentService={},ScriptApp={},DriveApp={},Logger={log:function(){}};
+`;
+const FEED_TAIL=`
+getDoc_=function(c,id){return __in[c+"/"+id]||null};
+getCol_=function(){return {}};
+putDoc_=function(c,id,v){__out.push({c:c,i:id,v:v});return true};
+meta_=function(){return __meta};
+saveMeta_=function(m){__meta=m};
+onmessage=function(e){var d=e.data;__in=d.docs;__out=[];
+  if(!__meta)__meta={days:{},tips:{}};
+  for(var sp in d.days){var a=__meta.days[sp]||(__meta.days[sp]={}),b=d.days[sp];if(b.final){a.final=true;a.finalAt=a.finalAt||b.finalAt;}if(b.hist)a.hist=true;}
+  var msg;try{msg=syncEspn_(d.full,d.maxDays||4);}catch(x){msg="failed: "+x;}
+  postMessage({id:d.id,msg:msg,out:__out,meta:__meta});};
+`;
+const FEED={w:null,busy:false,id:0,cb:{},meta:null,log:[]};
+function feedWorker(){
+  if(!FEED.w){FEED.w=new Worker(URL.createObjectURL(new Blob([FEED_SHIMS+FEED_SRC+FEED_TAIL],{type:"text/javascript"})));
+    FEED.w.onmessage=e=>{const f=FEED.cb[e.data.id];delete FEED.cb[e.data.id];f&&f(e.data);};}
+  return FEED.w;
+}
+const feedStrip=d=>{if(!d)return null;const {id,...v}=d;return v;};
+function feedRun(full,maxDays){return new Promise(res=>{const id=++FEED.id;FEED.cb[id]=res;
+  const docs={};if(L)docs["league/"+SEASON]=feedStrip(L);if(NBA)docs["nba/"+SEASON]=feedStrip(NBA);
+  const days={};Object.values(STATS||{}).forEach(s=>{if(s&&s.sp!=null)days[s.sp]={final:!!s.final,finalAt:s.at||0,hist:!!s.hist};});
+  feedWorker().postMessage({id,full,maxDays,docs,days});});}
+const feedSame=(a,b)=>{const x={...a},y={...b};delete x.at;delete y.at;delete x.id;delete y.id;return JSON.stringify(x)===JSON.stringify(y);};
+async function feedSave(out){let n=0;
+  for(const x of out){const cur=Store._d[x.c]?.[x.i]?.v;if(cur&&feedSame(cur,x.v))continue;
+    try{await Store.set(x.c,x.i,x.v);n++;}catch(e){}}
+  return n;}
+// the lease: only one device pulls at a time; a forced pull (commissioner's Refresh) takes it over
+async function feedLease(force){
+  const me=Store.uid,now=Date.now(),cur=await Store._call("get",{c:"refresh",i:"feed"}),v=cur.v||{};
+  if(!force&&v.holder&&v.holder!==me&&v.until>now)return null;
+  const nv={...v,holder:me,until:now+150e3};
+  try{await Store._call("set",{c:"refresh",i:"feed",v:nv,ifRev:cur.r||0});}catch(e){return null;}
+  return nv;
+}
+// the same game window as the backend: 1 hour before the first tip to 1 hour after the last final
+function feedInWindow(){const M=FEED.meta;if(!M)return true;const T=todaySp(),now=Date.now();
+  for(let sp=T-1;sp<=T;sp++){const t=M.tips[sp],d=M.days[sp]||{};if(!t||now<t[0]-3600e3)continue;if(!d.final||now<=(d.finalAt||0)+3600e3)return true;}
+  return false;}
+async function feedTick(force){
+  if(FEED.busy||Store.local||!Store.db||!SESSION||!L||(document.hidden&&!force))return null;
+  FEED.busy=true;
+  try{
+    const lease=await feedLease(force);if(!lease)return null;
+    const full=force||Date.now()-(lease.lastFull||0)>=59.5*60e3;
+    if(!full&&!feedInWindow())return null;
+    const r=await feedRun(full,8);FEED.meta=r.meta;
+    r.saved=await feedSave(r.out);FEED.log.push({at:Date.now(),full,msg:r.msg,saved:r.saved});if(FEED.log.length>30)FEED.log.shift();
+    if(full)await Store._call("update",{c:"refresh",i:"feed",v:{lastFull:Date.now(),msg:String(r.msg).slice(0,500)}}).catch(()=>{});
+    return r;
+  }catch(e){return null;}
+  finally{FEED.busy=false;}
+}
+setTimeout(()=>feedTick(),8000);setInterval(()=>feedTick(),60e3);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(()=>feedTick(),3000);});
+ERR.cloud="Data updates from ESPN automatically while the app is open: every minute during games, hourly otherwise.";
 async function refresh(){
   if(busy||!L)return;const btn=$("#refreshBtn");
   if(Store.local){showUpdated("Preview mode: no league server is set.",true);return;}
   busy=true;btn.disabled=true;
   try{
-    if(isCommish()){showUpdated("Pulling ESPN now…");const r=await Store._call("pull",{});await Store.poll();showUpdated();toast(/already running/.test(r.msg||"")?r.msg:"ESPN data refreshed.");}
-    else{showUpdated("Checking for updates…");await Store.poll();showUpdated();toast(ERR.cloud);}
+    showUpdated(isCommish()?"Pulling ESPN now…":"Checking for updates…");
+    let r=null;for(let k=0;k<20&&FEED.busy;k++)await new Promise(z=>setTimeout(z,500));
+    r=await feedTick(isCommish());await Store.poll();showUpdated();
+    toast(r&&isCommish()?(/failed/.test(r.msg)?"ESPN pull had a problem: "+r.msg.slice(0,120):"ESPN data refreshed."):ERR.cloud);
   }catch(e){showUpdated(e?.message||"Couldn't reach the league server.",true);}
   finally{busy=false;btn.disabled=false;}
 }

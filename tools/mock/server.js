@@ -1,5 +1,5 @@
 const http=require('http'),fs=require('fs'),path=require('path'),{makeEnv}=require('./gas');
-const st={};const G=makeEnv(st);const ROOT=path.join(__dirname,'../..');
+const st={};if(process.env.BLOCK)st.fakeFetch=()=>({getResponseCode:()=>403,getContentText:()=>''});const G=makeEnv(st);const ROOT=path.join(__dirname,'../..');
 if(process.env.SEED){const dump=require(process.env.SEED);const cm=dump.docs.find(d=>d.c==='badges'&&d.v.role==='commish').i;
   for(let i=0;i<dump.docs.length;i+=60)G.doPost({postData:{contents:JSON.stringify({op:'import',docs:dump.docs.slice(i,i+60),h:cm})}});}
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.json':'application/json','.png':'image/png','.webmanifest':'application/manifest+json'};
