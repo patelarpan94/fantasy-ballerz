@@ -93,7 +93,7 @@ def page(env):
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>{e['title']}</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="{e['assets']}icon-192.png">
@@ -103,6 +103,7 @@ def page(env):
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="{e['short']}">
 <meta name="theme-color" content="#17202c">
+<style>html{{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}}body{{margin:0;min-height:100vh;min-height:100dvh}}button,.key{{touch-action:manipulation}}@media (max-width:640px){{input,select,textarea{{font-size:16px!important}}}}</style>
 <script>window.DF_CONFIG={json.dumps({'backend': e['backend'], 'env': env, 'build': BUILD})};var DF_ASSETS={json.dumps(e['assets'])};</script>
 """
     return head + css + "\n" + r("shell.html") + "\n" + fcss + svg + "\n" + hp + "\n" + body
