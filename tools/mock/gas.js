@@ -22,6 +22,7 @@ function makeSheet(name) {
       if (r < 1 || c < 1 || r + nr - 1 > maxR || c + nc - 1 > maxC) throw new Error(`range out of bounds ${r},${c},${nr},${nc} max ${maxR}x${maxC}`);
       return {
         getValues() { const out = []; for (let i = 0; i < nr; i++) { const row = rows[r - 1 + i] || []; const o = []; for (let j = 0; j < nc; j++) { const v = row[c - 1 + j]; o.push(v == null ? '' : v); } out.push(o); } return out; },
+        clearContent() { for (let i = 0; i < nr; i++) { const row = rows[r - 1 + i]; if (row) for (let j = 0; j < nc; j++) row[c - 1 + j] = ''; } return this; },
         setValues(vals) {
           if (vals.length !== nr || vals.some(v => v.length !== nc)) throw new Error('setValues size mismatch');
           vals.forEach((v, i) => { const row = rows[r - 1 + i] || (rows[r - 1 + i] = []); v.forEach((x, j) => { row[c - 1 + j] = coerce(x); }); });

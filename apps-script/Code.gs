@@ -252,9 +252,12 @@ function import_(docs, who) {
 // "<this Sheet's name> backup.json.gz" in your Drive if the Sheet is empty,
 // starts the 1-minute timer and does a first full ESPN pull.
 function setup() {
-  if (!getDoc_('league', SEASON)) {
+  var sh = sheet_(), idx = index_(sh), hasPicks = idx.some(function (x) { return x.c === 'picks'; });
+  // an empty Sheet, or one with only the blank league the app makes when opened before setup
+  if (!hasPicks && idx.length < 20) {
     var name = SpreadsheetApp.getActiveSpreadsheet().getName() + ' backup.json.gz', it = DriveApp.getFilesByName(name);
     if (!it.hasNext()) throw new Error('Put "' + name + '" in your Google Drive first.');
+    if (idx.length) sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).clearContent();
     var blob = it.next().getBlob().setContentType('application/x-gzip');
     var data = JSON.parse(Utilities.ungzip(blob).getDataAsString());
     Logger.log('Imported ' + import_(data.docs, {setup: true}).n + ' league documents.');
