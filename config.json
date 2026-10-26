@@ -1,0 +1,4 @@
+{
+ "live": {"title": "Fantasy Ballerz", "short": "Ballerz", "backend": "", "assets": ""},
+ "uat": {"title": "Fantasy Ballerz UAT", "short": "Ballerz UAT", "backend": "", "assets": "../"}
+}
