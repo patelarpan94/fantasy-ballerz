@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}</style>
-<script>window.DF_CONFIG={"backend": "", "env": "live", "build": "20261026232419"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "", "env": "live", "build": "20261026232623"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -2156,7 +2156,7 @@ const Store={db:null,user:null,uid:null,local:false,canAdmin:true,url:"",
   _d:{},_rev:{},_w:[],_t:null,_busy:null,_dirty:false,
   async init(){
     this.url=(window.DF_CONFIG||{}).backend||"";
-    try{const k="dfBackend_"+((window.DF_CONFIG||{}).env||""),q=new URLSearchParams(location.search).get("backend");if(q)localStorage.setItem(k,q);if(!this.url)this.url=localStorage.getItem(k)||"";}catch(e){}
+    try{const k="dfBackend_"+((window.DF_CONFIG||{}).env||""),q=new URLSearchParams(location.search).get("backend");if(q)localStorage.setItem(k,q);this.url=q||this.url||localStorage.getItem(k)||"";}catch(e){}
     try{this.uid=localStorage.getItem("dfDevice");if(!this.uid){this.uid="dev_"+Math.random().toString(36).slice(2,12);localStorage.setItem("dfDevice",this.uid);}}catch(e){this.uid="dev";}
     if(!this.url){this.local=true;this.uid=this.uid||"local";return;}
     this.db={backend:this.url};
@@ -3222,7 +3222,7 @@ async function saveCodes(){
     const H={};for(const k of Object.keys(C))H[k]=await badgeHash(C[k]);
     await Store.set("secret","codes",{codes:C,hashes:H,at:Date.now()});
     for(const [k,h] of Object.entries(H)){const want={role:k==="commish"?"commish":"team",team:k==="commish"?null:k};const b=BADGES?.[bid(h)];
-      if(!b||b.role!==want.role||(b.team||null)!==want.team)await Store.set("badges",h,{...want,at:Date.now()});}
+      if(!b||b.role!==want.role||(b.team||null)!==want.team)await Store.set("badges",h,{...want,at:Date.now()});if(k==="commish"&&isCommish()&&SESSION.h!==h){BADGES={...BADGES,[bid(h)]:{role:"commish",team:null}};saveSession({...SESSION,h});}}
     // keep the commissioner logged in through a change of their own code
     if(isCommish()&&SESSION.h!==H.commish){BADGES={...BADGES,[bid(H.commish)]:{role:"commish",team:null}};saveSession({...SESSION,h:H.commish});}
     const keep=new Set(Object.values(H).map(bid));
@@ -6498,5 +6498,15 @@ async function checkVersion(){
 }
 setTimeout(checkVersion,1500);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersion();});
+
+/* a commissioner link ending #codes=<base64 json> fills in League › Settings › Access codes.
+   The codes travel only in the link (the part after # never reaches the server), never in the app's files. */
+(function(){
+  try{const m=location.hash.match(/codes=([^&]+)/);if(m){sessionStorage.setItem("dfCodes",atob(decodeURIComponent(m[1])));history.replaceState(null,"",location.pathname+location.search);}}catch(e){}
+  let C=null;try{C=JSON.parse(sessionStorage.getItem("dfCodes")||"null");}catch(e){}
+  if(!C)return;
+  const t=setInterval(()=>{if(!L||!isCommish())return;clearInterval(t);try{sessionStorage.removeItem("dfCodes");}catch(e){}
+    CODEF={...(SECRET?.codes||{}),...C};CODE_DIRTY=true;renderRosters();toast("Codes filled in. Open League › Settings and tap Save codes.");},1000);
+})();
 
 </script>

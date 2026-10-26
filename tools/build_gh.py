@@ -45,6 +45,9 @@ d = d[:i] + tail + "\n" + d[i:]
 c = r("c_views.js")
 c = sub(c, "const b=BADGES?.[h];\n", "const b=BADGES?.[bid(h)];\n", "codes badge")
 c = sub(c, "BADGES={...BADGES,[H.commish]:{role:\"commish\",team:null}}", "BADGES={...BADGES,[bid(H.commish)]:{role:\"commish\",team:null}}", "codes commish")
+# switch the commissioner's session to a new code right after its badge is written, so the rest of the save still has rights
+c = sub(c, "await Store.set(\"badges\",h,{...want,at:Date.now()});}",
+        "await Store.set(\"badges\",h,{...want,at:Date.now()});if(k===\"commish\"&&isCommish()&&SESSION.h!==h){BADGES={...BADGES,[bid(h)]:{role:\"commish\",team:null}};saveSession({...SESSION,h});}}", "codes session")
 c = sub(c, "const keep=new Set(Object.values(H));", "const keep=new Set(Object.values(H).map(bid));", "codes keep")
 
 # past seasons' History files sit once at the site root, shared by Live and UAT

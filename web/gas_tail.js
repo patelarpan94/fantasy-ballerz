@@ -111,3 +111,13 @@ async function checkVersion(){
 }
 setTimeout(checkVersion,1500);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersion();});
+
+/* a commissioner link ending #codes=<base64 json> fills in League › Settings › Access codes.
+   The codes travel only in the link (the part after # never reaches the server), never in the app's files. */
+(function(){
+  try{const m=location.hash.match(/codes=([^&]+)/);if(m){sessionStorage.setItem("dfCodes",atob(decodeURIComponent(m[1])));history.replaceState(null,"",location.pathname+location.search);}}catch(e){}
+  let C=null;try{C=JSON.parse(sessionStorage.getItem("dfCodes")||"null");}catch(e){}
+  if(!C)return;
+  const t=setInterval(()=>{if(!L||!isCommish())return;clearInterval(t);try{sessionStorage.removeItem("dfCodes");}catch(e){}
+    CODEF={...(SECRET?.codes||{}),...C};CODE_DIRTY=true;renderRosters();toast("Codes filled in. Open League › Settings and tap Save codes.");},1000);
+})();
