@@ -1,4 +1,14 @@
 {
- "live": {"title": "Fantasy Ballerz", "short": "Ballerz", "backend": "", "assets": ""},
- "uat": {"title": "Fantasy Ballerz UAT", "short": "Ballerz UAT", "backend": "", "assets": "../"}
+ "live": {
+  "title": "Fantasy Ballerz",
+  "short": "Ballerz",
+  "backend": "",
+  "assets": ""
+ },
+ "uat": {
+  "title": "Fantasy Ballerz UAT",
+  "short": "Ballerz UAT",
+  "backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec",
+  "assets": "../"
+ }
 }
