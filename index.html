@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
-<script>window.DF_CONFIG={"backend": "", "env": "live"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "", "env": "live", "build": "20261026230021"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -6489,5 +6489,13 @@ async function refresh(){
   }catch(e){showUpdated(e?.message||"Couldn't reach the league server.",true);}
   finally{busy=false;btn.disabled=false;}
 }
+
+// a new version on GitHub: reload when the app is opened or brought back, so nobody runs a stale copy
+async function checkVersion(){
+  try{const r=await fetch(`${DF_ASSETS}version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
+    if(j.v&&DF_CONFIG.build&&j.v!==DF_CONFIG.build&&!FEED.busy){const u=new URL(location.href);u.searchParams.set("v",j.v);location.replace(u.toString());}}catch(e){}
+}
+setTimeout(checkVersion,1500);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersion();});
 
 </script>

@@ -103,3 +103,11 @@ async function refresh(){
   }catch(e){showUpdated(e?.message||"Couldn't reach the league server.",true);}
   finally{busy=false;btn.disabled=false;}
 }
+
+// a new version on GitHub: reload when the app is opened or brought back, so nobody runs a stale copy
+async function checkVersion(){
+  try{const r=await fetch(`${DF_ASSETS}version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
+    if(j.v&&DF_CONFIG.build&&j.v!==DF_CONFIG.build&&!FEED.busy){const u=new URL(location.href);u.searchParams.set("v",j.v);location.replace(u.toString());}}catch(e){}
+}
+setTimeout(checkVersion,1500);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersion();});

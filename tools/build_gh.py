@@ -7,13 +7,14 @@ artifact database) is swapped for web/store_gas.js (Google Apps Script backend),
 badges are looked up by sha256 of the code hash, and Refresh asks the backend.
 Backend addresses come from config.json.
 """
-import json, os, re, sys
+import json, os, re, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC, BASE = sys.argv[1], sys.argv[2]
 r = lambda f: open(os.path.join(SRC, f), encoding="utf-8").read()
 w = lambda f: open(os.path.join(ROOT, "web", f), encoding="utf-8").read()
 CFG = json.load(open(os.path.join(ROOT, "config.json")))
+BUILD = time.strftime("%Y%m%d%H%M%S")
 
 def sub(text, old, new, name, count=1):
     n = text.count(old)
@@ -102,7 +103,7 @@ def page(env):
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="{e['short']}">
 <meta name="theme-color" content="#17202c">
-<script>window.DF_CONFIG={json.dumps({'backend': e['backend'], 'env': env})};var DF_ASSETS={json.dumps(e['assets'])};</script>
+<script>window.DF_CONFIG={json.dumps({'backend': e['backend'], 'env': env, 'build': BUILD})};var DF_ASSETS={json.dumps(e['assets'])};</script>
 """
     return head + css + "\n" + r("shell.html") + "\n" + fcss + svg + "\n" + hp + "\n" + body
 
@@ -118,4 +119,5 @@ for env, path in (("live", ""), ("uat", "uat/")):
     os.makedirs(os.path.join(ROOT, path or "."), exist_ok=True)
     open(os.path.join(ROOT, path, "index.html"), "w", encoding="utf-8").write(page(env))
     open(os.path.join(ROOT, path, "manifest.webmanifest"), "w").write(manifest(env))
-print("built index.html and uat/index.html")
+json.dump({"v": BUILD}, open(os.path.join(ROOT, "version.json"), "w"))
+print("built index.html and uat/index.html", BUILD)
