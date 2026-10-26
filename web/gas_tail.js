@@ -78,14 +78,14 @@ async function feedTick(force){
   if(FEED.busy||Store.local||!Store.db||!SESSION||!L||(document.hidden&&!force))return null;
   FEED.busy=true;
   try{
-    const lease=await feedLease(force);if(!lease)return null;
+    const lease=await feedLease(force);if(!lease)return {msg:"Another phone is pulling ESPN right now.",saved:0};
     const full=force||Date.now()-(lease.lastFull||0)>=59.5*60e3;
     if(!full&&!feedInWindow())return null;
     const r=await feedRun(full,8);FEED.meta=r.meta;
     r.saved=await feedSave(r.out);FEED.log.push({at:Date.now(),full,msg:r.msg,saved:r.saved});if(FEED.log.length>30)FEED.log.shift();
     if(full)await Store._call("update",{c:"refresh",i:"feed",v:{lastFull:Date.now(),msg:String(r.msg).slice(0,500)}}).catch(()=>{});
     return r;
-  }catch(e){return null;}
+  }catch(e){const r={msg:"failed: "+(e?.message||e),saved:0};FEED.log.push({at:Date.now(),full:force,msg:r.msg,saved:0});return r;}
   finally{FEED.busy=false;}
 }
 setTimeout(()=>feedTick(),8000);setInterval(()=>feedTick(),60e3);
@@ -99,7 +99,7 @@ async function refresh(){
     showUpdated(isCommish()?"Pulling ESPN now…":"Checking for updates…");
     let r=null;for(let k=0;k<20&&FEED.busy;k++)await new Promise(z=>setTimeout(z,500));
     r=await feedTick(isCommish());await Store.poll();showUpdated();
-    toast(r&&isCommish()?(/failed/.test(r.msg)?"ESPN pull had a problem: "+r.msg.slice(0,120):"ESPN data refreshed."):ERR.cloud);
+    toast(r&&isCommish()?(/failed/.test(r.msg)?"ESPN pull had a problem: "+r.msg.slice(0,160):`ESPN data refreshed (${r.saved||0} updated). ${String(r.msg).replace(/^Full pull\. settings are set in the app; /,"").slice(0,120)}`):ERR.cloud);
   }catch(e){showUpdated(e?.message||"Couldn't reach the league server.",true);}
   finally{busy=false;btn.disabled=false;}
 }
