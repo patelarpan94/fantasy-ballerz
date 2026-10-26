@@ -12,7 +12,7 @@ The Indian Ballerz fantasy basketball app, as a free iPhone/Android home-screen 
 | The app | `index.html`, `uat/index.html` (GitHub Pages) | Everything you see. Built from the artifact source by `tools/build_gh.py`. |
 | League data | A Google Sheet per site (Drive folder "Fantasy Ballerz") | Rosters, lineups, trades, chat, waivers, stats. One row per document. |
 | Backend | `apps-script/Code.gs`, pasted into each Sheet's Extensions › Apps Script | Reads/writes the Sheet for the app, checks team codes, pulls ESPN. |
-| ESPN timer | Apps Script trigger, every minute | Box scores every minute from 1 h before the first tip to 1 h after the last final; injuries, news and ownership hourly. Stays under Google's free 90 min/day. |
+| ESPN feed | In the app (`web/gas_tail.js`), runs `Code.gs`'s pull in a background worker | ESPN's box-score feed refuses Google's servers but allows browsers, so one open device at a time (2.5-min lease in `refresh/feed`) pulls: every minute from 1 h before the first tip to 1 h after the last final, full pull (injuries, news, ownership) hourly. The Apps Script timer still tries hourly and handles ESPN fantasy data, which Google can reach. |
 | History | `hist/` | Past seasons' box scores and shots (static files shared by Live and UAT). |
 
 Team codes, chat and league data live only in the private Sheets, never in this repo.
