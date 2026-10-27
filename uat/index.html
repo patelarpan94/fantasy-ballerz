@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027024017"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027024127"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4107,8 +4107,7 @@ document.addEventListener("click",e=>{
    ============================================================================ */
 const RELEASES=[
   {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[
-    ["142","Change","Home-screen app: the app now runs under the iPhone status bar, like other apps, instead of leaving a black band around it."],
-    ["143","New","Folded iPhone Duo: the tab bar becomes a column of icons in the right-hand strip under the clock, like Instagram, so the page gets the full height."]]},
+    ["142","Change","Home-screen app: the app now runs under the iPhone status bar, like other apps, instead of leaving a black band around it."]]},
   {v:"2.1",date:"2026-10-27",title:"Table headers fix",notes:[
     ["141","Fix","Column headers (Player, Slot, GP…) no longer slide down over the first rows of a table, like Luka's row on My Team or the top teams in Projected category ranks."]]},
   {v:"2.0",date:"2026-10-26",title:"Go live: the app runs the league",all:true,notes:[
@@ -6525,8 +6524,9 @@ new MutationObserver(()=>paintTop()).observe(document.documentElement,{attribute
 new MutationObserver(()=>paintTop()).observe(document.body,{attributes:true,attributeFilter:["class"]});
 paintTop();
 
-/* folded iPhone Duo: iOS puts the status bar in a strip down the right edge. Like Instagram,
-   the page runs under it and the tab bar becomes a column of icons below the clock.
+/* folded iPhone Duo: iOS puts the status bar in a strip down the right edge. If iOS ever lets a
+   web app reach into it (a right safe area), the tab bar becomes a column of icons there, like
+   Instagram. As of Oct 2026 home-screen web apps get a 373px window and no safe area, so this sleeps.
    --sr is the strip's width (the right safe area), measured here. */
 (function(){
   const st=document.createElement("style");st.textContent=`
@@ -6552,7 +6552,7 @@ html.siderail .chatdock:not([hidden]){right:var(--sr)!important;bottom:env(safe-
 
 /* ?debug=1 (until ?debug=0) shows what the device reports: screen size, safe areas, home-screen mode and the build */
 (function(){
-  let on=false;try{const q=new URLSearchParams(location.search).get("debug");if(q!==null)localStorage.setItem("dfDebug",q);on=localStorage.getItem("dfDebug")==="1"||(DF_CONFIG.env==="uat"&&localStorage.getItem("dfDebug")!=="0"&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches));}catch(e){}
+  let on=false;try{const q=new URLSearchParams(location.search).get("debug");if(q!==null)localStorage.setItem("dfDebug",q);on=localStorage.getItem("dfDebug")==="1";}catch(e){}
   if(!on)return;
   const pr=document.createElement("div");pr.style.cssText="position:fixed;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";document.documentElement.appendChild(pr);
   const box=document.createElement("div");box.style.cssText="position:fixed;left:8px;top:45%;z-index:99;background:#000c;color:#fff;font:12px/1.4 ui-monospace,monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:pre";document.documentElement.appendChild(box);
