@@ -80,15 +80,12 @@ oh = sub(r("o_hist.js"), "fetch(`hist/${s}.json`)", "fetch(`${DF_ASSETS}hist/${s
 ps = sub(r("p_shots.js"), "fetch(`hist/shots/${s}/${t}.json`)", "fetch(`${DF_ASSETS}hist/shots/${s}/${t}.json`)", "shots path")
 
 hp = r("help.html")
-hp = sub(hp, "<li><b>Refresh</b>: for the commissioner it starts a pull in Claude's cloud. New data shows on everyone's devices a few minutes later. After pressing it, wait about 10 minutes before pressing again.</li>",
-         "<li>Data updates on its own: every minute while NBA games are on (from an hour before the first tip to an hour after the last final) and every hour otherwise. The app checks for new data every 15 seconds while it's open.</li>", "help refresh")
-hp = sub(hp, "<li>For everyone else, new data appears on its own whenever the commissioner refreshes. In the Claude desktop app, Refresh can also read ESPN directly.</li>",
-         "<li><b>Refresh</b> checks for new data right away. For the commissioner it also starts a full ESPN pull.</li>"
-         "<li>On iPhone, open the app in Safari, tap Share, then <b>Add to Home Screen</b> to get the app icon. On Android, use Chrome's menu, then <b>Add to Home screen</b>.</li>", "help others")
+hp = sub(hp, "<li id=\"hRefreshLi\"><b>Refresh</b>: for the commissioner it starts a pull in Claude's cloud. New data shows on everyone's devices a few minutes later. Everyone else gets new data on its own.</li>",
+         "<li id=\"hRefreshLi\">Data updates on its own while the app is open: every minute while NBA games are on, and every hour otherwise. <b>Refresh</b> checks right away, and for the commissioner it also starts a full ESPN pull.</li>", "help refresh")
 
 body = (a + r("b_board.js") + r("b2_tracker.js") + c + r("e_ui.js") + r("f_feat.js") + r("g_anim.js") + r("h_shots.js") + r("i_rel.js")
         + r("j_prefs.js") + r("n_colors.js") + r("k_waivers.js") + r("l_trades.js") + r("m_wow.js") + oh + ps + r("q_compare.js")
-        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + d)
+        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + d)
 
 # the touch layout for wider screens: copy every phone-width rule under body.fold (same as the artifact build)
 def fold(css):

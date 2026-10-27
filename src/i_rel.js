@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.3",date:"2026-10-27",title:"New Help",notes:[
+    ["143","Change","Help is rewritten around what you want to do: Start here, set my lineup, add and drop, trades, matchup, plus the Fun tab, Analytics and your app. It has a search box, and the Rules section reads League › Settings, so playoff teams, weeks, roster limits, pickups and waivers are always current."]]},
   {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[
     ["142","Change","Home-screen app: the app now runs under the iPhone status bar, like other apps, instead of leaving a black band around it."]]},
   {v:"2.1",date:"2026-10-27",title:"Table headers fix",notes:[
