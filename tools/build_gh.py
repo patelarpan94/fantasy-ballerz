@@ -151,4 +151,4 @@ open(os.path.join(ROOT, path, "manifest.webmanifest"), "w").write(manifest(env))
 json.dump({"v": BUILD, "release": RELEASE, "src": SRC_HASH}, open(os.path.join(ROOT, path, "version.json"), "w"))
 print(f"built {env}: {RELEASE} (build {BUILD}, source {SRC_HASH})")
 if env == "live":
-    print("tag:", RELEASE.replace(" - ", "-"))
+    print(f"commit as: Release {RELEASE}")
