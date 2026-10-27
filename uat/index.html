@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027025936"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027031331"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -2001,8 +2001,8 @@ const PRO={0:"FA",1:"ATL",2:"BOS",3:"NO",4:"CHI",5:"CLE",6:"DAL",7:"DEN",8:"DET"
 const CAL=[[1,1,6],[2,7,13],[3,14,20],[4,21,27],[5,28,34],[6,35,41],[7,42,48],[8,49,55],[9,56,62],[10,63,69],[11,70,76],[12,77,83],[13,84,90],[14,91,97],[15,98,104],[16,105,111],[17,112,118],[18,119,132],[19,133,139],[20,140,146],[21,147,153],[22,154,160]];
 const WEEKS=CAL,SEASON_END=160;
 const dateOf=sp=>new Date(2026,9,19+sp);
-function todaySp(){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"numeric",day:"numeric"}).formatToParts(new Date());const g=t=>+p.find(x=>x.type===t).value;
-  return Math.round((Date.UTC(g("year"),g("month")-1,g("day"))-Date.UTC(2026,9,19))/864e5);}catch(e){return Math.round((Date.now()-Date.UTC(2026,9,19,4))/864e5);}}
+function todaySp(ms){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"numeric",day:"numeric"}).formatToParts(new Date(ms??Date.now()));const g=t=>+p.find(x=>x.type===t).value;
+  return Math.round((Date.UTC(g("year"),g("month")-1,g("day"))-Date.UTC(2026,9,19))/864e5);}catch(e){return Math.round(((ms??Date.now())-Date.UTC(2026,9,19,4))/864e5);}}
 let TODAY=Math.max(1,Math.min(SEASON_END+1,todaySp()));
 
 // NBA schedule for the season: team -> "day.OPP.home.minutesET;..."
@@ -3469,13 +3469,17 @@ async function tradeAct(v){
 }
 // settle trades whose vote or 48 hours are done; any logged-in app does it, and repeats are harmless
 let settling=false;
+// the day the players move: the day after the vote ended, even when nobody had the app open right then,
+// but never onto a day where one of them has already played
+function tradeDay(t,byVote){if(byVote)return TODAY+1;const d=Math.max(TODAY,todaySp(t.reviewEnds)+1);
+  return d===TODAY&&[...t.give,...t.get].some(n=>lockedName(n,TODAY))?TODAY+1:d;}
 async function settleTrades(){
   if(settling||!L||!SESSION||WRITE_BLOCKED)return;settling=true;
   try{for(const t of TXS.filter(x=>isTrade(x)&&x.status==="review")){
     const y=tally(t),now=Date.now();let patch=null;
     if(y.veto>=y.need)patch={status:"vetoed",resolved:"vote",closedAt:now};
     else if(y.pass>=y.need||now>=t.reviewEnds){const ok=t.give.every(n=>ownerNow(n)===tnum(t.from))&&t.get.every(n=>ownerNow(n)===tnum(t.to));
-      patch=ok?{status:"accepted",eff:now,day:TODAY+1,resolved:y.pass>=y.need?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
+      patch=ok?{status:"accepted",eff:now,day:tradeDay(t,y.pass>=y.need),resolved:y.pass>=y.need?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
     if(patch){await Store.update("tx",t.id,patch);tradeChat(t,patch.status==="vetoed"?"vetoed":patch.status==="failed"?"failed":patch.resolved==="vote"?"passed":"time");}}}
   catch(e){}finally{settling=false;}
 }
@@ -4137,6 +4141,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.4",date:"2026-10-27",title:"Nothing waits for someone to open the app",notes:[
+    ["144","Fix","Waivers: an app left open now notices the claim time within a minute and runs the claims. A claim made on an out-of-date screen after waivers already ran is turned away with a note, instead of sitting stuck."],
+    ["145","Fix","Trades that pass on time move players the day after the 48-hour vote ends, even if nobody had the app open right then. Never onto a day where one of the players already played."]]},
   {v:"2.3",date:"2026-10-27",title:"New Help",notes:[
     ["143","Change","Help is rewritten around what you want to do: Start here, set my lineup, add and drop, trades, matchup, plus the Fun tab, Analytics and your app. It has a search box, and the Rules section reads League › Settings, so playoff teams, weeks, roster limits, pickups and waivers are always current."]]},
   {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[
@@ -4486,7 +4493,8 @@ function sheetClaim(n){const T=actTeam();if(!T)return;const c=wcfg(),full=roster
     <p class="flabel">${full?"Your roster is full. Drop one player if the claim wins:":"Drop a player if the claim wins (optional)"}</p>
     ${full?"":`<div class="picklist"><label><input type="radio" name="drop" value="" checked><span>Don't drop anyone</span></label></div>`}${rosterPick(T,"drop","radio",[],false)}
     <div class="sheetacts"><button class="btn ghost" data-sheet="close">Cancel</button><button class="btn good" data-wclaim="${esc(n)}">Put in claim</button></div>`);}
-async function saveClaim(n){const T=actTeam(),body=$("#sheetBody"),c=wcfg(),drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
+async function saveClaim(n){if(!WMAP[n]||WMAP[n]<=Date.now()){WMAP=waiverMap();sheet().close();queueRebuild();return toast(WMAP[n]?`${n}'s waiver time moved. Try again.`:`Waivers for ${n} just ran. The app is updating, so check Transactions or try adding him again.`);}
+  const T=actTeam(),body=$("#sheetBody"),c=wcfg(),drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
   if(rosterNow(T).length>=ROSTER_MAX&&!drop)return toast("Pick a player to drop first.");
   let bid=0;if(c.type==="faab"){bid=Math.round(+body.querySelector("#wBid").value||0);if(bid<(+c.minBid||0))return toast(`The minimum bid is $${c.minBid}.`);if(bid>faabLeft(T))return toast(`You only have $${faabLeft(T)} left.`);}
   try{for(const x of myClaims(T).filter(x=>x.add===n))await Store.update("claims",x.id,{status:"cancelled"});
@@ -4562,6 +4570,12 @@ document.addEventListener("click",async e=>{const t=e.target.closest("[data-wcla
    if(t.tagName==="SELECT"||t.type==="checkbox")renderRosters();return true;}return _si(t);};}
 // a new season keeps the waiver rules and stays app-owned
 {const _nl=newLeague;newLeague=function(s,prev){const o=_nl(s,prev);if(prev?.waivers)o.waivers={...prev.waivers};o.settingsFrom="app";return o;};}
+
+// an app left open across a claim time: once a minute, catch up waiver status and run any claims now due
+setInterval(()=>{if(!L||mirror()||document.hidden)return;const m=waiverMap(),now=Date.now();
+  const changed=Object.keys(m).length!==Object.keys(WMAP).length||Object.keys(m).some(k=>m[k]!==WMAP[k]);
+  if(changed||CLAIMS.some(c=>c.status==="pending"&&c.clearAt&&c.clearAt<=now))queueRebuild();},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L)queueRebuild();});
 
 /* ============================================================================
    TRADES IN CHAT + TRADE COMPARE (2026-10-22). Trade messages in chat render

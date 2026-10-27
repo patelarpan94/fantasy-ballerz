@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.4",date:"2026-10-27",title:"Nothing waits for someone to open the app",notes:[
+    ["144","Fix","Waivers: an app left open now notices the claim time within a minute and runs the claims. A claim made on an out-of-date screen after waivers already ran is turned away with a note, instead of sitting stuck."],
+    ["145","Fix","Trades that pass on time move players the day after the 48-hour vote ends, even if nobody had the app open right then. Never onto a day where one of the players already played."]]},
   {v:"2.3",date:"2026-10-27",title:"New Help",notes:[
     ["143","Change","Help is rewritten around what you want to do: Start here, set my lineup, add and drop, trades, matchup, plus the Fun tab, Analytics and your app. It has a search box, and the Rules section reads League › Settings, so playoff teams, weeks, roster limits, pickups and waivers are always current."]]},
   {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[

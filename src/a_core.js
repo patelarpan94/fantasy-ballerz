@@ -28,8 +28,8 @@ const PRO={0:"FA",1:"ATL",2:"BOS",3:"NO",4:"CHI",5:"CLE",6:"DAL",7:"DEN",8:"DET"
 const CAL=[[1,1,6],[2,7,13],[3,14,20],[4,21,27],[5,28,34],[6,35,41],[7,42,48],[8,49,55],[9,56,62],[10,63,69],[11,70,76],[12,77,83],[13,84,90],[14,91,97],[15,98,104],[16,105,111],[17,112,118],[18,119,132],[19,133,139],[20,140,146],[21,147,153],[22,154,160]];
 const WEEKS=CAL,SEASON_END=160;
 const dateOf=sp=>new Date(2026,9,19+sp);
-function todaySp(){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"numeric",day:"numeric"}).formatToParts(new Date());const g=t=>+p.find(x=>x.type===t).value;
-  return Math.round((Date.UTC(g("year"),g("month")-1,g("day"))-Date.UTC(2026,9,19))/864e5);}catch(e){return Math.round((Date.now()-Date.UTC(2026,9,19,4))/864e5);}}
+function todaySp(ms){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"numeric",day:"numeric"}).formatToParts(new Date(ms??Date.now()));const g=t=>+p.find(x=>x.type===t).value;
+  return Math.round((Date.UTC(g("year"),g("month")-1,g("day"))-Date.UTC(2026,9,19))/864e5);}catch(e){return Math.round(((ms??Date.now())-Date.UTC(2026,9,19,4))/864e5);}}
 let TODAY=Math.max(1,Math.min(SEASON_END+1,todaySp()));
 
 // NBA schedule for the season: team -> "day.OPP.home.minutesET;..."

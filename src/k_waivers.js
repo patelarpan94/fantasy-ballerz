@@ -43,7 +43,8 @@ function sheetClaim(n){const T=actTeam();if(!T)return;const c=wcfg(),full=roster
     <p class="flabel">${full?"Your roster is full. Drop one player if the claim wins:":"Drop a player if the claim wins (optional)"}</p>
     ${full?"":`<div class="picklist"><label><input type="radio" name="drop" value="" checked><span>Don't drop anyone</span></label></div>`}${rosterPick(T,"drop","radio",[],false)}
     <div class="sheetacts"><button class="btn ghost" data-sheet="close">Cancel</button><button class="btn good" data-wclaim="${esc(n)}">Put in claim</button></div>`);}
-async function saveClaim(n){const T=actTeam(),body=$("#sheetBody"),c=wcfg(),drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
+async function saveClaim(n){if(!WMAP[n]||WMAP[n]<=Date.now()){WMAP=waiverMap();sheet().close();queueRebuild();return toast(WMAP[n]?`${n}'s waiver time moved. Try again.`:`Waivers for ${n} just ran. The app is updating, so check Transactions or try adding him again.`);}
+  const T=actTeam(),body=$("#sheetBody"),c=wcfg(),drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
   if(rosterNow(T).length>=ROSTER_MAX&&!drop)return toast("Pick a player to drop first.");
   let bid=0;if(c.type==="faab"){bid=Math.round(+body.querySelector("#wBid").value||0);if(bid<(+c.minBid||0))return toast(`The minimum bid is $${c.minBid}.`);if(bid>faabLeft(T))return toast(`You only have $${faabLeft(T)} left.`);}
   try{for(const x of myClaims(T).filter(x=>x.add===n))await Store.update("claims",x.id,{status:"cancelled"});
@@ -119,3 +120,9 @@ document.addEventListener("click",async e=>{const t=e.target.closest("[data-wcla
    if(t.tagName==="SELECT"||t.type==="checkbox")renderRosters();return true;}return _si(t);};}
 // a new season keeps the waiver rules and stays app-owned
 {const _nl=newLeague;newLeague=function(s,prev){const o=_nl(s,prev);if(prev?.waivers)o.waivers={...prev.waivers};o.settingsFrom="app";return o;};}
+
+// an app left open across a claim time: once a minute, catch up waiver status and run any claims now due
+setInterval(()=>{if(!L||mirror()||document.hidden)return;const m=waiverMap(),now=Date.now();
+  const changed=Object.keys(m).length!==Object.keys(WMAP).length||Object.keys(m).some(k=>m[k]!==WMAP[k]);
+  if(changed||CLAIMS.some(c=>c.status==="pending"&&c.clearAt&&c.clearAt<=now))queueRebuild();},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L)queueRebuild();});

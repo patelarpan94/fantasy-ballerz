@@ -858,13 +858,17 @@ async function tradeAct(v){
 }
 // settle trades whose vote or 48 hours are done; any logged-in app does it, and repeats are harmless
 let settling=false;
+// the day the players move: the day after the vote ended, even when nobody had the app open right then,
+// but never onto a day where one of them has already played
+function tradeDay(t,byVote){if(byVote)return TODAY+1;const d=Math.max(TODAY,todaySp(t.reviewEnds)+1);
+  return d===TODAY&&[...t.give,...t.get].some(n=>lockedName(n,TODAY))?TODAY+1:d;}
 async function settleTrades(){
   if(settling||!L||!SESSION||WRITE_BLOCKED)return;settling=true;
   try{for(const t of TXS.filter(x=>isTrade(x)&&x.status==="review")){
     const y=tally(t),now=Date.now();let patch=null;
     if(y.veto>=y.need)patch={status:"vetoed",resolved:"vote",closedAt:now};
     else if(y.pass>=y.need||now>=t.reviewEnds){const ok=t.give.every(n=>ownerNow(n)===tnum(t.from))&&t.get.every(n=>ownerNow(n)===tnum(t.to));
-      patch=ok?{status:"accepted",eff:now,day:TODAY+1,resolved:y.pass>=y.need?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
+      patch=ok?{status:"accepted",eff:now,day:tradeDay(t,y.pass>=y.need),resolved:y.pass>=y.need?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
     if(patch){await Store.update("tx",t.id,patch);tradeChat(t,patch.status==="vetoed"?"vetoed":patch.status==="failed"?"failed":patch.resolved==="vote"?"passed":"time");}}}
   catch(e){}finally{settling=false;}
 }
