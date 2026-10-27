@@ -160,7 +160,7 @@ html.siderail .chatdock:not([hidden]){right:var(--sr)!important;bottom:env(safe-
 
 /* ?debug=1 (until ?debug=0) shows what the device reports: screen size, safe areas, home-screen mode and the build */
 (function(){
-  let on=false;try{const q=new URLSearchParams(location.search).get("debug");if(q!==null)localStorage.setItem("dfDebug",q);on=localStorage.getItem("dfDebug")==="1";}catch(e){}
+  let on=false;try{const q=new URLSearchParams(location.search).get("debug");if(q!==null)localStorage.setItem("dfDebug",q);on=localStorage.getItem("dfDebug")==="1"||(DF_CONFIG.env==="uat"&&localStorage.getItem("dfDebug")!=="0"&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches));}catch(e){}
   if(!on)return;
   const pr=document.createElement("div");pr.style.cssText="position:fixed;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";document.documentElement.appendChild(pr);
   const box=document.createElement("div");box.style.cssText="position:fixed;left:8px;top:45%;z-index:99;background:#000c;color:#fff;font:12px/1.4 ui-monospace,monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:pre";document.documentElement.appendChild(box);
