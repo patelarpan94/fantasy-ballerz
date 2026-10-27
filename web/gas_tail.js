@@ -157,3 +157,13 @@ html.siderail .chatdock:not([hidden]){right:var(--sr)!important;bottom:env(safe-
     document.documentElement.style.setProperty("--sr",sr+"px");}
   measure();addEventListener("resize",measure);addEventListener("orientationchange",()=>setTimeout(measure,300));
 })();
+
+/* ?debug=1 shows what the device reports: screen size, safe areas, home-screen mode and the build */
+(function(){
+  let on=false;try{const q=new URLSearchParams(location.search).get("debug");if(q!==null)sessionStorage.setItem("dfDebug",q);on=sessionStorage.getItem("dfDebug")==="1";}catch(e){}
+  if(!on)return;
+  const pr=document.createElement("div");pr.style.cssText="position:fixed;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";document.documentElement.appendChild(pr);
+  const box=document.createElement("div");box.style.cssText="position:fixed;left:8px;top:45%;z-index:99;background:#000c;color:#fff;font:12px/1.4 ui-monospace,monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:pre";document.documentElement.appendChild(box);
+  const show=()=>{const c=getComputedStyle(pr);box.textContent=[`build ${DF_CONFIG.build}`,`window ${innerWidth}x${innerHeight}  screen ${screen.width}x${screen.height}`,`safe T${c.paddingTop} R${c.paddingRight} B${c.paddingBottom} L${c.paddingLeft}`,`home-screen app: ${navigator.standalone===true||matchMedia("(display-mode: standalone)").matches}`,`rail: ${document.documentElement.classList.contains("siderail")}`].join("\n");};
+  show();addEventListener("resize",show);setInterval(show,2000);
+})();
