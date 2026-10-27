@@ -9,11 +9,11 @@
 <link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
-<style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027022147"};var DF_ASSETS="../";</script>
+<style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261027023554"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4106,6 +4106,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[
+    ["142","Change","Home-screen app: the app now runs under the iPhone status bar, like other apps, instead of leaving a black band around it."],
+    ["143","New","Folded iPhone Duo: the tab bar becomes a column of icons in the right-hand strip under the clock, like Instagram, so the page gets the full height."]]},
   {v:"2.1",date:"2026-10-27",title:"Table headers fix",notes:[
     ["141","Fix","Column headers (Player, Slot, GP…) no longer slide down over the first rows of a table, like Luka's row on My Team or the top teams in Projected category ranks."]]},
   {v:"2.0",date:"2026-10-26",title:"Go live: the app runs the league",all:true,notes:[
@@ -6509,6 +6512,42 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersi
   if(!C)return;
   const t=setInterval(()=>{if(!L||!isCommish())return;clearInterval(t);try{sessionStorage.removeItem("dfCodes");}catch(e){}
     CODEF={...(SECRET?.codes||{}),...C};CODE_DIRTY=true;renderRosters();toast("Codes filled in. Open League › Settings and tap Save codes.");},1000);
+})();
+
+/* the app draws under the iPhone status bar (black-translucent), wherever iOS puts it: on top,
+   or down the side of a folded Duo. The header and page already pad their content by the safe
+   areas; the strip above the sticky header gets the header's own colors, or the dark brand color
+   when the header is light, so the white status icons stay readable. */
+function paintTop(){const b=document.querySelector(".bar");if(!b)return;const cs=getComputedStyle(b);let bg=cs.backgroundImage;
+  if(!bg||bg==="none"){const m=cs.backgroundColor.match(/\d+(\.\d+)?/g)||[];const lum=m.length>=3?(0.299*m[0]+0.587*m[1]+0.114*m[2])/255:0;bg=lum>0.5?"#17202c":cs.backgroundColor;}
+  document.documentElement.style.setProperty("--topbg",bg);}
+new MutationObserver(()=>paintTop()).observe(document.documentElement,{attributes:true,attributeFilter:["class","style","data-theme"]});
+new MutationObserver(()=>paintTop()).observe(document.body,{attributes:true,attributeFilter:["class"]});
+paintTop();
+
+/* folded iPhone Duo: iOS puts the status bar in a strip down the right edge. Like Instagram,
+   the page runs under it and the tab bar becomes a column of icons below the clock.
+   --sr is the strip's width (the right safe area), measured here. */
+(function(){
+  const st=document.createElement("style");st.textContent=`
+html.siderail body{padding-bottom:0!important}
+html.siderail .navwrap{left:auto!important;right:0!important;bottom:auto!important;top:var(--railtop,250px)!important;width:var(--sr);padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html.siderail .mainnav{flex-direction:column!important;gap:4px!important;padding:6px 0!important;margin:0 auto;width:calc(var(--sr) - 14px);border-radius:999px;background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:0 6px 20px -8px rgba(0,0,0,.5)}
+html.nbat.siderail .mainnav{background:var(--nbag)!important}
+html.siderail .mainnav button{flex:0 0 auto!important;padding:6px 0!important;border-top:0!important;font-size:0!important;letter-spacing:0;border-radius:999px}
+html.siderail .mainnav button[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+html.siderail .mainnav button svg{width:22px;height:22px}
+html.siderail .mainnav .dot{top:4px;right:6px}
+html.siderail .chatfab{right:calc(var(--sr) + 12px)!important}
+html.siderail .chatdock:not([hidden]){right:var(--sr)!important;bottom:env(safe-area-inset-bottom,0px)!important}`;
+  document.head.appendChild(st);
+  const probe=document.createElement("div");probe.style.cssText="position:fixed;visibility:hidden;pointer-events:none;padding-right:env(safe-area-inset-right,0px);padding-top:env(safe-area-inset-top,0px)";
+  document.documentElement.appendChild(probe);
+  function measure(){const cs=getComputedStyle(probe);let sr=parseFloat(cs.paddingRight)||0;
+    try{const t=+localStorage.getItem("dfTestRail");if(t)sr=t;}catch(e){}
+    const on=sr>=40&&innerHeight>innerWidth;document.documentElement.classList.toggle("siderail",on);
+    document.documentElement.style.setProperty("--sr",sr+"px");}
+  measure();addEventListener("resize",measure);addEventListener("orientationchange",()=>setTimeout(measure,300));
 })();
 
 </script>

@@ -128,10 +128,10 @@ def page(env):
 <link rel="apple-touch-icon" href="{e['assets']}icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{e['short']}">
 <meta name="theme-color" content="#17202c">
-<style>html{{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}}body{{margin:0;min-height:100vh;min-height:100dvh}}button,.key{{touch-action:manipulation}}@media (max-width:640px){{input,select,textarea{{font-size:16px!important}}}}</style>
+<style>html{{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}}body{{margin:0;min-height:100vh;min-height:100dvh}}button,.key{{touch-action:manipulation}}@media (max-width:640px){{input,select,textarea{{font-size:16px!important}}}}body::before{{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}}</style>
 <script>window.DF_CONFIG={json.dumps({'backend': e['backend'], 'env': env, 'build': BUILD})};var DF_ASSETS={json.dumps(e['assets'])};</script>
 """
     return head + css + "\n" + r("shell.html") + "\n" + fcss + svg + "\n" + hp + "\n" + body

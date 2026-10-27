@@ -121,3 +121,39 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersi
   const t=setInterval(()=>{if(!L||!isCommish())return;clearInterval(t);try{sessionStorage.removeItem("dfCodes");}catch(e){}
     CODEF={...(SECRET?.codes||{}),...C};CODE_DIRTY=true;renderRosters();toast("Codes filled in. Open League › Settings and tap Save codes.");},1000);
 })();
+
+/* the app draws under the iPhone status bar (black-translucent), wherever iOS puts it: on top,
+   or down the side of a folded Duo. The header and page already pad their content by the safe
+   areas; the strip above the sticky header gets the header's own colors, or the dark brand color
+   when the header is light, so the white status icons stay readable. */
+function paintTop(){const b=document.querySelector(".bar");if(!b)return;const cs=getComputedStyle(b);let bg=cs.backgroundImage;
+  if(!bg||bg==="none"){const m=cs.backgroundColor.match(/\d+(\.\d+)?/g)||[];const lum=m.length>=3?(0.299*m[0]+0.587*m[1]+0.114*m[2])/255:0;bg=lum>0.5?"#17202c":cs.backgroundColor;}
+  document.documentElement.style.setProperty("--topbg",bg);}
+new MutationObserver(()=>paintTop()).observe(document.documentElement,{attributes:true,attributeFilter:["class","style","data-theme"]});
+new MutationObserver(()=>paintTop()).observe(document.body,{attributes:true,attributeFilter:["class"]});
+paintTop();
+
+/* folded iPhone Duo: iOS puts the status bar in a strip down the right edge. Like Instagram,
+   the page runs under it and the tab bar becomes a column of icons below the clock.
+   --sr is the strip's width (the right safe area), measured here. */
+(function(){
+  const st=document.createElement("style");st.textContent=`
+html.siderail body{padding-bottom:0!important}
+html.siderail .navwrap{left:auto!important;right:0!important;bottom:auto!important;top:var(--railtop,250px)!important;width:var(--sr);padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html.siderail .mainnav{flex-direction:column!important;gap:4px!important;padding:6px 0!important;margin:0 auto;width:calc(var(--sr) - 14px);border-radius:999px;background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:0 6px 20px -8px rgba(0,0,0,.5)}
+html.nbat.siderail .mainnav{background:var(--nbag)!important}
+html.siderail .mainnav button{flex:0 0 auto!important;padding:6px 0!important;border-top:0!important;font-size:0!important;letter-spacing:0;border-radius:999px}
+html.siderail .mainnav button[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+html.siderail .mainnav button svg{width:22px;height:22px}
+html.siderail .mainnav .dot{top:4px;right:6px}
+html.siderail .chatfab{right:calc(var(--sr) + 12px)!important}
+html.siderail .chatdock:not([hidden]){right:var(--sr)!important;bottom:env(safe-area-inset-bottom,0px)!important}`;
+  document.head.appendChild(st);
+  const probe=document.createElement("div");probe.style.cssText="position:fixed;visibility:hidden;pointer-events:none;padding-right:env(safe-area-inset-right,0px);padding-top:env(safe-area-inset-top,0px)";
+  document.documentElement.appendChild(probe);
+  function measure(){const cs=getComputedStyle(probe);let sr=parseFloat(cs.paddingRight)||0;
+    try{const t=+localStorage.getItem("dfTestRail");if(t)sr=t;}catch(e){}
+    const on=sr>=40&&innerHeight>innerWidth;document.documentElement.classList.toggle("siderail",on);
+    document.documentElement.style.setProperty("--sr",sr+"px");}
+  measure();addEventListener("resize",measure);addEventListener("orientationchange",()=>setTimeout(measure,300));
+})();

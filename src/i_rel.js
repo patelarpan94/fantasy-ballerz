@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.2",date:"2026-10-27",title:"iPhone app fills the screen",notes:[
+    ["142","Change","Home-screen app: the app now runs under the iPhone status bar, like other apps, instead of leaving a black band around it."],
+    ["143","New","Folded iPhone Duo: the tab bar becomes a column of icons in the right-hand strip under the clock, like Instagram, so the page gets the full height."]]},
   {v:"2.1",date:"2026-10-27",title:"Table headers fix",notes:[
     ["141","Fix","Column headers (Player, Slot, GP…) no longer slide down over the first rows of a table, like Luka's row on My Team or the top teams in Projected category ranks."]]},
   {v:"2.0",date:"2026-10-26",title:"Go live: the app runs the league",all:true,notes:[
