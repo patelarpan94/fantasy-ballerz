@@ -1,20 +1,45 @@
-"""Build the GitHub Pages app from the artifact source.
+"""Build the GitHub Pages app from src/ (the app's source, shared with the artifact).
 
-python3 tools/build_gh.py <artifact src dir> <baseline-week-board.html>
+    python3 tools/build_gh.py uat     build uat/ only; Live is untouched
+    python3 tools/build_gh.py live    promote: build the root (Live) site from the same
+                                      source UAT was last built from, or stop if it differs
 
-Writes index.html (Live) and uat/index.html (UAT). The artifact's Store (Claude
-artifact database) is swapped for web/store_gas.js (Google Apps Script backend),
-badges are looked up by sha256 of the code hash, and Refresh asks the backend.
-Backend addresses come from config.json.
+The artifact's Store (Claude artifact database) is swapped for web/store_gas.js
+(Google Apps Script backend), badges are looked up by sha256 of the code hash,
+and Refresh asks the backend. Backend addresses come from config.json.
+Each site gets its own version.json, so a UAT build never reloads Live phones.
 """
-import json, os, re, sys, time
+import hashlib, json, os, re, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC, BASE = sys.argv[1], sys.argv[2]
+if len(sys.argv) != 2 or sys.argv[1] not in ("uat", "live"):
+    sys.exit(__doc__)
+TARGET = sys.argv[1]
+SRC, BASE = os.path.join(ROOT, "src"), os.path.join(ROOT, "src", "baseline-week-board.html")
 r = lambda f: open(os.path.join(SRC, f), encoding="utf-8").read()
 w = lambda f: open(os.path.join(ROOT, "web", f), encoding="utf-8").read()
 CFG = json.load(open(os.path.join(ROOT, "config.json")))
-BUILD = time.strftime("%Y%m%d%H%M%S")
+BUILD = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+
+# fingerprint of everything that shapes the page except the per-site config
+def src_hash():
+    h = hashlib.sha256()
+    for d in ("src", "web", "tools/build_gh.py", "apps-script/Code.gs"):
+        p = os.path.join(ROOT, d)
+        for f in sorted(os.listdir(p)) if os.path.isdir(p) else [""]:
+            h.update(f.encode()); h.update(open(os.path.join(p, f) if f else p, "rb").read())
+    return h.hexdigest()[:16]
+SRC_HASH = src_hash()
+
+# the release name from the newest release notes entry: FantasyBallerzMMDDYY - Version
+_rel = re.search(r'\{v:"([^"]+)",date:"(\d{4})-(\d\d)-(\d\d)"', r("i_rel.js"))
+RELEASE = f"FantasyBallerz{_rel.group(3)}{_rel.group(4)}{_rel.group(2)[2:]} - {_rel.group(1)}"
+
+if TARGET == "live":
+    try: uat = json.load(open(os.path.join(ROOT, "uat", "version.json")))
+    except Exception: uat = {}
+    if uat.get("src") != SRC_HASH:
+        sys.exit("Live not built: the source changed since the last UAT build. Build UAT, test it, then promote.")
 
 def sub(text, old, new, name, count=1):
     n = text.count(old)
@@ -119,9 +144,11 @@ def manifest(env):
                                  {"src": e["assets"] + "icon-512.png", "sizes": "512x512", "type": "image/png"},
                                  {"src": e["assets"] + "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}, indent=1)
 
-for env, path in (("live", ""), ("uat", "uat/")):
-    os.makedirs(os.path.join(ROOT, path or "."), exist_ok=True)
-    open(os.path.join(ROOT, path, "index.html"), "w", encoding="utf-8").write(page(env))
-    open(os.path.join(ROOT, path, "manifest.webmanifest"), "w").write(manifest(env))
-json.dump({"v": BUILD}, open(os.path.join(ROOT, "version.json"), "w"))
-print("built index.html and uat/index.html", BUILD)
+env, path = TARGET, ("" if TARGET == "live" else "uat/")
+os.makedirs(os.path.join(ROOT, path or "."), exist_ok=True)
+open(os.path.join(ROOT, path, "index.html"), "w", encoding="utf-8").write(page(env))
+open(os.path.join(ROOT, path, "manifest.webmanifest"), "w").write(manifest(env))
+json.dump({"v": BUILD, "release": RELEASE, "src": SRC_HASH}, open(os.path.join(ROOT, path, "version.json"), "w"))
+print(f"built {env}: {RELEASE} (build {BUILD}, source {SRC_HASH})")
+if env == "live":
+    print("tag:", RELEASE.replace(" - ", "-"))

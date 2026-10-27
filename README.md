@@ -25,10 +25,26 @@ Team codes, chat and league data live only in the private Sheets, never in this 
 
 When `Code.gs` changes: paste it again, then **Deploy › Manage deployments › Edit › Version: New version › Deploy** (keeps the same URL).
 
+## Releasing a change
+
+Every change goes through UAT first. Live only ever gets a build that was tested in UAT.
+
+1. **Change** the source in `src/` (the app, shared with the old artifact) or `web/` (the GitHub-only parts).
+2. **Release note**: add the change to the top of `RELEASES` in `src/i_rel.js`. A new release gets the name `FantasyBallerzMMDDYY - Version`, and every change gets the next `BUG - XXX` ID.
+3. **Build UAT**: `python3 tools/build_gh.py uat`, then commit and push. Only `/uat/` changes. Open phones reload to it within a minute.
+4. **Test** on the UAT link.
+5. **Promote to Live**: `python3 tools/build_gh.py live`. It refuses if anything in the source changed since the UAT build. Commit, push and tag it with the name it prints, e.g. `git tag FantasyBallerz102726-2.1 && git push origin FantasyBallerz102726-2.1`.
+
+**Roll back Live** to an earlier release: `git checkout <tag> -- index.html manifest.webmanifest version.json`, commit and push.
+
+**Backend changes** (`apps-script/Code.gs`) aren't deployed by a push. Paste the new code into the UAT Sheet's Apps Script and deploy a new version, test, then do the same for the Live Sheet.
+
+Each site has its own `version.json`, so a UAT build never reloads Live phones.
+
 ## Building
 
 ```
-python3 tools/build_gh.py <artifact src dir> <baseline-week-board.html>
+python3 tools/build_gh.py uat     # or: live
 ```
 
 Local test with an emulated Apps Script backend: `SEED=backup.json node tools/mock/server.js`, then open `http://localhost:8080/?backend=http://localhost:8080/exec`.

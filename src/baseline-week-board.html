@@ -1,0 +1,1095 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Indian Ballerz Week Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky pick bar → two-row box score → day strip → Schedule/Stats tabs → your roster, then opponent's → one-line footer */
+:root{
+  --bg:#f2f4f8; --surface:#ffffff; --ink:#17202c; --muted:#5b6677; --faint:#a3acb9; --line:#dce1e9;
+  --accent:#2356c4; --accent-wash:#e6edfb; --opp:#9a5b22; --opp-wash:#f6ece2;
+  --win:#1d8549; --win-wash:#e2f3e9; --loss:#c13838; --loss-wash:#f9e4e4; --warn:#a86d12; --warn-wash:#fbf0dc;
+  --past:#f7f8fb;
+  --s-me:#2356c4; --s-op:#9a5b22; --pg-bg:#e3ecfb; --pg-fg:#2350a8; --pf-bg:#e6f2e9; --pf-fg:#26703f; --pc-bg:#f3e8f6; --pc-fg:#7a3a8c;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e131a; --surface:#151c26; --ink:#e5eaf1; --muted:#929fb1; --faint:#4d596b; --line:#263142;
+  --accent:#7aa2ff; --accent-wash:#1b2740; --opp:#dc9e62; --opp-wash:#2e2418;
+  --win:#4fc283; --win-wash:#16301f; --loss:#f07070; --loss-wash:#3a1b1d; --warn:#e3ad4a; --warn-wash:#352814;
+  --past:#121821; --s-me:#5f8ae8; --s-op:#b87c40; --pg-bg:#1c2a45; --pg-fg:#9dbbff; --pf-bg:#183022; --pf-fg:#7fd3a0; --pc-bg:#2c1d33; --pc-fg:#d7a3e6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e131a; --surface:#151c26; --ink:#e5eaf1; --muted:#929fb1; --faint:#4d596b; --line:#263142;
+  --accent:#7aa2ff; --accent-wash:#1b2740; --opp:#dc9e62; --opp-wash:#2e2418;
+  --win:#4fc283; --win-wash:#16301f; --loss:#f07070; --loss-wash:#3a1b1d; --warn:#e3ad4a; --warn-wash:#352814;
+  --past:#121821; --s-me:#5f8ae8; --s-op:#b87c40; --pg-bg:#1c2a45; --pg-fg:#9dbbff; --pf-bg:#183022; --pf-fg:#7fd3a0; --pc-bg:#2c1d33; --pc-fg:#d7a3e6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;padding-block:0 32px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:.06em;margin:0}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* sticky bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:10px 10px;flex-wrap:wrap;padding-block:10px}
+.bar .eyebrow{margin-right:4px}
+select{font:inherit;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;max-width:100%}
+#teamPick{font-family:var(--f-display);font-size:1.15rem;color:var(--accent);padding:3px 10px}
+.weeknav{display:flex;align-items:center;gap:4px}
+.refresh{display:flex;align-items:center;gap:8px;margin-left:auto}
+.upd{font-size:.72rem;color:var(--muted);max-width:28ch;text-align:right}
+.upd.err{color:var(--loss)}
+.rbtn{all:unset;cursor:pointer;font-size:.82rem;font-weight:600;padding:6px 12px;border-radius:8px;background:var(--accent);color:var(--surface)}
+.rbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rbtn[disabled]{opacity:.5;cursor:default}
+.arrow{all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:1rem}
+.arrow:hover{color:var(--ink)} .arrow:focus-visible{outline:2px solid var(--accent)}
+.arrow[disabled]{opacity:.35;cursor:default}
+
+main.wrap{display:flex;flex-direction:column;gap:18px;padding-top:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.scroll{overflow-x:auto}
+
+/* box score */
+table{border-collapse:collapse;width:100%}
+.box th,.box td{padding:9px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+.box tr:last-child td{border-bottom:0}
+.box th{font-family:var(--f-display);font-size:.95rem;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.box th:first-child,.box td:first-child{text-align:left}
+.box td:first-child{font-family:var(--f-display);font-size:1.1rem;font-weight:600;min-width:150px}
+.box tr.me td:first-child{color:var(--accent)} .box tr.op td:first-child{color:var(--opp)}
+.box td.lead{color:var(--win);font-weight:600}
+.box{table-layout:fixed;min-width:820px}
+.box col.name{width:190px} .box col.rec{width:96px}
+.box td.lead{background:var(--win-wash)}
+.box th small{font-family:var(--f-body);letter-spacing:0;text-transform:none}
+.box small{display:block;font-size:.68rem;color:var(--muted);font-weight:400}
+.box th.gl,.box td.gl{border-left:1px solid var(--line)}
+.teamhead .up{color:var(--win);font-weight:600} .teamhead .down{color:var(--loss);font-weight:600}
+.box td.rec{font-family:var(--f-display);font-size:1.35rem;font-weight:700;border-left:1px solid var(--line)}
+.box th.rec{border-left:1px solid var(--line)}
+
+/* day strip */
+.days{display:grid;grid-template-columns:repeat(var(--cols,7),minmax(0,1fr));gap:6px}
+.day{all:unset;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.day:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.day.past{background:var(--past)} .day.past .dname{color:var(--muted)}
+.day.today{border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.day.sel{background:var(--accent-wash);border-color:var(--accent)}
+.dname{font-family:var(--f-display);font-weight:700;font-size:1rem}
+.dname span{font-weight:500;color:var(--muted);margin-left:4px}
+.dcount{font-size:.78rem;display:flex;gap:8px;white-space:nowrap}
+.dcount .me{color:var(--accent);font-weight:600} .dcount .op{color:var(--opp);font-weight:600}
+.dnote{font-size:.68rem;color:var(--warn);font-weight:600}
+@media (max-width:720px){.days{grid-template-columns:repeat(4,minmax(0,1fr))}.mo{display:none}.dcount{flex-direction:column;gap:0;font-size:.72rem}.box td:first-child{white-space:normal;line-height:1.15}.box col.name{width:120px}.box td:first-child{font-size:.95rem}}
+.rowhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.hint{font-size:.78rem;color:var(--muted)}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.tabs button{all:unset;cursor:pointer;padding:7px 16px;font-size:.85rem;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* roster sections */
+.team{display:flex;flex-direction:column}
+.teamhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.teamhead .tn{font-family:var(--f-display);font-size:1.3rem;font-weight:700}
+.team.me .tn{color:var(--accent)} .team.op .tn{color:var(--opp)}
+.teamhead .sum{font-size:.78rem;color:var(--muted)}
+.grid{table-layout:fixed}
+.grid col.pl{width:220px} .grid col.slot{width:64px} .grid col.left{width:60px}
+.grid th,.grid td{padding:7px 8px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.grid thead th{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.grid th.c,.grid td.c{text-align:center} .grid th.r,.grid td.r{text-align:right}
+.grid td.pl,.grid th.pl{position:sticky;left:0;background:var(--surface);z-index:1}
+.pname{font-weight:600;display:flex;align-items:center;min-width:0;white-space:nowrap}.pname .nm{overflow:hidden;text-overflow:ellipsis;min-width:0}.pname .st{flex:none} .pmeta{font-size:.72rem;color:var(--muted)}
+.pwho{display:flex;align-items:center;gap:9px;min-width:0}
+.pwho>div{min-width:0}
+.av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;letter-spacing:.02em;font-family:var(--f-body)}
+.av.g{background:var(--pg-bg);color:var(--pg-fg)} .av.f{background:var(--pf-bg);color:var(--pf-fg)} .av.c{background:var(--pc-bg);color:var(--pc-fg)}
+.av.out{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--loss)} .av.dtd{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--warn)}
+.slot{display:inline-block;min-width:34px;font-size:.66rem;font-weight:600;text-align:center;padding:2px 5px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.slot.bench{border-style:dashed} .slot.ir{color:var(--loss);border-color:var(--loss)}
+.st{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.st.dtd{background:var(--warn-wash);color:var(--warn)} .st.out{background:var(--loss-wash);color:var(--loss)}
+td.g{font-size:.76rem;text-align:left}
+td.g.past{background:var(--past)}
+td.g.sel{background:var(--accent-wash)}
+.gm{display:block;font-weight:600;white-space:nowrap}
+.gm .at{display:inline-block;width:1.7em;color:var(--muted);font-weight:500;font-size:.7rem}
+.gm .t{display:block;padding-left:1.7em;font-weight:400;color:var(--muted);font-size:.7rem}
+.none{padding-left:1px}
+.none{color:var(--faint)}
+.line{font-family:var(--f-mono);font-size:.72rem}
+.line i,.legendbar i{font-style:normal;color:var(--muted);font-size:.62rem;margin-left:1px}
+.legendbar{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.74rem;color:var(--muted);padding:2px 2px 0}
+.legendbar b{color:var(--ink);font-weight:600}
+.dnp{color:var(--loss);font-weight:600;font-size:.7rem}
+.benched{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.bn{font-size:.6rem;font-weight:700;color:var(--muted);border:1px dashed var(--line);border-radius:3px;padding:0 3px}
+tr.dim td{opacity:.3} tr.dim td.pl{opacity:.5}
+tr.grp td{background:var(--bg);padding:0;border-bottom:1px solid var(--line)}
+tr.grp td.pl{background:var(--bg)}
+.grpbtn{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;width:100%;box-sizing:border-box}
+.grpbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.grpbtn .chev{display:inline-block;transition:transform .15s}
+.grpbtn[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.grplabel{padding:6px 10px;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+tr.tot td{font-weight:600;background:var(--past);border-bottom:0}
+td.zero{color:var(--faint)}
+.sub{font-size:.66rem;color:var(--muted);display:block}
+.left{font-family:var(--f-display);font-size:1.05rem;font-weight:700}
+
+/* phone cards */
+.cards{display:none}
+@media (max-width:640px){
+  .scroll.grid-wrap{display:none}
+  .cards{display:flex;flex-direction:column}
+  .card{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+  .card.dim{opacity:.35}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .chips{display:grid;grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:4px}
+  .chip{border:1px solid var(--line);border-radius:6px;padding:3px 2px;text-align:center;font-size:.64rem;line-height:1.25;min-width:0;overflow:hidden}
+  .chip b{display:block;font-weight:600;color:var(--muted)}
+  .chip.past{background:var(--past)} .chip.sel{background:var(--accent-wash);border-color:var(--accent)}
+  .chip.has{font-weight:600}
+  .cstats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 8px;font-size:.72rem}
+  .cstats div{display:flex;flex-direction:column}
+  .cstats span{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .card-grp{padding:0;border-bottom:1px solid var(--line);background:var(--bg)}
+}
+footer{font-size:.75rem;color:var(--muted);padding-top:4px}
+footer code{font-family:var(--f-mono);font-size:.7rem}
+@media (prefers-reduced-motion:reduce){.grpbtn .chev{transition:none}}
+
+/* game log */
+.who{all:unset;cursor:pointer;display:block;width:100%;border-radius:6px}
+.who:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.who:hover .pname{color:var(--accent)}
+tr.logrow>td{background:var(--past);padding:0 8px 10px}
+tr.logrow td{position:static}
+.logwrap{overflow-x:auto;padding-top:6px}
+.logt{border-collapse:collapse;font-size:.74rem;width:auto;min-width:560px}
+.logt th{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:right;padding:4px 8px;border-bottom:1px solid var(--line)}
+.logt td{text-align:right;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.logt th:nth-child(-n+3),.logt td:nth-child(-n+3),.logt td[colspan]{text-align:left}
+.logt tr.up td,.muted{color:var(--muted)}
+.logt tr.bn-row td{color:var(--muted)}
+.card .logwrap{margin-top:2px}
+/* tracker */
+.legend{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.key{display:inline-block;width:14px;height:3px;border-radius:2px;margin-left:8px}
+.key.me{background:var(--s-me)} .key.op{background:var(--s-op)}
+.minis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 24px;padding:16px 18px 6px}
+@media (max-width:1100px){.minis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.minis{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.minis{gap:14px 16px;padding:12px}}
+.mini{margin:0;min-width:0}
+.mini figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.85rem;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.mini figcaption .vals{display:flex;align-items:center;gap:5px}
+.vk{display:inline-block;width:10px;height:2px;border-radius:1px;margin-left:6px}.vk.me{background:var(--s-me)}.vk.op{background:var(--s-op);height:0;border-top:2px dashed var(--s-op)}
+.mini figcaption .num{font-size:.74rem}
+.me-t{color:var(--ink);font-weight:600} .op-t{color:var(--muted)}
+.mini svg{width:100%;height:auto;display:block;overflow:visible}
+.gridl{stroke:var(--line);stroke-width:1;opacity:.6}
+.ax{fill:var(--muted);font-size:8px;font-family:var(--f-mono)}
+.ln.dash{stroke-dasharray:5 4;opacity:.85}
+.endv{font-size:9.5px;font-family:var(--f-mono);font-weight:600}.endv.me{fill:var(--ink)}.endv.op{fill:var(--muted)}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ln.me{stroke:var(--s-me)} .ln.op{stroke:var(--s-op)}
+.pt{stroke:var(--surface);stroke-width:2} .pt.me{fill:var(--s-me)} .pt.op{fill:var(--s-op)}
+.empty,.foot-note{margin:0;padding:14px;color:var(--muted);font-size:.8rem}
+.foot-note{padding-top:0}
+/* league */
+.lg tr.gap td{padding:3px;border-bottom:2px solid var(--line);background:var(--bg)}
+.lg tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tlink{all:unset;cursor:pointer;font-family:var(--f-display);font-size:1.02rem;font-weight:600;color:var(--ink);white-space:normal;line-height:1.15;display:block}
+.lg td:first-child{white-space:normal}
+.tlink:hover{color:var(--accent)} .tlink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lg td,.lg th{padding:7px 10px}
+/* nba grid */
+.nba col.pl{width:150px}
+.nba td.pl b{font-family:var(--f-display);font-size:1rem}
+.b2b{color:var(--warn);font-weight:700;font-size:.6rem;letter-spacing:.04em}
+
+.smode{margin-bottom:-4px}
+.tabs.sm button{padding:5px 12px;font-size:.78rem}
+.sl{color:var(--muted)}
+.live{color:var(--loss)!important;font-weight:700!important}
+.rkt td.rk{text-align:center;color:var(--muted)}
+.rkt td.top{background:var(--win-wash);color:var(--win);font-weight:700}
+.rkt td.low{background:var(--loss-wash);color:var(--loss)}
+.lg td.nm{text-align:left}
+.lg td small{display:inline;margin-left:4px;font-size:.62rem;color:var(--muted)}
+.lg tr.mine td{background:var(--accent-wash)}
+.txt{border-collapse:collapse;width:100%;font-size:.82rem}
+.txt td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.txt td:first-child{white-space:nowrap;width:150px}.txt td:nth-child(2){white-space:nowrap;width:100px;color:var(--muted)}
+.tx{font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.tx.add{color:var(--win)} .tx.drop{color:var(--loss)} .tx.trade{color:var(--accent)}
+.sortb{all:unset;cursor:pointer;font:inherit;text-transform:inherit;letter-spacing:inherit;color:inherit}
+.sortb.on{color:var(--ink)} .sortb:focus-visible{outline:2px solid var(--accent)}
+.fa td.pl{min-width:0}
+
+.searchwrap{position:relative;display:flex;align-items:center;flex:1 1 180px;max-width:280px}
+#q{width:100%;font:inherit;font-size:.85rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 30px 7px 10px}
+#q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#q::-webkit-search-cancel-button{display:none}
+.searchwrap[hidden]{display:none}
+.qx{all:unset;cursor:pointer;position:absolute;right:8px;color:var(--muted);font-size:.8rem;padding:2px}
+.qx:focus-visible{outline:2px solid var(--accent)}
+mark{background:var(--warn-wash);color:inherit;border-radius:2px;padding:0 1px;box-shadow:inset 0 -2px 0 var(--warn)}
+.hits{font-size:.7rem;color:var(--muted);margin-top:2px;white-space:normal}
+.rowhead .tabs{flex:0 1 auto}
+
+.swap{font-size:.9rem;flex:none}
+.teamnav{display:flex;align-items:center;gap:6px;min-width:0}
+#teamPick{max-width:240px;min-width:0}
+.weeknav select{min-width:0}
+@media (max-width:640px){.teamnav,.weeknav{width:100%}.teamnav select{flex:1;max-width:none}.weeknav select{flex:1}.refresh{margin-left:0;width:100%;justify-content:flex-start}.refresh .upd{margin-right:auto;text-align:left}}
+.todayb{all:unset;cursor:pointer;font-size:.78rem;font-weight:600;padding:5px 10px;border:1px solid var(--line);border-radius:8px;color:var(--accent);margin-left:4px}
+.todayb[disabled]{color:var(--muted);opacity:.5;cursor:default}
+.todayb:focus-visible,.compactb:focus-visible,.mini-b:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.upd::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--win);margin-right:6px;vertical-align:1px}
+.upd.stale::before{background:var(--warn)} .upd.stale{color:var(--warn)}
+.upd.old::before{background:var(--loss)} .upd.old{color:var(--loss)}
+.upd.err::before{display:none}
+.mini-b{all:unset;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--accent);margin-left:8px;padding:2px 6px;border-radius:6px}
+.mini-b:hover{background:var(--accent-wash)}
+.compactb{all:unset;cursor:pointer;font-size:.78rem;font-weight:600;padding:6px 10px;border:1px solid var(--line);border-radius:8px;color:var(--muted);display:none}
+.compactb[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+@media (max-width:640px){.compactb{display:inline-block}}
+th.todayh{color:var(--accent)!important}
+/* sticky headers when the table fits the screen */
+.scroll.fits{overflow:visible}
+.scroll.fits thead th{position:sticky;top:calc(var(--barh,56px) + env(safe-area-inset-top,0px));z-index:2;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
+.scroll.fits thead th.pl{z-index:3}
+.keys{display:block;margin-top:4px}
+@media (max-width:640px){.keys{display:none}}
+/* compact rows on phone */
+body.compact .card{padding:6px 12px;gap:4px}
+body.compact .card .av{width:24px;height:24px;font-size:.6rem}
+body.compact .card .pmeta{display:none}
+body.compact .chip{padding:1px 2px;font-size:.6rem}
+body.compact .cstats{gap:2px 6px;font-size:.68rem}
+body.compact .teamhead{padding:8px 12px}
+
+.trkbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px 0}
+.trkbar .rng{display:flex;align-items:center;gap:6px}
+.trkbar select{font-size:.8rem;padding:4px 6px}
+.avgl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-right:5px}
+
+
+td.pj,.cstats.pj{color:inherit}
+.pjt col.pl{width:200px}.pjt col.slot{width:56px}.pjt td,.pjt th{padding-left:4px;padding-right:8px}
+.pv{display:inline-flex;gap:6px;justify-content:flex-end;align-items:baseline;white-space:nowrap}
+.pv b{font-weight:600;color:var(--ink);min-width:4ch;text-align:right}
+.pv i,.pvh i,i.pvk{font-style:normal;color:var(--muted);font-size:.9em;min-width:4ch;text-align:right}
+.pvh{display:flex;gap:6px;justify-content:flex-end;font-size:.56rem;letter-spacing:.05em;margin-top:2px}
+.pvh b{font-weight:700;color:var(--ink);min-width:4ch;text-align:right}.pvh i{font-size:1em}
+b.pvk{font-weight:700;color:var(--ink)}
+.pvc .pv{justify-content:flex-start;gap:5px}.pvc .pv b,.pvc .pv i{min-width:0;text-align:left}
+.smode{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.apctl{margin-bottom:12px}
+.apown{font:inherit;font-size:.8rem;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:220px}
+.ap td.own{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.cmpb{all:unset;cursor:pointer;width:24px;height:24px;line-height:24px;text-align:center;border:1px solid var(--line);border-radius:6px;font-weight:700;color:var(--muted)}
+.cmpb.on{background:var(--win);border-color:var(--win);color:var(--surface)}
+.cmpb:focus-visible,.cmpx:focus-visible{outline:2px solid var(--accent)}
+tr.cmpon td,.grid tr.cmpon td.pl{background:color-mix(in srgb,var(--win) 8%,var(--surface))}
+.cmp{margin-bottom:12px}
+.cmpt{border-collapse:collapse;width:100%;min-width:420px}
+.cmpt th,.cmpt td{padding:7px 12px;border-bottom:1px solid var(--line)}
+.cmpt tbody th{text-align:left;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;width:130px}
+.cmpt thead th{text-align:left;vertical-align:top;min-width:150px}
+.cmph{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.cmpo{font-size:.72rem;color:var(--muted);font-weight:400;margin-top:2px;padding-left:2px}
+.cmpx{all:unset;cursor:pointer;color:var(--muted);font-size:.8rem;padding:2px 4px}
+.cmpt td.best{background:var(--win-wash);font-weight:700;color:var(--win)}
+.cmpt tr.tot th,.cmpt tr.tot td{font-weight:700;border-bottom:0}
+.cupi{width:15px;height:15px;vertical-align:-2px;flex:none}
+.awd{display:inline-flex;flex:none;cursor:help}.awd .cupi{margin-left:3px}.awd+.awd .cupi{margin-left:1px}
+#awTip{position:fixed;z-index:1000;max-width:240px;background:var(--ink);color:var(--surface);font-size:.74rem;font-weight:600;line-height:1.3;padding:6px 9px;border-radius:7px;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:normal}
+#awTip[hidden]{display:none}
+.hbtn{all:unset;cursor:pointer;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:.9rem;text-align:center;line-height:28px;flex:none}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}.hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+dialog.help{width:min(760px,calc(100vw - 24px));max-height:min(86vh,900px);padding:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+dialog.help[open]{display:flex;flex-direction:column}
+dialog.help::backdrop{background:rgba(15,20,28,.45)}
+.hhead{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px}
+.hhead h2{margin:0;font-family:var(--f-display);font-size:1.5rem;letter-spacing:.01em}
+.hx{all:unset;cursor:pointer;padding:4px 8px;border-radius:6px;color:var(--muted)}.hx:hover{color:var(--ink);background:var(--bg)}.hx:focus-visible{outline:2px solid var(--accent)}
+.htoc{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 12px;border-bottom:1px solid var(--line)}
+.htoc a{font-size:.76rem;font-weight:600;color:var(--accent);text-decoration:none;padding:3px 9px;border:1px solid var(--line);border-radius:999px}.htoc a:hover{background:var(--accent-wash)}
+.hbody{overflow:auto;padding:4px 20px 22px;font-size:.88rem;line-height:1.5}
+.hbody h3{font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:20px 0 6px}
+.hbody p{margin:0 0 8px}.hbody ul{margin:0;padding-left:18px}.hbody li{margin:3px 0}
+.hbody dl{margin:0}.hbody dt{font-weight:700;margin-top:10px}.hbody dd{margin:2px 0 0}
+.hterms{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}.hterms dt{margin:0;white-space:nowrap}.hterms dd{margin:0}
+.hbadges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px}.hbadges span{display:flex;align-items:center;gap:8px}.hbadges .cupi{width:20px;height:20px}
+kbd{font-family:var(--f-mono);font-size:.75rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--bg)}
+@media (max-width:640px){.hbadges{grid-template-columns:1fr}.hhead h2{font-size:1.25rem}dialog.help{max-height:90vh}}
+@media (max-width:640px){.cmpt tbody th{width:64px;padding:7px 8px}.cmpt thead th{min-width:128px;padding:8px}.cmpt td{padding:7px 8px}.cmpt .av{display:none}}
+.projtag{display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:1px 5px;margin-right:4px;font-style:normal}
+.fam{margin-right:8px;vertical-align:middle}
+
+.canst{display:inline-block;margin-left:4px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--win);background:var(--win-wash);border-radius:3px;padding:0 4px;vertical-align:1px}
+a.canst{text-decoration:none}a.canst:hover{text-decoration:underline}
+.elink{display:inline-block;margin-left:8px;font-size:.76rem;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;white-space:nowrap}.elink:hover{background:var(--accent-wash)}.elink:focus-visible{outline:2px solid var(--accent)}
+.gm .canst{display:block;width:max-content;margin:2px 0 0 1.7em}
+td.csd{box-shadow:inset 0 0 0 1px var(--win)}
+.chip.csd{border-color:var(--win)}
+.box td.bx{color:var(--win);font-weight:600}
+.bxs{color:var(--win);font-weight:600}
+</style>
+
+<div class="bar gut">
+  <div class="wrap">
+    <span class="eyebrow">Indian Ballerz 2026-27</span>
+    <div class="teamnav"><label class="sr" for="teamPick">Team</label><select id="teamPick"></select><button class="arrow swap" id="swapBtn" title="Switch to opponent" aria-label="Switch to opponent">⇄</button></div>
+    <div class="weeknav">
+      <button class="arrow" id="prevW" aria-label="Previous week">‹</button>
+      <label class="sr" for="weekPick">Week</label><select id="weekPick"></select>
+      <button class="arrow" id="nextW" aria-label="Next week">›</button>
+      <button class="todayb" id="todayBtn" title="Go to the current week (T)">Today</button>
+    </div>
+    <div class="refresh"><span id="updated" class="upd"></span><button id="refreshBtn" class="rbtn">Refresh</button><button id="helpBtn" class="hbtn" aria-label="Help: how this board works" title="How this board works">?</button></div>
+  </div>
+</div>
+
+<main class="wrap gut">
+  <section class="panel scroll" aria-label="Box score"><table class="box num" id="box"></table></section>
+
+  <section aria-label="Days">
+    <div class="rowhead"><h2 id="weekTitle">Matchup</h2><span class="hint">Starters with a game each day (bench, IR and OUT not counted). Tap a day to filter.</span></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <section>
+    <div class="rowhead">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tabSched" aria-selected="true">Schedule</button>
+        <button role="tab" id="tabStats" aria-selected="false">Stats</button>
+        <button role="tab" id="tabTrack" aria-selected="false">Tracker</button>
+        <button role="tab" id="tabLeague" aria-selected="false">League</button>
+        <button role="tab" id="tabNba" aria-selected="false">NBA schedule</button>
+        <button role="tab" id="tabAll" aria-selected="false">All players</button>
+      </div>
+      <div class="searchwrap" id="searchWrap"><input id="q" type="search" placeholder="Search players" autocomplete="off" aria-label="Search players"><button id="qClear" class="qx" aria-label="Clear search" hidden>✕</button></div><button class="compactb" id="compactBtn" aria-pressed="false">Compact</button><span class="hint" id="statHint"></span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px" id="rosters"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="sChamp" viewBox="0 0 24 24"><defs><linearGradient id="cupG1" x1="0" x2="1"><stop offset="0" stop-color="#f6d365"/><stop offset=".5" stop-color="#e2a516"/><stop offset="1" stop-color="#b9780b"/></linearGradient></defs>
+<path d="M6.5 4.5H4a2.5 2.5 0 0 0 0 5h2.2M17.5 4.5H20a2.5 2.5 0 0 1 0 5h-2.2" fill="none" stroke="#b9780b" stroke-width="1.4"/>
+<path d="M6 3h12v4.5a6 6 0 0 1-12 0z" fill="url(#cupG1)" stroke="#9a6408" stroke-width=".6"/>
+<path d="M10.6 13.2h2.8l.5 3.6h-3.8z" fill="#d4950f"/><rect x="7.5" y="16.6" width="9" height="2.2" rx=".6" fill="url(#cupG1)" stroke="#9a6408" stroke-width=".5"/><rect x="6.5" y="18.8" width="11" height="2.6" rx=".7" fill="#5a3b10"/>
+<path d="M12 4.6l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 6.7l2-.3z" fill="#fff6d6"/></symbol><symbol id="sCup" viewBox="0 0 24 24"><defs><linearGradient id="cupG2" x1="0" x2="1"><stop offset="0" stop-color="#eef2f6"/><stop offset=".5" stop-color="#aeb9c6"/><stop offset="1" stop-color="#7d8a99"/></linearGradient></defs>
+<path d="M5 3.5h14l-1.6 7.2a5.5 5.5 0 0 1-10.8 0z" fill="url(#cupG2)" stroke="#5f6b79" stroke-width=".6"/>
+<path d="M5.4 5.2h13.2" stroke="#2f9e5b" stroke-width="1.3"/>
+<path d="M11 15.4h2l.7 3h-3.4z" fill="#8c98a6"/><path d="M7.8 18.4h8.4l1 3H6.8z" fill="url(#cupG2)" stroke="#5f6b79" stroke-width=".5"/>
+<circle cx="12" cy="9.6" r="2.3" fill="#2f9e5b"/><path d="M12 8.3l.4.9 1 .1-.75.65.22.95-.87-.5-.87.5.22-.95-.75-.65 1-.1z" fill="#fff"/></symbol><symbol id="aMvp" viewBox="0 0 24 24"><path d="M12 1.8l3 6.2 6.8.9-5 4.7 1.3 6.7L12 17l-6.1 3.3 1.3-6.7-5-4.7L9 8z" fill="url(#cupG1)" stroke="#9a6408" stroke-width=".7" stroke-linejoin="round"/><path d="M12 6.5l1.4 2.9 3.1.4" fill="none" stroke="#fff6d6" stroke-width=".9" stroke-linecap="round"/></symbol><symbol id="aDpoy" viewBox="0 0 24 24"><path d="M12 2l8 3v6.2c0 5-3.4 8.9-8 10.8-4.6-1.9-8-5.8-8-10.8V5z" fill="#2350a8" stroke="#16357a" stroke-width=".7"/><path d="M12 4.3l5.8 2.2v4.8c0 3.7-2.4 6.6-5.8 8.2z" fill="#4f7fe0"/><path d="M8.6 11.6l2.4 2.4 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="aRoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#e2f3e9" stroke="#1d8549" stroke-width="1"/><path d="M12 19v-7" stroke="#1d8549" stroke-width="1.8" stroke-linecap="round"/><path d="M12 12.5c0-3.5-2.6-5.5-6-5.2.1 3.3 2.4 5.4 6 5.2z" fill="#2f9e5b"/><path d="M12 10.5c0-3.2 2.3-5 5.6-4.8-.1 3-2.2 4.9-5.6 4.8z" fill="#4fc283"/></symbol><symbol id="a6moy" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="6" fill="#e8742a" stroke="#b5521a" stroke-width=".8"/><text x="12" y="17.2" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="14" fill="#fff">6</text></symbol><symbol id="aMip" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#0f8f8a"/><path d="M5.5 15.5l4.2-4.2 2.8 2.8 5.5-5.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.3 8.4h3.8v3.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="aClutch" viewBox="0 0 24 24"><rect x="9.5" y="1.5" width="5" height="2.4" rx="1" fill="#c13838"/><path d="M17.6 5.6l1.6-1.5" stroke="#c13838" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="13.5" r="8.6" fill="#fff" stroke="#c13838" stroke-width="2"/><path d="M12 13.5V8.6" stroke="#17202c" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13.5l3 1.8" stroke="#c13838" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="13.5" r="1.2" fill="#17202c"/></symbol><symbol id="aMedal" viewBox="0 0 24 24"><path d="M7 1.5h4l2 7H9z" fill="#c13838"/><path d="M17 1.5h-4l-2 7h4z" fill="#2350a8"/><circle cx="12" cy="15" r="7" fill="url(#cupG1)" stroke="#9a6408" stroke-width=".7"/><circle cx="12" cy="15" r="4.6" fill="none" stroke="#fff6d6" stroke-width=".8"/><path d="M12 11.6l1 2.1 2.3.3-1.65 1.6.4 2.3-2.05-1.1-2.05 1.1.4-2.3-1.65-1.6 2.3-.3z" fill="#fff6d6"/></symbol><symbol id="aAsg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#5b3cc4"/><path d="M12 4.5l2 4.3 4.6.5-3.4 3.2.9 4.6L12 14.8l-4.1 2.3.9-4.6L5.4 9.3l4.6-.5z" fill="#fff"/><circle cx="18.6" cy="5" r="1.1" fill="#ffd66b"/><circle cx="5" cy="17.8" r=".9" fill="#ffd66b"/></symbol><symbol id="aCrown" viewBox="0 0 24 24"><path d="M3 8l4.2 3.6L12 4.5l4.8 7.1L21 8l-1.8 10.5H4.8z" fill="url(#cupG1)" stroke="#9a6408" stroke-width=".7" stroke-linejoin="round"/><rect x="4.8" y="18.5" width="14.4" height="2.4" rx=".8" fill="#9a6408"/><circle cx="12" cy="14" r="1.4" fill="#c13838"/></symbol><symbol id="aHustle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#ffd23f" stroke="#c99a00" stroke-width=".8"/><path d="M13.5 3.8L6.8 13.2h4.5l-1.1 7 6.9-9.6h-4.6z" fill="#17202c"/></symbol><symbol id="aSport" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#fbe3ec" stroke="#d6457a" stroke-width=".9"/><path d="M12 18.2s-5.8-3.6-5.8-7.7a3.2 3.2 0 0 1 5.8-1.9 3.2 3.2 0 0 1 5.8 1.9c0 4.1-5.8 7.7-5.8 7.7z" fill="#d6457a"/></symbol></svg>
+<dialog id="helpDlg" class="help" aria-labelledby="helpTitle">
+  <div class="hhead"><h2 id="helpTitle">How the week board works</h2><button class="hx" id="helpClose" aria-label="Close help">✕</button></div>
+  <nav class="htoc"><a href="#h-basics">Basics</a><a href="#h-matchup">Matchup &amp; days</a><a href="#h-tabs">Tabs</a><a href="#h-refresh">Refresh</a><a href="#h-badges">Badges</a><a href="#h-terms">Terms</a><a href="#h-keys">Shortcuts</a></nav>
+  <div class="hbody">
+  <section id="h-basics"><h3>Basics</h3>
+    <p>This board shows the Indian Ballerz ESPN fantasy basketball league one matchup week at a time. All stats are real ESPN numbers; projections are ESPN's own and are always labeled <span class="projtag">ESPN projection</span>.</p>
+    <ul>
+      <li><b>Team picker</b> (top left): choose any of the 10 teams. The board shows that team and its opponent for the week.</li>
+      <li><b>⇄ Swap</b>: flip to the opponent's view.</li>
+      <li><b>Week picker</b> with ‹ › arrows: move between the 19 matchups. <b>Today</b> jumps back to the current week.</li>
+      <li><b>Updated</b> shows when the data was last pulled from ESPN. The dot is green when it's fresh.</li>
+    </ul></section>
+  <section id="h-matchup"><h3>Matchup and days</h3>
+    <ul>
+      <li><b>Scoreboard</b>: both teams' category totals for the week. The team ahead in a category is shaded green. W-L-T is the category score.</li>
+      <li><b>Played / Left</b>: player games already played this week, and starter games still to come. Tonight's games move from Left to Played as soon as they go final.</li>
+      <li><b>Bench could start</b>: extra games you'd get by moving bench players into open starting spots, checking each player's eligible positions.</li>
+      <li><b>Day cards</b>: how many starters have a game each day for you and your opponent. Tap a day to filter everything to it; tap again to clear.</li>
+      <li>Counts use the lineup you saved in ESPN for each day, including future days. Bench, IR and OUT players aren't counted.</li>
+      <li><b>Set lineup ↗</b> (next to your team's name) opens ESPN's lineup page for the selected day, or today. Make your changes there, then come back and press Refresh. The opponent gets a <b>View in ESPN</b> link instead. A green <b>can start ↗</b> tag also opens that day's lineup.</li>
+    </ul></section>
+  <section id="h-tabs"><h3>Tabs</h3>
+    <dl>
+      <dt>Schedule</dt><dd>Each player's games this week by day. Played days show points/rebounds/assists; upcoming days show the opponent and tip-off time. <b>Left</b> is games left this week and <b>Season</b> is games left in the season. Tap a player for their game log.</dd>
+      <dt>Stats</dt><dd><b>This week</b> totals, <b>Season per game</b> averages, or <b>Projected</b>: ESPN's full-season projection in bold next to the actual season so far in gray. Switch projections between <b>Per game</b> and <b>Season totals</b>.</dd>
+      <dt>Tracker</dt><dd>Charts of each category. <b>This week</b> shows running totals against your opponent. <b>Over the season</b> shows week by week or day by day for any range of weeks, compared with the league average or each week's opponent.</dd>
+      <dt>League</dt><dd>Every matchup this week, category ranks across the league, standings, and adds, drops and trades from the last 7 days.</dd>
+      <dt>NBA schedule</dt><dd>All 30 NBA teams by day for the week, with how many of your and your opponent's players are on each team, games left, and back-to-backs.</dd>
+      <dt>All players</dt><dd>Every rostered player plus the top 75 free agents. Filter by Season or Projected, Per game or Totals, the <b>Free agents</b> chip, rank (Top 25–150), position and team. Tap a column to sort. Tap <b>+</b> on up to 4 players to compare them side by side; the best number in each category is green.</dd>
+    </dl>
+    <p>The search box filters and highlights player names on Schedule, Stats, NBA schedule and All players.</p></section>
+  <section id="h-refresh"><h3>Refresh</h3>
+    <ul>
+      <li><b>Refresh</b> pulls live data from ESPN through the Claude desktop app's browser. It only works for the owner, on the desktop app.</li>
+      <li>After a refresh, the new data is saved and everyone who opens the board (including on a phone) sees it.</li>
+      <li>A refresh updates the whole week's box scores and lineups, standings, live NBA scores, and the injuries, season stats and projections of the two teams on screen.</li>
+      <li>The board only reads from ESPN. It never changes lineups or settings.</li>
+    </ul></section>
+  <section id="h-badges"><h3>Badges</h3>
+    <p>Icons next to a name mark last season's honors. Hover over one (or tap it on a phone) to see what it means.</p>
+    <div class="hbadges">
+      <span><svg class="cupi"><use href="#sChamp"/></svg>2026 NBA champion</span>
+      <span><svg class="cupi"><use href="#sCup"/></svg>2025 NBA Cup champion</span>
+      <span><svg class="cupi"><use href="#aMvp"/></svg>MVP</span>
+      <span><svg class="cupi"><use href="#aDpoy"/></svg>Defensive Player of the Year</span>
+      <span><svg class="cupi"><use href="#aRoy"/></svg>Rookie of the Year</span>
+      <span><svg class="cupi"><use href="#a6moy"/></svg>Sixth Man of the Year</span>
+      <span><svg class="cupi"><use href="#aMip"/></svg>Most Improved Player</span>
+      <span><svg class="cupi"><use href="#aClutch"/></svg>Clutch Player of the Year</span>
+      <span><svg class="cupi"><use href="#aMedal"/></svg>Finals, Conference Finals or NBA Cup MVP</span>
+      <span><svg class="cupi"><use href="#aAsg"/></svg>All-Star Game MVP</span>
+      <span><svg class="cupi"><use href="#aCrown"/></svg>League leader in a stat</span>
+      <span><svg class="cupi"><use href="#aHustle"/></svg>Hustle Award</span>
+      <span><svg class="cupi"><use href="#aSport"/></svg>Sportsmanship Award</span>
+    </div></section>
+  <section id="h-terms"><h3>Terms</h3>
+    <dl class="hterms">
+      <dt><span class="bn">BE</span></dt><dd>Played while on the bench, so the stats didn't count.</dd>
+      <dt><span class="dnp">DNP</span></dt><dd>Had a game but didn't play.</dd>
+      <dt><span class="canst">can start</span></dt><dd>Bench player with a game and an open starting spot he's eligible for that day.</dd>
+      <dt>vs / @</dt><dd>Home / away game.</dd>
+      <dt>B2B</dt><dd>Back-to-back: the second of games on consecutive days. Stars sometimes rest.</dd>
+      <dt>DTD / OUT</dt><dd>ESPN injury status: day-to-day or out.</dd>
+      <dt>W</dt><dd>Free agent currently on waivers.</dd>
+      <dt>% Ros</dt><dd>Percent of all ESPN leagues that roster the player.</dd>
+      <dt>Rank</dt><dd>ESPN's season rank on Season; ESPN's preseason rank on Projected.</dd>
+      <dt>Proj / Act</dt><dd>ESPN's full-season projection / actual stats so far.</dd>
+    </dl></section>
+  <section id="h-keys"><h3>Keyboard shortcuts</h3>
+    <dl class="hterms">
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next week</dd>
+      <dt><kbd>T</kbd></dt><dd>Jump to the current week</dd>
+      <dt><kbd>S</kbd></dt><dd>Swap to the opponent</dd>
+      <dt><kbd>/</kbd></dt><dd>Search players</dd>
+      <dt><kbd>1</kbd>–<kbd>6</kbd></dt><dd>Switch tabs</dd>
+      <dt><kbd>?</kbd></dt><dd>Open this help</dd>
+    </dl></section>
+  </div>
+</dialog>
+
+<script>
+const K={PTS:0,BLK:1,STL:2,AST:3,REB:4,TPM:5,FGM:6,FGA:7,FTM:8,FTA:9,MIN:10};
+const CATS=[["FG%","pct",K.FGM,K.FGA],["FT%","pct",K.FTM,K.FTA],["3PM","cnt",K.TPM],["REB","cnt",K.REB],["AST","cnt",K.AST],["STL","cnt",K.STL],["BLK","cnt",K.BLK],["PTS","cnt",K.PTS]];
+const SLOT={0:"PG",1:"SG",2:"SF",3:"PF",4:"C",5:"G",6:"F",11:"UTIL",12:"BE",13:"IR"};
+const POS={1:"PG",2:"SG",3:"SF",4:"PF",5:"C"};
+let TODAY=2,UPDATED=Date.UTC(2026,9,21,14,25); // ESPN day number and time of the last pull
+const WEEKS=[[1,1,6],[2,7,13],[3,14,20],[4,21,27],[5,28,34],[6,35,41],[7,42,48],[8,49,55],[9,56,62],[10,63,69],[11,70,76],[12,77,83],[13,84,90],[14,91,97],[15,98,104],[16,105,111],[17,112,118],[18,119,132],[19,133,139]];
+const DATA={"teams":[{"id":1,"name":"Y So Many Jalens in the NBA?","P":[["CJ McCollum","ATL",2,0,"ACTIVE",{},{"1":11}],["Rudy Gobert","MIN",5,4,"ACTIVE",{},{"1":11}],["Josh Hart","NY",3,12,"ACTIVE",{"1":[14,1,1,3,7,2,5,10,2,3,30]},{"1":1}],["Jalen Brunson","NY",1,11,"ACTIVE",{"1":[21,0,0,3,5,1,6,19,8,8,34]},{"1":0}],["RJ Barrett","TOR",3,2,"ACTIVE",{},{"1":12}],["Zion Williamson","NO",4,6,"ACTIVE",{},{"1":11}],["Chet Holmgren","OKC",5,12,"ACTIVE",{"1":[14,4,0,2,7,0,3,8,8,8,31]},{"1":3}],["Jalen Duren","DET",5,11,"ACTIVE",{"1":[22,1,1,1,9,0,8,13,6,7,28]},{"1":4}],["Jalen Williams","OKC",4,11,"ACTIVE",{"1":[12,1,1,2,7,1,5,16,1,2,30]},{"1":2}],["Jalen Johnson","ATL",4,3,"ACTIVE",{},{"1":6}],["Stephon Castle","SA",1,12,"ACTIVE",{"1":[24,0,0,1,7,5,9,21,1,1,28]},{"1":5}],["Cedric Coward","MEM",3,1,"ACTIVE",{},{"1":12}],["Darius Acuff Jr.","SAC",1,5,"ACTIVE",{},{"1":12}]]},{"id":2,"name":"Anuj's Awesome Team","P":[["Kevin Durant","HOU",4,2,"ACTIVE",{},{"1":6}],["DeMar DeRozan","DEN",3,11,"ACTIVE",{},{"1":11}],["Tobias Harris","SA",4,12,"DAY_TO_DAY",{},{"1":3}],["Karl-Anthony Towns","NY",5,11,"ACTIVE",{"1":[19,2,1,1,12,3,6,9,4,7,24]},{"1":4}],["Domantas Sabonis","SAC",5,6,"ACTIVE",{},{"1":11}],["OG Anunoby","NY",3,12,"ACTIVE",{"1":[10,1,1,0,5,1,3,12,3,3,32]},{"1":2}],["Anfernee Simons","PHI",2,12,"ACTIVE",{},{}],["Coby White","CHA",1,11,"OUT",{},{"1":12}],["Darius Garland","LAC",1,11,"ACTIVE",{},{"1":0}],["Trey Murphy III","NO",3,5,"ACTIVE",{},{"1":5}],["Ryan Rollins","MIL",2,0,"ACTIVE",{},{"1":11}],["Anthony Edwards","MIN",2,1,"ACTIVE",{},{"1":1}],["Zach Edey","MEM",5,4,"ACTIVE",{},{"1":12}],["Ace Bailey","UTAH",3,3,"ACTIVE",{},{"1":12}]]},{"id":3,"name":"AK'","P":[["Damian Lillard","POR",1,11,"ACTIVE",{},{"1":11}],["Giannis Antetokounmpo","MIA",4,3,"ACTIVE",{},{"1":3}],["Jakob Poeltl","TOR",5,11,"ACTIVE",{},{"1":12}],["John Collins","DET",4,12,"ACTIVE",{"1":[6,1,1,1,5,0,3,7,0,0,25]},{"1":11}],["Austin Reaves","LAL",2,11,"ACTIVE",{},{"1":1}],["Nickeil Alexander-Walker","ATL",2,1,"ACTIVE",{},{"1":5}],["LaMelo Ball","MIN",1,0,"ACTIVE",{},{"1":0}],["Franz Wagner","ORL",3,2,"ACTIVE",{},{"1":11}],["Julian Champagnie","SA",3,6,"ACTIVE",{"1":[8,3,2,1,3,2,3,8,0,0,30]},{"1":6}],["Amen Thompson","HOU",3,5,"ACTIVE",{},{"1":2}],["Darryn Peterson","UTAH",2,12,"ACTIVE",{},{"1":12}],["Brayden Burries","MIL",2,12,"ACTIVE",{},{"1":12}],["AJ Dybantsa","WSH",3,13,"OUT",{},{"1":13}],["Alex Sarr","WSH",5,4,"ACTIVE",{},{"1":4}]]},{"id":4,"name":"Sid's Stellar Team","P":[["Nikola Jokic","DEN",5,11,"ACTIVE",{},{"1":11}],["Pascal Siakam","IND",4,3,"ACTIVE",{},{"1":3}],["Jaylen Brown","PHI",3,11,"ACTIVE",{"1":[19,1,1,6,8,2,7,14,3,4,35]},{"1":2}],["De'Aaron Fox","SA",1,5,"ACTIVE",{"1":[14,0,1,7,7,0,6,9,2,3,32]},{"1":0}],["Payton Pritchard","BOS",1,11,"ACTIVE",{"1":[17,0,0,1,4,2,4,9,7,8,28]},{"1":1}],["Isaiah Hartenstein","OKC",5,12,"ACTIVE",{"1":[4,1,1,3,3,0,2,4,0,0,17]},{"1":11}],["Neemias Queta","BOS",5,12,"ACTIVE",{"1":[3,2,1,2,4,0,1,3,1,2,22]},{"1":4}],["Walker Kessler","LAL",5,4,"ACTIVE",{},{"1":11}],["Peyton Watson","CLE",3,12,"ACTIVE",{},{"1":12}],["Josh Giddey","CHI",1,0,"ACTIVE",{},{"1":5}],["Cameron Boozer","MEM",4,6,"ACTIVE",{},{"1":12}],["Kon Knueppel","CHA",3,13,"OUT",{},{"1":6}],["Egor Demin","BKN",1,1,"ACTIVE",{},{}],["Yaxel Lendeborg","GS",3,2,"ACTIVE",{},{"1":12}]]},{"id":5,"name":"Satya's Smart Team","P":[["Kawhi Leonard","TOR",3,2,"ACTIVE",{},{"1":3}],["Devin Booker","PHX",1,11,"ACTIVE",{},{"1":1}],["Ty Jerome","MEM",2,5,"ACTIVE",{},{"1":5}],["Shai Gilgeous-Alexander","OKC",1,12,"ACTIVE",{"1":[32,3,3,4,6,3,13,27,3,4,36]},{"1":0}],["Collin Gillespie","PHX",1,11,"ACTIVE",{},{"1":12}],["Naz Reid","CHA",5,3,"ACTIVE",{},{"1":4}],["Ayo Dosunmu","MIN",2,0,"ACTIVE",{},{"1":12}],["Brandon Miller","CHA",3,1,"ACTIVE",{},{"1":6}],["Deni Avdija","POR",3,6,"DAY_TO_DAY",{},{"1":11}],["Ausar Thompson","DET",3,12,"ACTIVE",{"1":[11,0,1,5,11,0,4,8,3,3,33]},{"1":2}],["Brandin Podziemski","GS",2,11,"OUT",{},{"1":11}],["Donovan Clingan","POR",5,4,"ACTIVE",{},{"1":11}],["Khaman Maluach","PHX",5,12,"ACTIVE",{},{"1":12}]]},{"id":6,"name":"Cloud Team","P":[["Brook Lopez","LAC",5,11,"ACTIVE",{},{"1":12}],["Stephen Curry","GS",1,5,"DAY_TO_DAY",{},{"1":5}],["Jimmy Butler III","GS",3,13,"OUT",{},{"1":13}],["Kyrie Irving","DAL",1,0,"ACTIVE",{},{"1":11}],["Anthony Davis","WSH",5,3,"ACTIVE",{},{"1":4}],["Norman Powell","CHI",2,2,"ACTIVE",{},{"1":2}],["Joel Embiid","PHI",5,12,"ACTIVE",{"1":[13,3,2,6,11,2,4,15,3,4,33]},{"1":11}],["Aaron Gordon","DEN",4,12,"ACTIVE",{},{"1":12}],["Brandon Ingram","LAC",3,13,"OUT",{},{"1":13}],["Luka Doncic","LAL",1,11,"ACTIVE",{},{"1":0}],["Miles Bridges","PHX",3,6,"ACTIVE",{},{"1":6}],["Andrew Nembhard","IND",1,12,"ACTIVE",{},{"1":12}],["Jabari Smith Jr.","HOU",4,11,"ACTIVE",{},{"1":3}],["Dyson Daniels","ATL",2,1,"ACTIVE",{},{"1":1}],["Alperen Sengun","HOU",5,4,"ACTIVE",{},{"1":11}]]},{"id":7,"name":"KobeCrew","P":[["Nikola Vucevic","ORL",5,4,"ACTIVE",{},{"1":11}],["Derrick White","BOS",2,12,"ACTIVE",{"1":[17,0,1,8,1,3,7,13,0,0,36]},{"1":1}],["Dejounte Murray","NO",2,5,"ACTIVE",{},{"1":11}],["Tyler Herro","MIL",2,0,"ACTIVE",{},{"1":5}],["Tyrese Haliburton","IND",1,11,"ACTIVE",{},{"1":0}],["Kevin Porter Jr.","FA",2,12,"ACTIVE",{},{"1":12}],["Jaden McDaniels","MIN",3,6,"ACTIVE",{},{"1":11}],["Paolo Banchero","ORL",4,3,"ACTIVE",{},{"1":3}],["Scottie Barnes","TOR",3,1,"ACTIVE",{},{"1":2}],["Moussa Diabate","CHA",4,11,"ACTIVE",{},{"1":12}],["Jalen Green","PHX",2,11,"ACTIVE",{},{"1":12}],["Caleb Wilson","CHI",3,2,"ACTIVE",{},{"1":6}],["Victor Wembanyama","SA",5,12,"ACTIVE",{"1":[12,6,1,3,13,0,1,13,10,12,34]},{"1":4}]]},{"id":8,"name":"Raaj's Rowdy Team","P":[["LeBron James","PHI",3,12,"ACTIVE",{"1":[14,1,1,7,9,0,5,13,4,6,34]},{"1":3}],["Fred VanVleet","HOU",1,1,"ACTIVE",{},{"1":1}],["Andrew Wiggins","MIA",3,2,"ACTIVE",{},{"1":12}],["Julius Randle","BKN",4,3,"ACTIVE",{},{"1":11}],["Jamal Murray","DEN",1,5,"ACTIVE",{},{"1":5}],["Jayson Tatum","BOS",4,11,"ACTIVE",{"1":[13,0,0,11,4,0,6,23,1,1,38]},{"1":2}],["Jarrett Allen","CLE",5,11,"ACTIVE",{},{"1":11}],["Jaren Jackson Jr.","UTAH",5,6,"ACTIVE",{},{"1":11}],["Ja Morant","POR",1,0,"ACTIVE",{},{"1":12}],["Mitchell Robinson","BOS",5,12,"ACTIVE",{"1":[4,2,1,1,3,0,2,2,0,2,18]},{"1":4}],["Derik Queen","NO",5,4,"ACTIVE",{},{"1":12}],["Dylan Harper","SA",1,12,"ACTIVE",{"1":[18,0,0,5,7,0,7,17,4,4,32]},{"1":0}],["Cooper Flagg","DAL",3,11,"ACTIVE",{},{"1":6}]]},{"id":9,"name":"Cade and Em'","P":[["Paul George","BOS",3,12,"ACTIVE",{"1":[38,0,5,3,5,7,12,21,7,8,31]},{"1":2}],["Zach LaVine","SAC",2,11,"ACTIVE",{},{"1":12}],["Myles Turner","MIL",5,4,"ACTIVE",{},{"1":12}],["Ivica Zubac","IND",5,11,"ACTIVE",{},{"1":11}],["Bam Adebayo","MIA",5,3,"ACTIVE",{},{"1":3}],["Lauri Markkanen","UTAH",4,6,"ACTIVE",{},{"1":6}],["Trae Young","WSH",1,0,"ACTIVE",{},{"1":5}],["Michael Porter Jr.","BKN",3,2,"ACTIVE",{},{"1":11}],["Immanuel Quickley","TOR",1,1,"ACTIVE",{},{"1":12}],["Evan Mobley","CLE",4,12,"ACTIVE",{},{"1":4}],["Cade Cunningham","DET",1,11,"ACTIVE",{"1":[22,1,1,8,4,1,8,18,5,5,35]},{"1":0}],["Keyonte George","UTAH",1,5,"ACTIVE",{},{"1":11}],["Cason Wallace","OKC",2,12,"ACTIVE",{"1":[6,0,1,2,3,0,3,8,0,0,19]},{"1":1}]]},{"id":10,"name":"Harden Deez Nuts","P":[["Russell Westbrook","FA",1,12,"ACTIVE",{},{"1":12}],["James Harden","CLE",1,11,"ACTIVE",{},{"1":11}],["Kristaps Porzingis","GS",5,3,"OUT",{},{"1":12}],["Mikal Bridges","NY",3,12,"ACTIVE",{"1":[4,1,0,1,3,0,2,8,0,0,33]},{"1":2}],["Donovan Mitchell","CLE",2,5,"ACTIVE",{},{"1":5}],["Desmond Bane","ORL",2,1,"ACTIVE",{},{"1":6}],["Tyrese Maxey","PHI",1,11,"ACTIVE",{"1":[28,3,3,5,4,2,9,19,8,9,40]},{"1":0}],["Onyeka Okongwu","ATL",5,4,"ACTIVE",{},{"1":4}],["Keegan Murray","SAC",4,6,"ACTIVE",{},{"1":12}],["Reed Sheppard","HOU",2,0,"ACTIVE",{},{"1":11}],["Matas Buzelis","CHI",3,2,"ACTIVE",{},{"1":3}],["Kel'el Ware","MIL",5,11,"ACTIVE",{},{"1":11}],["VJ Edgecombe","PHI",2,12,"ACTIVE",{"1":[9,0,1,1,4,0,4,10,1,2,35]},{"1":1}]]}],"M1":[[10,5,[41,4,4,7,11,2,15,37,9,11],[43,3,4,9,17,3,17,35,6,7]],[3,7,[14,4,3,2,8,2,6,15,0,0],[29,6,2,11,14,3,8,26,10,12]],[1,9,[107,7,3,12,42,9,36,87,26,29],[66,1,7,13,12,8,23,47,12,13]],[2,8,[29,3,2,1,17,4,9,21,7,10],[49,3,2,24,23,0,20,55,9,13]],[6,4,[13,3,2,6,11,2,4,15,3,4],[57,4,4,19,26,4,20,39,13,17]]],"W":{"1":[[10,5],[3,7],[1,9],[2,8],[6,4]],"2":[[5,7],[9,10],[8,3],[4,1],[6,2]],"3":[[9,5],[7,8],[10,4],[3,6],[1,2]],"4":[[5,8],[4,9],[6,7],[2,10],[1,3]],"5":[[4,5],[8,6],[9,2],[7,1],[10,3]],"6":[[5,6],[2,4],[1,8],[3,9],[10,7]],"7":[[2,5],[6,1],[4,3],[8,10],[9,7]],"8":[[5,1],[3,2],[10,6],[7,4],[9,8]],"9":[[3,5],[1,10],[2,7],[6,9],[4,8]],"10":[[5,10],[7,3],[9,1],[8,2],[4,6]],"11":[[7,5],[10,9],[3,8],[1,4],[2,6]],"12":[[5,9],[8,7],[4,10],[6,3],[2,1]],"13":[[8,5],[9,4],[7,6],[10,2],[3,1]],"14":[[5,4],[6,8],[2,9],[1,7],[3,10]],"15":[[6,5],[4,2],[8,1],[9,3],[7,10]],"16":[[5,2],[1,6],[3,4],[10,8],[7,9]],"17":[[1,5],[2,3],[6,10],[4,7],[8,9]],"18":[[5,3],[10,1],[7,2],[9,6],[8,4]],"19":[[10,5],[3,7],[1,9],[2,8],[6,4]]},"S":{"IND":"2.NO.0.1200;4.DAL.1.1140;6.BKN.0.1080;7.MIL.0.1200;9.PHI.1.1140;11.MIA.0.1200;13.BKN.1.1020;14.ATL.1.1170;16.MEM.0.1200;19.DEN.1.1020;21.DAL.0.1200;23.WSH.1.1140;25.NY.1.1140;27.PHI.0.780;30.HOU.1.1140;32.CLE.0.1170;34.NY.0.1200;35.OKC.1.1170;39.PHI.1.1170;40.CHI.0.1200;43.CLE.0.1140;45.ATL.0.1140;55.DET.1.1020;58.GS.1.1140;59.POR.1.1140;62.LAC.0.1320;63.LAL.0.1320;65.PHX.0.1260;68.UTAH.0.1020;69.DEN.0.1200;71.LAC.1.1140;73.ORL.1.900;75.MIN.1.1140;77.CHI.1.1140;79.SA.0.1200;80.ATL.0.1140;82.MIL.1.1140;84.BKN.1.1140;86.MIL.1.1140;88.PHX.1.1140;90.WSH.0.780;92.PHI.0.1140;93.BOS.0.1170;95.DET.0.1170;99.CHI.1.1140;101.LAL.1.1140;103.WSH.1.1140;105.MIA.1.1170;107.ATL.1.1140;109.OKC.0.1290;112.NO.1.1140;114.CLE.1.1140;115.UTAH.1.1140;117.SAC.1.840;119.GS.0.1170;121.SAC.0.1320;122.POR.0.1320;130.MIN.0.1200;132.TOR.1.960;134.BOS.1.1140;136.ORL.0.1140;138.MIA.0.900","LAC":"2.SAC.1.1350;4.LAL.0.1320;6.OKC.0.1140;9.LAL.1.1350;11.MIN.0.1200;13.GS.0.1230;14.TOR.1.1320;16.MIA.1.1350;20.NO.1.1260;22.PHX.0.1260;25.OKC.1.1350;27.CHA.1.990;29.UTAH.1.1380;31.SA.0.1200;33.DAL.0.1200;35.HOU.0.1230;37.MEM.0.1200;39.NO.1.1290;41.GS.0.1230;43.PHX.0.1260;44.MIN.1.1350;55.SA.0.1140;58.CHA.0.1140;60.MIA.0.1140;62.IND.1.1320;63.DEN.1.1350;65.GS.1.1350;68.MEM.1.1350;69.PHI.1.1260;71.IND.0.1140;73.CLE.0.900;74.TOR.0.1170;76.WSH.0.1140;78.ORL.0.1140;80.MIL.0.1200;82.BOS.1.1350;84.LAL.1.1320;87.SAC.0.1320;88.ORL.1.1350;91.PHX.1.1350;93.UTAH.0.1260;95.WSH.1.1350;97.NY.0.1140;98.PHI.0.1140;100.BOS.0.1170;102.BKN.0.1170;106.SA.1.1350;107.GS.1.1350;109.DEN.0.1260;111.DAL.0.990;113.DET.1.1350;114.LAL.0.1320;116.MEM.0.1200;118.NO.0.840;120.HOU.1.1380;121.CHI.1.1350;129.UTAH.1.1350;132.POR.1.1350;134.POR.0.1380;136.BKN.1.1350;138.SAC.0.1320","LAL":"2.GS.1.1320;4.LAC.1.1320;6.UTAH.0.1020;8.POR.1.1380;9.LAC.0.1350;11.GS.0.1320;13.TOR.1.1260;14.MIA.1.1320;16.SAC.0.1320;18.POR.1.1320;20.DET.0.1080;21.ATL.0.1140;23.MIL.0.1200;27.PHX.0.960;29.CHA.1.1320;30.UTAH.1.1320;32.SAC.1.1320;35.UTAH.1.1320;39.SA.0.1290;41.MEM.0.960;42.HOU.0.1170;44.NO.0.1200;56.NO.1.1320;58.MIN.0.1290;60.MIN.0.1200;61.DEN.0.1260;63.IND.1.1320;65.DEN.1.1320;67.PHI.1.1020;69.MEM.1.1260;71.HOU.1.1350;73.NO.0.1200;75.CHI.0.1200;76.TOR.0.1140;78.WSH.0.1140;80.BOS.1.1320;81.DET.1.1320;84.LAC.0.1320;86.POR.0.1320;87.ORL.1.1320;90.MIL.1.1260;92.SAC.0.1320;94.GS.0.1320;95.SAC.1.1320;97.WSH.1.960;99.OKC.1.1380;101.IND.0.1140;103.NY.0.1230;104.CHA.0.1140;106.BOS.0.1200;108.BKN.0.1170;110.SA.0.1230;112.PHX.0.1290;114.LAC.1.1320;116.DEN.1.1350;120.CHI.1.1320;122.HOU.1.1320;130.DEN.0.1320;132.DAL.0.930;134.ORL.0.1140;136.PHI.0.1140;138.OKC.1.1230;139.BKN.1.1350","MIA":"2.MIN.1.1170;4.DET.1.1200;5.CHA.0.1080;7.DAL.1.1170;9.ATL.0.1140;11.IND.1.1200;14.LAL.0.1320;16.LAC.0.1350;17.GS.0.1320;20.SAC.0.1260;22.UTAH.0.1260;25.CLE.1.1200;26.DET.1.1200;28.HOU.1.1170;30.MIL.1.1140;34.OKC.1.1080;37.PHI.0.1020;39.NY.0.1140;41.CLE.0.1080;43.ATL.1.1170;45.WSH.1.1170;54.NY.1.1230;56.CHI.0.1200;58.MEM.0.1200;60.LAC.1.1140;62.SAC.1.1080;63.CHI.1.1170;65.CHI.1.1170;67.BOS.0.870;69.CHA.1.1080;71.DAL.0.1200;73.OKC.0.1200;75.NO.0.1140;78.MEM.1.1170;80.BKN.0.1170;81.PHI.0.1140;83.NO.1.1080;85.BKN.1.1170;87.NY.0.1170;88.TOR.0.1170;90.GS.1.1080;92.POR.1.1170;93.SA.0.1290;96.ATL.1.1200;98.BKN.0.1170;101.MIL.0.1290;103.PHI.1.750;105.IND.0.1170;106.CHA.1.1170;108.MIL.1.1170;110.MIN.0.900;112.ATL.0.1140;114.WSH.0.1140;116.ORL.0.1140;118.BKN.1.780;119.SA.1.1020;121.WSH.0.1140;129.DET.0.1140;132.HOU.0.1290;134.TOR.1.1170;135.TOR.1.1170;138.IND.1.900","MIL":"2.WSH.0.1140;4.CHI.1.960;5.PHI.0.1170;7.IND.1.1200;9.HOU.1.1200;12.CLE.1.1200;14.MIN.0.1200;16.BOS.0.1170;18.TOR.1.1200;20.BOS.1.1200;22.NY.0.1170;23.LAL.1.1200;25.ORL.0.1140;27.ATL.1.1200;30.MIA.0.1140;31.POR.1.1200;33.PHI.0.780;35.TOR.0.1170;37.BKN.1.1200;39.DET.0.1170;40.OKC.1.1200;42.SA.1.1200;44.NY.1.1200;54.MEM.0.1020;56.DAL.0.1200;58.HOU.0.1230;60.PHX.1.1200;62.GS.1.1200;63.SA.0.1200;65.MIN.1.1200;69.ORL.0.1080;71.OKC.0.1200;73.ATL.0.900;74.PHI.1.1200;76.CHA.1.1050;78.CHI.0.1200;80.LAC.1.1200;82.IND.0.1140;85.DEN.1.1200;86.IND.0.1140;88.CLE.1.1200;90.LAL.0.1260;93.SAC.0.1320;95.GS.0.1320;96.DEN.0.1260;99.UTAH.0.1260;101.MIA.1.1290;103.ATL.1.1200;105.MEM.1.1200;108.MIA.0.1170;110.TOR.0.1170;112.ORL.1.1200;113.SAC.1.1200;115.CHA.0.1140;117.WSH.0.1140;120.CLE.0.1140;121.CLE.0.1140;129.WSH.1.1200;132.NY.0.1170;134.DET.1.1200;135.UTAH.1.1200;137.NO.0.1200","MIN":"2.MIA.0.1170;4.ORL.0.1140;6.TOR.1.1140;7.CLE.0.1140;9.GS.1.1200;11.LAC.1.1200;12.SA.0.1200;14.MIL.1.1200;16.HOU.0.1230;18.NO.0.1200;20.UTAH.1.1140;24.DAL.1.1200;26.CHI.1.1200;28.POR.1.1200;29.POR.1.1200;31.NY.1.1200;33.MEM.1.1200;35.BKN.1.1170;37.OKC.0.1170;39.MEM.1.1230;41.SAC.0.1260;43.POR.0.1320;44.LAC.0.1350;54.PHX.0.1260;56.UTAH.0.1260;58.LAL.1.1290;60.LAL.1.1200;63.PHX.1.1200;65.MIL.0.1200;67.OKC.1.1200;69.GS.0.1230;70.DEN.0.1350;73.DEN.1.960;75.IND.0.1140;76.SA.1.1140;78.HOU.0.1200;80.TOR.0.1170;81.WSH.0.1140;84.CLE.1.1200;87.CHI.0.1200;89.PHI.0.750;91.NY.0.1020;93.HOU.1.1200;95.SA.0.1290;97.DET.0.1080;98.MEM.0.1200;100.DEN.1.1290;102.CHA.1.1290;104.PHX.1.1080;106.POR.0.1380;108.SAC.0.1320;110.MIA.1.900;111.UTAH.1.930;113.BKN.0.1170;116.BOS.0.1200;119.CHA.0.720;122.SA.1.1170;130.IND.1.1200;132.BOS.1.1140;134.OKC.0.1200;137.PHX.0.1260;139.DEN.0.930","BKN":"2.CHA.1.1170;5.CLE.0.1170;6.IND.1.1080;8.BOS.0.1170;11.DET.1.1170;13.IND.0.1020;14.NY.0.1170;16.CHA.1.1170;19.ATL.0.1170;20.DAL.0.1170;23.NO.0.1200;26.MEM.0.1200;28.PHI.1.1170;30.CHI.1.1170;32.ORL.1.1170;35.MIN.0.1170;37.MIL.0.1200;39.TOR.0.1170;40.CHA.0.1080;42.OKC.1.1170;44.OKC.0.1200;55.BOS.1.900;56.DET.0.1140;58.DAL.1.1170;60.ORL.1.1170;62.WSH.1.900;63.POR.1.1170;65.SA.1.1170;68.NO.1.1080;69.NY.0.1080;71.POR.0.1320;73.SAC.0.1080;75.GS.0.1230;77.UTAH.0.1260;79.UTAH.1.1170;80.MIA.1.1170;82.HOU.1.1080;84.IND.0.1140;85.MIA.0.1170;87.PHI.0.1140;89.BOS.0.1140;93.CHI.1.1140;94.CLE.1.1170;96.TOR.1.1080;98.MIA.1.1170;100.PHX.1.1170;102.LAC.1.1170;104.ORL.0.1080;105.NY.1.1170;108.LAL.1.1170;110.WSH.1.1080;112.PHI.0.1140;113.MIN.1.1170;116.WSH.0.1140;118.MIA.0.780;121.ATL.1.1170;129.PHI.1.1170;131.CHI.0.1200;133.DEN.0.1260;135.PHX.0.1260;136.LAC.0.1350;139.LAL.0.1350","NY":"1.PHI.1.1140;4.BOS.0.1140;6.ORL.1.1140;8.DET.1.1200;9.CHI.0.1200;11.PHI.0.1170;14.BKN.1.1170;16.CHI.1.1170;19.CLE.0.1200;22.MIL.1.1170;23.CLE.1.1140;25.IND.0.1140;27.TOR.0.1080;29.TOR.0.1170;31.MIN.0.1200;33.POR.1.1170;34.IND.1.1200;37.CLE.1.1170;39.MIA.1.1140;41.ATL.1.1080;43.CHI.0.1200;44.MIL.0.1200;54.MIA.0.1230;56.HOU.0.1230;58.NO.0.1200;60.WSH.0.1140;63.CLE.0.1140;65.UTAH.1.1170;67.SA.1.720;69.BKN.1.1080;72.UTAH.0.1260;73.PHX.0.1260;75.DEN.0.1020;77.POR.0.1320;79.GS.0.1320;81.SAC.0.1320;84.DEN.1.1170;86.BOS.0.1140;87.MIA.1.1170;89.DAL.1.1170;91.MIN.1.1020;93.TOR.1.1170;95.ATL.0.1140;97.LAC.1.1140;99.PHX.1.1170;101.ATL.1.1140;103.LAL.1.1230;105.BKN.0.1170;107.DET.0.1140;108.TOR.1.1170;111.OKC.0.1290;113.CHA.1.1170;115.PHI.0.1140;117.GS.1.1230;119.MEM.0.1200;121.DET.0.1140;129.OKC.1.1170;131.PHI.1.1230;132.MIL.1.1170;134.MEM.1.1170;136.DAL.0.1290;139.SA.0.1170","ORL":"2.ATL.1.1140;4.MIN.1.1140;6.NY.0.1140;9.TOR.0.1170;11.TOR.0.1170;13.BOS.1.930;14.WSH.1.1170;17.PHX.0.1260;19.GS.0.1230;22.SAC.0.1320;23.UTAH.0.1260;25.MIL.1.1140;28.BOS.0.1140;30.PHI.1.1140;32.BKN.0.1170;34.WSH.0.1140;36.DET.1.1140;40.WSH.0.1020;41.DET.0.1080;44.DAL.0.1200;54.PHI.0.1170;56.PHI.1.1140;58.CLE.1.1140;60.BKN.0.1170;61.ATL.0.1140;63.SAC.1.1140;65.CHA.1.1140;68.TOR.1.1140;69.MIL.1.1080;71.CHA.0.1140;73.IND.0.900;74.DET.0.1170;76.MEM.1.1080;78.LAC.1.1140;80.CLE.1.1140;81.NO.0.1200;83.OKC.1.1080;85.POR.0.1320;87.LAL.0.1320;88.LAC.0.1350;90.DEN.0.1200;92.GS.1.1140;95.POR.1.1140;97.HOU.1.1080;98.CHA.0.1140;101.CHI.1.1140;102.HOU.0.1230;104.BKN.1.1080;106.NO.1.1140;108.SA.0.1200;110.CLE.0.1170;112.MIL.0.1200;114.MEM.0.1200;116.MIA.1.1140;117.SA.1.1140;119.OKC.0.1200;121.DAL.1.1140;129.CHA.1.1140;132.ATL.1.990;134.LAL.1.1140;136.IND.1.1140;137.UTAH.1.1140","PHI":"1.NY.0.1140;3.CLE.1.1140;5.MIL.1.1170;6.DET.1.1170;9.IND.0.1140;11.NY.1.1170;12.CHA.0.1080;14.CHI.1.1170;16.DET.0.1140;18.CLE.0.1170;20.CHI.0.930;22.BOS.1.1200;24.TOR.1.1140;27.IND.1.780;28.BKN.0.1170;30.ORL.0.1140;33.MIL.1.780;35.POR.1.1140;37.MIA.1.1020;39.IND.0.1170;40.HOU.0.1230;43.MEM.1.1140;44.DEN.1.1140;54.ORL.1.1170;56.ORL.0.1140;59.DAL.1.1140;63.CHA.0.1140;65.HOU.1.1170;67.LAL.0.1020;69.LAC.0.1260;71.SAC.0.1320;72.PHX.0.1260;74.MIL.0.1200;77.ATL.1.1140;79.OKC.1.1170;81.MIA.1.1140;83.TOR.0.1080;85.WSH.1.1200;87.BKN.1.1140;89.MIN.1.750;91.ATL.0.870;92.IND.1.1140;94.BOS.0.1170;96.CHI.0.1020;98.LAC.1.1140;100.SAC.1.1140;101.NO.0.1200;103.MIA.0.750;105.NO.1.1140;107.MEM.0.1200;109.DET.1.1140;111.BOS.1.1140;112.BKN.1.1140;115.NY.1.1140;117.OKC.0.1050;119.DAL.0.870;121.PHX.1.1140;129.BKN.0.1170;131.NY.0.1230;133.CLE.0.1140;135.CHA.1.1140;136.LAL.1.1140;139.BOS.0.780","PHX":"2.POR.0.1320;5.GS.1.1320;7.OKC.0.1200;11.DEN.1.1320;14.GS.0.1320;16.POR.1.1260;17.ORL.1.1260;19.HOU.1.1260;21.SA.1.1260;22.LAC.1.1260;24.CHA.1.1260;27.LAL.1.960;28.DEN.0.1260;30.SAC.0.1320;32.UTAH.0.1290;35.NO.0.1200;37.HOU.0.1230;39.DAL.1.1260;41.UTAH.0.1020;43.LAC.1.1260;44.SAC.1.1260;54.MIN.1.1260;56.ATL.1.1260;58.DET.0.1140;60.MIL.0.1200;62.MEM.0.960;63.MIN.0.1200;65.IND.1.1260;68.DAL.0.1200;70.GS.1.1260;72.PHI.1.1260;73.NY.1.1260;75.SAC.1.1260;77.BOS.1.1260;78.DEN.0.1320;81.DAL.0.1290;83.CHI.1.1140;86.TOR.0.1170;88.IND.0.1140;91.LAC.0.1350;93.MEM.1.1260;95.UTAH.1.1260;97.UTAH.1.960;99.NY.0.1170;100.BKN.0.1170;102.BOS.0.1170;104.MIN.0.1080;107.CLE.1.1260;109.HOU.1.1260;110.SAC.0.1320;112.LAL.1.1290;114.DET.1.1260;116.ATL.0.1140;118.CLE.0.780;119.WSH.0.1140;121.PHI.0.1140;129.NO.0.1200;131.NO.1.1260;133.WSH.1.1290;135.BKN.1.1260;137.MIN.1.1260","POR":"2.PHX.1.1320;4.SAC.0.1320;8.LAL.0.1380;10.MEM.1.1320;12.UTAH.0.900;14.DEN.0.1260;16.PHX.0.1260;18.LAL.0.1320;19.SA.1.1320;22.OKC.1.1380;23.OKC.1.1320;25.SAC.0.1320;28.MIN.0.1200;29.MIN.0.1200;31.MIL.0.1200;33.NY.0.1170;35.PHI.0.1140;37.SA.1.1320;39.GS.1.1290;41.NO.1.1080;43.MIN.1.1320;45.UTAH.1.1320;54.ATL.1.1320;57.DEN.1.1380;59.IND.0.1140;61.CHA.0.1080;63.BKN.0.1170;65.BOS.0.1170;68.WSH.0.780;69.DET.0.1140;71.BKN.1.1320;75.BOS.1.1320;77.NY.1.1320;79.NO.0.1200;80.DAL.0.1200;82.CHA.1.1320;85.ORL.1.1320;86.LAL.1.1320;88.SAC.1.1320;90.OKC.0.930;92.MIA.0.1170;93.ATL.0.1140;95.ORL.0.1140;97.SA.0.930;99.WSH.1.1320;100.GS.1.1320;104.DEN.0.1200;106.MIN.1.1380;108.CLE.1.1320;110.MEM.0.1050;112.MEM.0.1200;113.OKC.0.1200;115.DAL.0.1200;117.DET.1.930;118.CHI.1.930;120.NO.1.1320;122.IND.1.1320;130.DAL.1.1320;132.LAC.0.1350;134.LAC.1.1380;136.CLE.0.1140;137.TOR.0.1170;139.CHI.0.1020","SAC":"2.LAC.0.1350;4.POR.1.1320;6.MEM.1.1260;8.SA.0.1200;10.NO.0.1200;12.MEM.0.1200;14.DAL.0.1200;16.LAL.1.1320;18.SA.1.1320;20.MIA.1.1260;22.ORL.1.1320;25.POR.1.1320;27.OKC.1.1260;30.PHX.1.1320;32.LAL.0.1320;33.BOS.1.1320;35.SA.1.1320;37.GS.0.1320;41.MIN.1.1260;42.NO.1.1320;44.PHX.0.1260;55.NO.1.1260;58.OKC.0.1200;60.NO.0.1200;62.MIA.0.1080;63.ORL.0.1140;65.DAL.1.1320;69.UTAH.1.1080;71.PHI.1.1320;73.BKN.1.1080;75.PHX.0.1260;76.OKC.0.1200;78.DET.1.1320;80.CHI.1.1320;81.NY.1.1320;83.CHA.1.1260;85.GS.0.1380;87.LAC.1.1320;88.POR.0.1320;90.UTAH.0.1020;92.LAL.1.1320;93.MIL.1.1320;95.LAL.0.1320;98.DEN.0.1290;100.PHI.0.1140;101.WSH.0.1140;104.DET.0.900;108.MIN.1.1320;110.PHX.1.1320;111.HOU.1.1350;113.MIL.0.1200;115.HOU.0.1230;117.IND.0.840;118.ATL.0.780;121.IND.1.1320;129.CLE.0.1140;131.MEM.0.1200;132.CHA.0.1140;134.WSH.1.1320;136.OKC.1.1320;138.LAC.1.1320","SA":"1.OKC.1.1290;4.HOU.1.1290;5.DAL.0.1200;8.SAC.1.1200;9.UTAH.0.1260;12.MIN.1.1200;14.UTAH.1.1230;16.DAL.1.1290;18.SAC.0.1320;19.POR.0.1320;21.PHX.0.1260;23.CHI.0.1200;25.GS.1.1290;27.UTAH.0.1020;29.DET.1.1200;31.LAC.1.1200;33.NO.1.1200;35.SAC.0.1320;37.POR.0.1320;39.LAL.1.1290;41.BOS.1.960;42.MIL.0.1200;45.TOR.1.1200;55.LAC.1.1140;57.CLE.0.1200;58.TOR.0.1170;60.CHI.1.1200;62.NO.0.1140;63.MIL.1.1200;65.BKN.0.1170;67.NY.0.720;69.ATL.1.1140;71.MEM.0.1200;73.CHA.0.780;74.WSH.0.1020;76.MIN.0.1140;79.IND.1.1200;81.MEM.1.1200;83.ATL.0.900;87.NO.1.840;90.NO.0.630;93.MIA.1.1290;95.MIN.1.1290;97.POR.1.930;99.HOU.1.1200;100.CHA.1.1200;103.GS.0.1050;105.GS.0.1320;106.LAC.0.1350;108.ORL.1.1200;110.LAL.1.1230;113.DAL.0.1200;115.OKC.0.1290;117.ORL.0.1140;119.MIA.0.1020;121.MEM.0.1200;122.MIN.0.1170;130.MEM.1.1200;132.DEN.1.780;135.DEN.0.1320;137.HOU.0.1290;139.NY.1.1170","OKC":"1.SA.0.1290;3.DEN.1.1290;6.LAC.1.1140;7.PHX.1.1200;9.DAL.0.1290;12.HOU.0.1230;14.CLE.0.1140;16.CLE.1.1200;18.MEM.0.1200;19.WSH.1.1200;22.POR.0.1380;23.POR.0.1320;25.LAC.0.1350;27.SAC.0.1260;30.ATL.1.1200;32.NO.1.1200;34.MIA.0.1080;35.IND.0.1170;37.MIN.1.1170;40.MIL.0.1200;42.BKN.0.1170;44.BKN.1.1200;55.TOR.1.930;58.SAC.1.1200;60.CHA.0.1140;62.ATL.0.1140;64.DET.1.1200;65.NO.0.1200;67.MIN.0.1200;69.HOU.0.930;71.MIL.1.1200;73.MIA.1.1200;75.UTAH.1.1200;76.SAC.1.1200;79.PHI.0.1170;80.WSH.0.1140;83.ORL.0.1080;86.HOU.1.1290;88.UTAH.1.1200;90.POR.1.930;91.DAL.0.1200;93.NO.0.1200;95.MEM.1.1200;97.GS.0.1230;99.LAL.0.1380;101.MEM.1.1200;103.DEN.1.900;104.CHI.1.1080;106.DEN.0.1260;108.CHI.0.1200;109.IND.1.1290;111.NY.1.1290;113.POR.1.1200;115.SA.1.1290;117.PHI.1.1050;119.ORL.1.1200;121.BOS.1.1290;129.NY.0.1170;131.DET.0.1050;134.MIN.1.1200;136.SAC.0.1320;138.LAL.0.1230","UTAH":"2.MEM.0.1200;4.NO.1.1290;6.LAL.1.1020;7.MEM.1.1260;9.SA.1.1260;12.POR.1.900;14.SA.0.1230;16.NO.0.1200;18.DAL.0.1200;20.MIN.0.1140;22.MIA.1.1260;23.ORL.1.1260;25.HOU.0.1230;27.SA.1.1020;29.LAC.0.1380;30.LAL.0.1320;32.PHX.1.1290;34.DAL.1.1140;35.LAL.0.1320;39.DEN.1.1290;41.PHX.1.1020;43.GS.0.1380;45.POR.0.1320;54.DEN.1.1290;56.MIN.1.1260;58.CHI.0.1200;60.BOS.0.1170;62.CLE.0.1080;65.NY.0.1170;68.IND.1.1020;69.SAC.0.1080;72.NY.1.1260;74.BOS.1.1290;75.OKC.0.1200;77.BKN.1.1260;79.BKN.0.1170;81.TOR.0.1170;83.DET.0.1080;85.CHI.1.1260;87.CHA.1.1260;88.OKC.0.1200;90.SAC.1.1020;92.DEN.0.1320;93.LAC.1.1260;95.PHX.0.1260;97.PHX.0.960;99.MIL.1.1260;101.GS.1.1260;103.MEM.1.1290;105.CLE.1.1260;107.HOU.0.1290;110.DAL.0.900;111.MIN.0.930;113.HOU.1.1320;115.IND.0.1140;119.DET.1.1260;121.DEN.0.1260;129.LAC.0.1350;131.WSH.1.900;133.NO.0.1200;135.MIL.0.1200;137.ORL.0.1140;138.WSH.0.1140","WSH":"2.MIL.1.1140;4.TOR.1.1140;5.CHI.0.1200;7.CHA.0.1140;9.CLE.0.1140;11.CHA.1.1140;14.ORL.0.1170;16.ATL.1.1140;18.ATL.0.1140;19.OKC.0.1200;21.DET.0.1140;23.IND.0.1140;24.DET.1.1140;27.HOU.1.1140;28.MEM.1.1140;30.TOR.0.1170;32.CHI.0.1200;34.ORL.1.1140;36.BOS.1.1200;40.ORL.1.1020;42.CHA.0.1140;45.MIA.0.1170;54.CHA.1.1140;56.BOS.0.1170;58.BOS.0.1140;60.NY.1.1140;62.BKN.0.900;64.TOR.1.1140;65.CLE.1.1140;68.POR.1.780;69.CLE.0.1080;72.TOR.0.1170;74.SA.1.1020;76.LAC.1.1140;78.LAL.1.1140;80.OKC.1.1140;81.MIN.1.1140;84.ATL.1.1140;85.PHI.0.1200;88.HOU.0.1230;90.IND.1.780;91.BOS.1.900;94.DEN.0.1260;95.LAC.0.1350;97.LAL.0.960;99.POR.0.1320;101.SAC.1.1140;103.IND.0.1140;105.ATL.0.1140;108.NO.1.1140;110.BKN.0.1080;112.CHI.1.1140;114.MIA.1.1140;116.BKN.1.1140;117.MIL.1.1140;119.PHX.1.1140;121.MIA.1.1140;129.MIL.0.1200;131.UTAH.0.900;133.PHX.0.1290;134.SAC.0.1320;136.GS.0.1320;138.UTAH.1.1140","TOR":"2.CHI.1.1170;4.WSH.0.1140;6.MIN.0.1140;9.ORL.1.1170;11.ORL.1.1170;13.LAL.0.1260;14.LAC.0.1320;16.DEN.0.1260;18.MIL.0.1200;21.MEM.1.1170;23.BOS.1.1140;24.PHI.0.1140;27.NY.1.1080;29.NY.1.1170;30.WSH.1.1170;32.DET.0.1170;35.MIL.1.1170;39.BKN.1.1170;41.DEN.1.1080;43.HOU.0.1230;45.SA.0.1200;55.OKC.0.930;56.CHA.0.1140;58.SA.1.1170;60.GS.1.1170;62.HOU.1.930;64.WSH.0.1140;65.MEM.0.1200;68.ORL.0.1140;70.NO.1.1170;72.WSH.1.1170;74.LAC.1.1170;76.LAL.1.1140;78.CLE.0.1140;80.MIN.1.1170;81.UTAH.1.1170;83.PHI.1.1080;85.DET.1.1170;86.PHX.1.1170;88.MIA.1.1170;90.CHI.0.930;92.CHI.1.1140;93.NY.0.1170;96.BKN.0.1080;98.BOS.0.1140;100.DAL.1.1170;102.CLE.1.1140;104.BOS.1.1080;106.DAL.0.1200;108.NY.0.1170;110.MIL.1.1170;111.CHA.1.1080;113.CLE.0.1140;116.CLE.1.1170;118.BOS.0.780;120.ATL.0.1200;121.CHA.0.1140;130.ATL.1.1170;132.IND.0.960;134.MIA.0.1170;135.MIA.0.1170;137.POR.1.1170","MEM":"2.UTAH.1.1200;4.GS.0.1320;6.SAC.0.1260;7.UTAH.0.1260;10.POR.0.1320;12.SAC.1.1200;14.NO.1.1200;16.IND.1.1200;18.OKC.1.1200;21.TOR.0.1170;23.DEN.1.1200;25.NO.0.1200;26.BKN.1.1200;28.WSH.0.1140;30.CLE.0.1140;31.GS.1.1200;33.MIN.0.1200;35.CHA.0.1140;37.LAC.1.1200;39.MIN.0.1230;41.LAL.1.960;43.PHI.0.1140;44.DET.0.1140;54.MIL.1.1020;56.GS.1.1200;58.MIA.1.1200;60.HOU.1.1200;62.PHX.1.960;63.NO.0.1200;65.TOR.1.1200;68.LAC.0.1350;69.LAL.0.1260;71.SA.1.1200;76.ORL.0.1080;78.MIA.0.1170;80.HOU.0.1230;81.SA.0.1200;83.DAL.1.1080;85.DAL.1.1200;87.DEN.0.1260;89.CLE.1.1200;91.HOU.1.1170;93.PHX.0.1260;95.OKC.0.1200;98.MIN.1.1200;101.OKC.0.1200;103.UTAH.0.1290;105.MIL.0.1200;107.PHI.1.1200;110.POR.1.1050;112.POR.1.1200;114.ORL.1.1200;116.LAC.1.1200;119.NY.1.1200;121.SA.1.1200;122.BOS.1.1200;130.SA.0.1200;131.SAC.1.1200;134.NY.0.1170;136.ATL.0.1170;138.NO.1.1200","CHA":"2.BKN.0.1170;4.ATL.1.1140;5.MIA.1.1080;7.WSH.1.1140;9.DET.0.1140;11.WSH.0.1140;12.PHI.1.1080;14.DET.1.1170;16.BKN.0.1170;18.BOS.1.1140;21.CLE.1.1140;24.PHX.0.1260;27.LAC.0.990;29.LAL.0.1320;32.ATL.0.1140;35.MEM.1.1140;37.CHI.1.1140;40.BKN.1.1080;42.WSH.1.1140;44.BOS.0.1170;54.WSH.0.1140;56.TOR.1.1140;58.LAC.1.1140;60.OKC.1.1140;61.POR.1.1080;63.PHI.1.1140;65.ORL.0.1140;68.ATL.0.930;69.MIA.0.1080;71.ORL.1.1140;73.SA.1.780;75.CLE.1.780;76.MIL.0.1050;78.ATL.1.1140;80.DEN.1.1140;82.POR.0.1320;83.SAC.0.1260;86.GS.0.1320;87.UTAH.0.1260;89.DEN.0.1260;92.DAL.0.1200;95.HOU.1.1140;96.BOS.0.1140;98.ORL.1.1140;100.SA.0.1200;102.MIN.0.1290;104.LAL.1.1140;106.MIA.0.1170;108.BOS.1.1170;109.GS.1.1140;111.TOR.0.1080;113.NY.0.1170;115.MIL.1.1140;117.DAL.1.900;119.MIN.1.720;121.TOR.1.1140;129.ORL.0.1140;130.HOU.0.1230;132.SAC.1.1140;135.PHI.0.1140;138.CHI.0.1020","ATL":"2.ORL.0.1140;4.CHA.0.1140;5.HOU.1.1230;7.HOU.0.1230;9.MIA.1.1140;10.CLE.1.1140;12.NO.0.1140;14.IND.0.1170;16.WSH.0.1140;18.WSH.1.1140;19.BKN.1.1170;21.LAL.1.1140;25.CHI.0.1200;27.MIL.0.1200;30.OKC.0.1200;32.CHA.1.1140;34.DET.1.930;39.BOS.0.1200;41.NY.0.1080;43.MIA.0.1170;45.IND.1.1140;54.POR.0.1320;56.PHX.0.1260;59.DEN.0.1260;61.ORL.1.1140;62.OKC.1.1140;65.DET.1.1140;68.CHA.1.930;69.SA.0.1140;71.CHI.1.1140;73.MIL.1.900;75.DAL.1.1170;77.PHI.0.1140;78.CHA.0.1140;80.IND.1.1140;83.SA.1.900;84.WSH.0.1140;86.CLE.1.1140;88.GS.1.1140;91.PHI.1.870;93.POR.1.1140;95.NY.1.1140;96.MIA.0.1200;99.DET.0.1140;101.NY.0.1140;103.MIL.0.1200;105.WSH.1.1140;107.IND.0.1140;109.BOS.1.1140;111.DEN.1.900;112.MIA.1.1140;114.NO.1.1140;116.PHX.1.1140;118.SAC.1.780;120.TOR.1.1200;121.BKN.0.1170;129.CHI.0.1200;130.TOR.0.1170;132.ORL.0.990;135.CHI.1.1140;136.MEM.1.1170;138.CLE.0.1050","BOS":"1.DET.0.900;4.NY.1.1140;7.CHI.1.1170;8.BKN.1.1170;11.CHI.1.1170;13.ORL.0.930;14.HOU.0.1230;16.MIL.1.1170;18.CHA.0.1140;20.MIL.0.1200;22.PHI.0.1200;23.TOR.0.1140;27.DAL.1.1080;28.ORL.1.1140;30.DEN.0.1260;33.SAC.0.1320;34.GS.0.1230;36.WSH.0.1200;39.ATL.1.1200;41.SA.0.960;42.DAL.0.1200;44.CHA.1.1170;55.BKN.0.900;56.WSH.1.1170;58.WSH.1.1140;60.UTAH.1.1170;62.DET.1.1200;65.POR.1.1170;67.MIA.1.870;70.CLE.1.1200;72.CHI.0.1200;74.UTAH.0.1290;75.POR.0.1320;77.PHX.0.1260;80.LAL.0.1320;82.LAC.0.1350;84.HOU.1.1170;86.NY.1.1140;89.BKN.1.1140;91.WSH.0.900;93.IND.1.1170;94.PHI.1.1170;96.CHA.1.1140;98.TOR.1.1140;100.LAC.1.1170;102.PHX.1.1170;104.TOR.0.1080;106.LAL.1.1200;108.CHA.0.1170;109.ATL.0.1140;111.PHI.0.1140;113.DEN.1.1170;114.GS.1.1170;116.MIN.1.1200;118.TOR.1.780;121.OKC.0.1290;122.MEM.0.1200;130.CLE.1.1170;132.MIN.0.1140;134.IND.0.1140;137.DET.0.1140;139.PHI.1.780","NO":"2.IND.1.1200;4.UTAH.0.1290;5.DEN.0.1260;9.DEN.1.1200;10.SAC.1.1200;12.ATL.1.1140;14.MEM.0.1200;16.UTAH.1.1200;18.MIN.1.1200;20.LAC.0.1260;21.GS.0.1320;23.BKN.1.1200;25.MEM.1.1200;26.DEN.1.1140;28.GS.1.1200;30.DET.1.1200;32.OKC.0.1200;33.SA.0.1200;35.PHX.1.1200;39.LAC.0.1290;41.POR.0.1080;42.SAC.0.1320;44.LAL.1.1200;55.SAC.0.1260;56.LAL.0.1320;58.NY.1.1200;60.SAC.1.1200;62.SA.1.1140;63.MEM.1.1200;65.OKC.1.1200;68.BKN.0.1080;70.TOR.0.1170;72.DET.0.1140;73.LAL.1.1200;75.MIA.1.1140;77.DAL.1.1200;79.POR.1.1200;81.ORL.1.1200;83.MIA.0.1080;87.SA.0.840;90.SA.1.630;93.OKC.1.1200;95.DAL.1.1200;98.CLE.1.1200;100.HOU.0.1230;101.PHI.1.1200;103.CLE.0.1170;105.PHI.0.1140;106.ORL.0.1140;108.WSH.0.1140;110.CHI.0.1200;112.IND.0.1140;114.ATL.0.1140;116.HOU.1.1200;118.LAC.1.840;120.POR.0.1320;121.GS.0.1320;129.PHX.1.1200;131.PHX.0.1260;133.UTAH.1.1200;135.HOU.0.1230;137.MIL.1.1200;138.MEM.0.1200","CHI":"2.TOR.0.1170;4.MIL.0.960;5.WSH.1.1200;7.BOS.0.1170;9.NY.1.1200;11.BOS.0.1170;14.PHI.0.1170;16.NY.0.1170;20.PHI.1.930;23.SA.1.1200;25.ATL.1.1200;26.MIN.0.1200;28.CLE.0.1140;30.BKN.0.1170;32.WSH.1.1200;34.DEN.1.1140;35.CLE.1.1200;37.CHA.0.1140;40.IND.1.1200;43.NY.1.1200;45.CLE.1.1200;55.HOU.1.1080;56.MIA.1.1200;58.UTAH.1.1200;60.SA.0.1200;61.DAL.0.1200;63.MIA.0.1170;65.MIA.0.1170;68.DET.1.1200;71.ATL.0.1140;72.BOS.1.1200;75.LAL.1.1200;77.IND.0.1140;78.MIL.1.1200;80.SAC.0.1320;82.GS.0.1230;83.PHX.0.1140;85.UTAH.0.1260;87.MIN.1.1200;90.TOR.1.930;92.TOR.0.1140;93.BKN.0.1140;96.PHI.1.1020;98.DAL.1.1200;99.IND.0.1140;101.ORL.0.1140;104.OKC.0.1080;106.DET.0.1140;108.OKC.1.1200;110.NO.1.1200;112.WSH.0.1140;113.GS.1.1200;115.DEN.0.1260;118.POR.0.930;120.LAL.0.1320;121.LAC.0.1350;129.ATL.1.1200;131.BKN.1.1200;133.DET.0.1140;135.ATL.0.1140;138.CHA.1.1020;139.POR.1.1020","CLE":"3.PHI.0.1140;5.BKN.1.1170;7.MIN.1.1140;9.WSH.1.1140;10.ATL.0.1140;12.MIL.0.1200;14.OKC.1.1140;16.OKC.0.1200;18.PHI.1.1170;19.NY.1.1200;21.CHA.0.1140;23.NY.0.1140;25.MIA.0.1200;26.DAL.1.1170;28.CHI.1.1140;30.MEM.1.1140;32.IND.1.1170;35.CHI.0.1200;37.NY.0.1170;41.MIA.1.1080;43.IND.1.1140;45.CHI.0.1200;54.GS.1.1200;57.SA.1.1200;58.ORL.0.1140;60.DET.0.1170;62.UTAH.1.1080;63.NY.1.1140;65.WSH.0.1140;69.WSH.1.1080;70.BOS.0.1200;73.LAC.1.900;75.CHA.0.780;76.HOU.0.1140;78.TOR.1.1140;80.ORL.0.1140;82.DEN.1.1020;84.MIN.0.1200;86.ATL.0.1140;88.MIL.0.1200;89.MEM.0.1200;91.DET.1.720;94.BKN.0.1170;96.DAL.0.1200;98.NO.0.1200;100.DET.1.1140;102.TOR.0.1140;103.NO.1.1170;105.UTAH.0.1260;107.PHX.0.1260;108.POR.0.1320;110.ORL.1.1170;113.TOR.1.1140;114.IND.0.1140;116.TOR.0.1170;118.PHX.1.780;120.MIL.1.1140;121.MIL.1.1140;129.SAC.1.1140;130.BOS.0.1170;133.PHI.1.1140;136.POR.1.1140;138.ATL.1.1050","DAL":"2.HOU.0.1230;4.IND.0.1140;5.SA.1.1200;7.MIA.0.1170;9.OKC.1.1290;11.HOU.1.1200;14.SAC.1.1200;16.SA.0.1290;18.UTAH.1.1200;20.BKN.1.1170;21.IND.1.1200;24.MIN.0.1200;26.CLE.0.1170;27.BOS.0.1080;30.GS.1.1290;33.LAC.1.1200;34.UTAH.0.1140;36.DEN.0.1320;39.PHX.0.1260;42.BOS.1.1200;44.ORL.1.1200;56.MIL.1.1200;58.BKN.0.1170;59.PHI.0.1140;61.CHI.1.1200;64.GS.0.1350;65.SAC.0.1320;68.PHX.1.1200;71.MIA.1.1200;74.HOU.0.1230;75.ATL.0.1170;77.NO.0.1200;80.POR.1.1200;81.PHX.1.1290;83.MEM.0.1080;85.MEM.0.1200;87.DET.0.1140;89.NY.0.1170;91.OKC.1.1200;92.CHA.1.1200;95.NO.0.1200;96.CLE.1.1200;98.CHI.0.1200;100.TOR.0.1170;102.DET.1.1200;104.HOU.1.1230;106.TOR.1.1200;108.DEN.0.1320;110.UTAH.1.900;111.LAC.1.990;113.SA.1.1200;115.POR.1.1200;117.CHA.0.900;119.PHI.1.870;121.ORL.0.1140;129.GS.0.1320;130.POR.0.1320;132.LAL.1.930;134.GS.1.1200;136.NY.1.1290","DEN":"3.OKC.0.1290;5.NO.1.1260;7.GS.1.1320;9.NO.0.1200;11.PHX.0.1320;14.POR.1.1260;16.TOR.1.1260;19.IND.0.1020;21.HOU.0.1230;23.MEM.0.1200;26.NO.0.1140;28.PHX.1.1260;30.BOS.1.1260;32.HOU.1.1320;34.CHI.0.1140;36.DAL.1.1320;39.UTAH.0.1290;41.TOR.0.1080;42.DET.0.1140;44.PHI.0.1140;54.UTAH.0.1290;57.POR.0.1380;59.ATL.1.1260;61.LAL.1.1260;63.LAC.0.1350;65.LAL.0.1320;67.GS.0.1350;69.IND.1.1200;70.MIN.1.1350;73.MIN.0.960;75.NY.1.1020;76.DET.1.1020;78.PHX.1.1320;80.CHA.0.1140;82.CLE.0.1020;84.NY.0.1170;85.MIL.0.1200;87.MEM.1.1260;89.CHA.1.1260;90.ORL.1.1200;92.UTAH.1.1320;94.WSH.1.1260;96.MIL.1.1260;98.SAC.1.1290;100.MIN.0.1290;103.OKC.0.900;104.POR.1.1200;106.OKC.1.1260;108.DAL.1.1320;109.LAC.1.1260;111.ATL.0.900;113.BOS.0.1170;115.CHI.1.1260;116.LAL.0.1350;118.HOU.0.840;121.UTAH.1.1260;130.LAL.1.1320;132.SA.0.780;133.BKN.1.1260;135.SA.1.1320;139.MIN.1.930","DET":"1.BOS.1.900;4.MIA.0.1200;6.PHI.0.1170;8.NY.0.1200;9.CHA.1.1140;11.BKN.0.1170;14.CHA.0.1170;16.PHI.1.1140;20.LAL.1.1080;21.WSH.1.1140;24.WSH.0.1140;26.MIA.0.1200;29.SA.0.1200;30.NO.0.1200;32.TOR.1.1170;34.ATL.0.930;36.ORL.0.1140;39.MIL.1.1170;41.ORL.1.1080;42.DEN.1.1140;44.MEM.1.1140;55.IND.0.1020;56.BKN.1.1140;58.PHX.1.1140;60.CLE.1.1170;62.BOS.0.1200;64.OKC.0.1200;65.ATL.0.1140;68.CHI.0.1200;69.POR.1.1140;72.NO.1.1140;74.ORL.1.1170;76.DEN.0.1020;78.SAC.0.1320;80.GS.0.1320;81.LAL.0.1320;83.UTAH.1.1080;85.TOR.0.1170;87.DAL.1.1140;89.HOU.0.1230;91.CLE.0.720;95.IND.1.1170;97.MIN.1.1080;99.ATL.1.1140;100.CLE.0.1140;102.DAL.0.1200;104.SAC.1.900;106.CHI.1.1140;107.NY.1.1140;109.PHI.0.1140;111.GS.1.900;113.LAC.0.1350;114.PHX.0.1260;117.POR.0.930;119.UTAH.0.1260;121.NY.1.1140;129.MIA.1.1140;131.OKC.1.1050;133.CHI.1.1140;134.MIL.0.1200;137.BOS.1.1140","GS":"2.LAL.0.1320;4.MEM.1.1320;5.PHX.0.1320;7.DEN.0.1320;9.MIN.0.1200;11.LAL.1.1320;13.LAC.1.1230;14.PHX.1.1320;17.MIA.1.1320;19.ORL.1.1230;21.NO.1.1320;23.HOU.0.1290;25.SA.0.1290;28.NO.0.1200;30.DAL.0.1290;31.MEM.0.1200;34.BOS.1.1230;37.SAC.1.1320;39.POR.0.1290;41.LAC.1.1230;43.UTAH.1.1380;54.CLE.0.1200;56.MEM.0.1200;58.IND.0.1140;60.TOR.0.1170;62.MIL.0.1200;64.DAL.1.1350;65.LAC.0.1350;67.DEN.1.1350;69.MIN.1.1230;70.PHX.0.1260;72.HOU.1.1320;75.BKN.1.1230;79.NY.1.1320;80.DET.1.1320;82.CHI.1.1230;85.SAC.1.1380;86.CHA.1.1320;88.ATL.0.1140;90.MIA.0.1080;92.ORL.0.1140;94.LAL.1.1320;95.MIL.1.1320;97.OKC.1.1230;100.POR.0.1320;101.UTAH.0.1260;103.SA.1.1050;105.SA.1.1320;107.LAC.0.1350;109.CHA.0.1140;111.DET.0.900;113.CHI.0.1200;114.BOS.0.1170;117.NY.0.1230;119.IND.1.1170;121.NO.1.1320;129.DAL.1.1320;133.HOU.0.1230;134.DAL.0.1200;136.WSH.1.1320;139.HOU.1.1320","HOU":"2.DAL.1.1230;4.SA.0.1290;5.ATL.0.1230;7.ATL.1.1230;9.MIL.0.1200;11.DAL.0.1200;12.OKC.1.1230;14.BOS.1.1230;16.MIN.1.1230;19.PHX.0.1260;21.DEN.1.1230;23.GS.1.1290;25.UTAH.1.1230;27.WSH.0.1140;28.MIA.0.1170;30.IND.0.1140;32.DEN.0.1320;35.LAC.1.1230;37.PHX.1.1230;40.PHI.1.1230;42.LAL.1.1170;43.TOR.1.1230;55.CHI.0.1080;56.NY.1.1230;58.MIL.1.1230;60.MEM.0.1200;62.TOR.0.930;65.PHI.0.1170;69.OKC.1.930;71.LAL.0.1350;72.GS.0.1320;74.DAL.1.1230;76.CLE.1.1140;78.MIN.1.1200;80.MEM.1.1230;82.BKN.0.1080;84.BOS.0.1170;86.OKC.0.1290;88.WSH.1.1230;89.DET.1.1230;91.MEM.0.1170;93.MIN.0.1200;95.CHA.0.1140;97.ORL.0.1080;99.SA.0.1200;100.NO.1.1230;102.ORL.1.1230;104.DAL.0.1230;107.UTAH.1.1290;109.PHX.0.1260;111.SAC.0.1350;113.UTAH.0.1320;115.SAC.1.1230;116.NO.0.1200;118.DEN.1.840;120.LAC.0.1380;122.LAL.0.1320;130.CHA.1.1230;132.MIA.1.1290;133.GS.1.1230;135.NO.1.1230;137.SA.1.1290;139.GS.0.1320"}};
+const SCHED={};
+for(const [t,str] of Object.entries(DATA.S)){SCHED[t]={};if(!str)continue;str.split(";").forEach(g=>{const [sp,o,hm,m]=g.split(".");SCHED[t][+sp]=[o,hm==="1",m===""?null:+m];});}
+const gameOn=(t,sp)=>SCHED[t]?.[sp];
+const anyGame=sp=>Object.values(SCHED).some(t=>t[sp]);
+const TEAMS=Object.fromEntries(DATA.teams.map(t=>[t.id,{id:t.id,name:t.name,P:t.P.map(([n,tm,p,s,st,dd,sl])=>({n,t:tm,p,s,st,d:dd,sl:sl||{}}))}]));
+const dateOf=sp=>new Date(2026,9,19+sp);
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const md=sp=>{const d=dateOf(sp);return MON[d.getMonth()]+" "+d.getDate();};
+const dow=sp=>DOW[dateOf(sp).getDay()];
+const weekLabel=([w,a,b])=>`Matchup ${w} · ${md(a)} – ${dateOf(a).getMonth()===dateOf(b).getMonth()?dateOf(b).getDate():md(b)}`;
+const fmtTime=m=>m==null?"TBD":`${((Math.floor(m/60)+11)%12)+1}${m%60?":"+String(m%60).padStart(2,"0"):""}${m>=720?"p":"a"}`;
+const healthy=p=>p.s!=null&&p.s!==13&&p.st!=="OUT";
+// lineup slot on a given day: past days use the slot ESPN recorded that day; today and later use the current lineup
+// lineup slot on a given day: the lineup ESPN has saved for that day (past or future); otherwise today's lineup
+const slotOn=(p,sp)=>p.sl&&sp in p.sl?p.sl[sp]:sp<TODAY?(p.sl&&Object.keys(p.sl).length?null:p.s):p.s;
+const startedOn=(p,sp)=>{const s=slotOn(p,sp);return s!=null&&s<12;};
+// ESPN team page for a team on a given day (ESPN opens its lineup editor there; the board itself never changes lineups)
+const espnLineup=(id,sp)=>`https://fantasy.espn.com/basketball/team?leagueId=234626984&teamId=${id}&seasonId=2027&scoringPeriodId=${sp}`;
+const viewDay=()=>selDay??(TODAY<wk[1]?wk[1]:TODAY>wk[2]?wk[2]:TODAY);
+const val=(a,c)=>c[1]==="pct"?(a[c[3]]?a[c[2]]/a[c[3]]:0):a[c[2]];
+const pct=v=>v?v.toFixed(3).replace(/^0/,""):"–";
+const show=(v,c)=>c[1]==="pct"?pct(v):v;
+const diffTxt=d=>d>0?`+${d}`:d<0?`−${-d}`:"even";
+const esc=s=>s.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+let cur=6,wk=null,tab="sched",selDay=null,DAYS=[],M;
+const open={},expanded=new Set();
+let smode="week",faSort="left",faMode="season",pjMode="pg",apMode="season",apSort="PTS",apPos="all",apOwn="all";const CMP=[];try{pjMode=localStorage.getItem("ibPjMode")||"pg";apMode=localStorage.getItem("ibApMode")||"season";}catch(e){}try{faMode=localStorage.getItem("ibFaMode")||"season";}catch(e){}try{smode=localStorage.getItem("ibSmode")||"week";}catch(e){}
+let STAND={},FA=[],TX=[],LIVE=null,META_AT=0;
+const SEASON_END=139; // last day of matchup 19 (Mar 7)
+const seasonLeft=p=>{if(!healthy(p))return null;let n=0;for(let sp=TODAY;sp<=SEASON_END;sp++)if(gameOn(p.t,sp))n++;return n;};
+const weekOf=sp=>WEEKS.find(([,a,b])=>sp>=a&&sp<=b)||(sp<1?WEEKS[0]:WEEKS[WEEKS.length-1]);
+try{const v=+localStorage.getItem("ibTeam");if(TEAMS[v])cur=v;const t=localStorage.getItem("ibTab");if(t)tab=t;}catch(e){}
+const started=()=>wk[1]<=TODAY;
+function opponentOf(id){for(const [h,a] of DATA.W[wk[0]]){if(h===id)return a;if(a===id)return h;}}
+function totals(players){const t=new Array(11).fill(0);let gp=0;players.forEach(p=>DAYS.forEach(sp=>{const d=p.d[sp];if(d&&startedOn(p,sp)){gp++;d.forEach((v,i)=>t[i]+=v);}}));return {t,gp};}
+const SCORES={1:{}};DATA.M1.forEach(([h,a,hs,as])=>{SCORES[1][h]=hs;SCORES[1][a]=as;});
+function score(id){
+  const base=SCORES[wk[0]]?.[id];
+  // ESPN's week totals only include finished days; add tonight's live lines when they aren't counted yet
+  if(base&&TODAY>=wk[1]&&TODAY<=wk[2]){const now=dayTotals(id,[TODAY]);
+    if(now){const past=dayTotals(id,DAYS.filter(sp=>sp<TODAY))||new Array(10).fill(0);if(base.every((v,i)=>v===past[i]))return base.map((v,i)=>v+now[i]);}}
+  if(base)return base;
+  return totals(TEAMS[id].P).t;
+}
+// games still to play this week: only players in the starting lineup (today's lineup carries forward), not bench or IR, and not OUT
+// a game tonight that has finished (per the live NBA scores) counts as played, not left
+const finalToday=t=>!!(LIVE&&LIVE.day===TODAY&&LIVE.g[t]&&LIVE.g[t].s==="post");
+const upcoming=(t,sp)=>sp>TODAY||(sp===TODAY&&!finalToday(t));
+const playedOn=(p,sp)=>!!p.d[sp]&&(sp<TODAY||(sp===TODAY&&finalToday(p.t)));
+const gamesLeft=id=>TEAMS[id].P.filter(healthy).reduce((s,p)=>s+DAYS.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)).length,0);
+const onDay=(id,sp)=>sp<TODAY?TEAMS[id].P.filter(p=>p.d[sp]&&startedOn(p,sp)).length:TEAMS[id].P.filter(p=>healthy(p)&&gameOn(p.t,sp)&&startedOn(p,sp)).length;
+const gamesPlayed=id=>TEAMS[id].P.reduce((s,p)=>s+DAYS.filter(sp=>playedOn(p,sp)&&startedOn(p,sp)).length,0);
+// ---- bench games that could start: max lineup that fits ESPN's slots (PG SG SF PF C G F UTIL×3) by position eligibility
+const LINEUP=[0,1,2,3,4,5,6,11,11,11];
+const DEF_EL={1:[0,5,11],2:[1,5,11],3:[2,6,11],4:[3,6,11],5:[4,11]};
+const canPlay=(p,slot)=>(p.el&&p.el.length?p.el:DEF_EL[p.p]||[11]).includes(slot);
+const _bp={};let _bpKey="";
+function benchPlan(id,sp){
+  const key=UPDATED+"|"+TODAY;if(key!==_bpKey){for(const k in _bp)delete _bp[k];_bpKey=key;}
+  const ck=id+"|"+sp;if(_bp[ck])return _bp[ck];
+  const P=TEAMS[id].P.filter(p=>{const s=slotOn(p,sp);return s!=null&&s!==13&&p.st!=="OUT"&&gameOn(p.t,sp);});
+  const starters=P.filter(p=>slotOn(p,sp)<12),bench=P.filter(p=>slotOn(p,sp)===12&&upcoming(p.t,sp));
+  const tryAssign=(owner,p,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!canPlay(p,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryAssign(owner,owner[j],seen)){owner[j]=p;return true;}}return false;};
+  const base=new Array(LINEUP.length).fill(null);starters.forEach(p=>tryAssign(base,p,[]));
+  const can=new Set();bench.forEach(b=>{const o=base.slice();if(tryAssign(o,b,[]))can.add(b.n);});
+  const all=base.slice();let extra=0;bench.forEach(b=>{if(tryAssign(all,b,[]))extra++;});
+  return _bp[ck]={extra,can};
+}
+const benchExtra=id=>selDay?(selDay>=TODAY?benchPlan(id,selDay).extra:0):DAYS.filter(sp=>sp>=TODAY).reduce((s,sp)=>s+benchPlan(id,sp).extra,0);
+const counts=id=>selDay?(selDay<TODAY?[onDay(id,selDay),0,0]:selDay===TODAY?[TEAMS[id].P.filter(p=>playedOn(p,TODAY)&&startedOn(p,TODAY)).length,TEAMS[id].P.filter(p=>healthy(p)&&gameOn(p.t,TODAY)&&upcoming(p.t,TODAY)&&startedOn(p,TODAY)).length,benchExtra(id)]:[0,onDay(id,selDay),benchExtra(id)]):[gamesPlayed(id),gamesLeft(id),benchExtra(id)];
+const scope=()=>selDay?`${dow(selDay)} ${dateOf(selDay).getDate()}`:"This week";
+const playing=(id,sp)=>onDay(id,sp);
+
+function renderBox(){
+  const live=started(),a=score(cur),b=score(M.opp);let w=0,l=0,t=0;
+  const cells=CATS.map(c=>{const x=val(a,c),y=val(b,c);if(live){x===y?t++:x>y?w++:l++;}return [x,y];});
+  const sub=(arr,c)=>c[1]==="pct"?`<small>${arr[c[2]]}/${arr[c[3]]}</small>`:"";
+  const gl=[counts(cur),counts(M.opp)];
+  const row=(cls,name,arr,mine,rec)=>`<tr class="${cls}"><td>${esc(name)}</td>${CATS.map((c,i)=>{const [x,y]=cells[i];const v=mine?x:y,o=mine?y:x;const lead=live&&v>o;return `<td class="${lead?"lead":""}">${live?show(v,c):"–"}${live?sub(arr,c):""}</td>`;}).join("")}${(mine?gl[0]:gl[1]).map((v,i)=>`<td class="${i===0?"gl":i===2?"bx":""}">${i===2?(v?"+"+v:"0"):v}</td>`).join("")}<td class="rec">${rec}</td></tr>`;
+  document.getElementById("box").innerHTML=`<colgroup><col class="name">${"<col>".repeat(11)}<col class="rec"></colgroup><thead><tr><th>Team</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th class="gl">Played<small>${scope()}</small></th><th>Left<small>${scope()}</small></th><th title="Extra games available by moving bench players into open lineup spots (positions checked)">Bench<small>could start</small></th><th class="rec">W-L-T</th></tr></thead><tbody>`+
+    row("me",TEAMS[cur].name,a,true,live?`${w}-${l}-${t}`:"–")+row("op",TEAMS[M.opp].name,b,false,live?`${l}-${w}-${t}`:"–")+"</tbody>";
+}
+function renderDays(){
+  const el=document.getElementById("days");el.style.setProperty("--cols",Math.min(DAYS.length,7));
+  el.innerHTML=DAYS.map(sp=>{
+    const cls=["day",sp<TODAY?"past":"",sp===TODAY?"today":"",selDay===sp?"sel":""].join(" ");
+    return `<button class="${cls}" data-sp="${sp}" aria-pressed="${selDay===sp}">
+      <span class="dname">${dow(sp)}<span><span class="mo">${MON[dateOf(sp).getMonth()]} </span>${dateOf(sp).getDate()}</span></span>
+      <span class="dcount"><span class="me">You <span class="num">${playing(cur,sp)}</span></span><span class="op">Opp <span class="num">${playing(M.opp,sp)}</span></span></span>
+      ${anyGame(sp)?"":'<span class="dnote">No NBA games listed</span>'}</button>`;}).join("");
+  el.querySelectorAll(".day").forEach(b=>b.onclick=()=>{const sp=+b.dataset.sp;selDay=selDay===sp?null:sp;renderBox();renderDays();renderRosters();});
+}
+function schedCell(p,sp,id){
+  const g=gameOn(p.t,sp),cls=`g${sp<TODAY?" past":""}${selDay===sp?" sel":""}`;
+  if(!g)return `<td class="${cls}"><span class="none">·</span></td>`;
+  const where=`${g[1]?"":"@"}${g[0]}`;
+  if(sp===TODAY&&LIVE&&LIVE.day===TODAY&&LIVE.g[p.t]){const L=LIVE.g[p.t],d=p.d[sp];
+    const ln=d?`<span class="line${startedOn(p,sp)?"":" benched"}" title="${esc(p.n)} tonight so far: ${d[0]} PTS, ${d[4]} REB, ${d[3]} AST">${d[0]}/${d[4]}/${d[3]}</span>${startedOn(p,sp)?"":' <span class="bn">BE</span>'}`:"";
+    return `<td class="${cls}">${ln}<span class="gm"><span class="at">${g[1]?"vs":"@"}</span><span>${g[0]}</span><span class="t ${L.s==="in"?"live":""}">${liveTxt(L)}</span></span></td>`;}
+  if(sp<TODAY){const d=p.d[sp];const ln=d?`${d[0]}/${d[4]}/${d[3]}`:"",tip=d?`${esc(p.n)}, ${dow(sp)} ${dateOf(sp).getDate()}: ${d[0]} PTS, ${d[4]} REB, ${d[3]} AST`:"";
+    if(d&&!startedOn(p,sp))return `<td class="${cls}" title="${tip} (on the bench, not counted)"><span class="line benched">${ln}</span> <span class="bn">BE</span></td>`;
+    return d?`<td class="${cls}" title="${tip}"><span class="line">${ln}</span></td>`:`<td class="${cls}" title="Did not play"><span class="dnp">DNP</span></td>`;}
+  const cs=id!=null&&slotOn(p,sp)===12&&benchPlan(id,sp).can.has(p.n);
+  return `<td class="${cls}${cs?" csd":""}"${cs?' title="A starting spot he can fill is open this day (positions checked)"':""}><span class="gm"><span class="at">${g[1]?"vs":"@"}</span><span>${g[0]}</span>${sp===TODAY?`<span class="t">${fmtTime(g[2])}</span>`:""}${cs?`<a class="canst" href="${espnLineup(id,sp)}" target="_blank" rel="noopener" title="Open this day's lineup in ESPN">can start ↗</a>`:""}</span></td>`;
+}
+const GROUPS=[["start","Starters",s=>s!=null&&s<12,false],["bench","Bench",s=>s===12,true],["ir","Injured reserve",s=>s===13,true],["off","Not on roster that day",s=>s==null,true]];
+const initials=n=>{const w=n.replace(/[.,]/g,"").split(/\s+/).filter(x=>!/^(jr|sr|ii|iii|iv)$/i.test(x));return ((w[0]||"")[0]+((w.length>1?w[w.length-1]:"")[0]||"")).toUpperCase();};
+// ---- search: filter + highlight player names
+let Q="";
+const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const matches=n=>!Q||norm(n).includes(Q);
+// ---- easter egg: cups for the 2026 NBA champions (Knicks, 4-1 over the Spurs) and the 2025 NBA Cup winners (Knicks, 124-113 over the Spurs)
+const CHAMP26=new Set(["Jalen Brunson","OG Anunoby","Karl-Anthony Towns","Mikal Bridges","Josh Hart","Landry Shamet","Jose Alvarado","Mitchell Robinson","Jordan Clarkson","Miles McBride","Ariel Hukporti","Jeremy Sochan"]);
+const CUP25=new Set(["Jalen Brunson","Mikal Bridges","Josh Hart","OG Anunoby","Karl-Anthony Towns","Jordan Clarkson","Mitchell Robinson","Tyler Kolek","Ariel Hukporti","Pacôme Dadiet","Mohamed Diawara","Tosan Evbuomwan","Trey Jemison","Kevin McCullar Jr.","Guerschon Yabusele"]);
+// award badges: [symbol id, hover text]
+const AWARDS={
+  "Shai Gilgeous-Alexander":[["aMvp","2025-26 NBA MVP"],["aClutch","2025-26 Clutch Player of the Year"]],
+  "Victor Wembanyama":[["aDpoy","2025-26 Defensive Player of the Year"],["aMedal","2026 West Finals MVP"],["aCrown","2025-26 league leader: blocks (3.1 a game)"]],
+  "Cooper Flagg":[["aRoy","2025-26 Rookie of the Year"]],
+  "Keldon Johnson":[["a6moy","2025-26 Sixth Man of the Year"]],
+  "Nickeil Alexander-Walker":[["aMip","2025-26 Most Improved Player"]],
+  "Jalen Brunson":[["aMedal","2026 Finals MVP · East Finals MVP · NBA Cup MVP"]],
+  "Anthony Edwards":[["aAsg","2026 All-Star Game MVP"]],
+  "Luka Doncic":[["aCrown","2025-26 league leader: points (33.5 a game)"]],
+  "Nikola Jokic":[["aCrown","2025-26 league leader: rebounds (12.9) and assists (10.7 a game)"]],
+  "Ausar Thompson":[["aCrown","2025-26 league leader: steals (2.0 a game)"]],
+  "Moussa Diabate":[["aHustle","2025-26 Hustle Award"]],
+  "Derrick White":[["aSport","2025-26 Sportsmanship Award"]]};
+const badge=(id,tip)=>`<span class="awd" data-tip="${esc(tip)}" aria-label="${esc(tip)}" role="img"><svg class="cupi" aria-hidden="true"><use href="#${id}"/></svg></span>`;
+const cups=n=>{const k=norm(n);const list=[];if(CHAMP26.has(n))list.push(["sChamp","2026 NBA Champion (Knicks)"]);if(CUP25.has(n))list.push(["sCup","2025 NBA Cup Champion (Knicks)"]);
+  for(const [nm,a] of Object.entries(AWARDS))if(norm(nm)===k)list.push(...a);return list.map(([id,t])=>badge(id,t)).join("");};
+
+function hlName(n){if(!Q)return esc(n);let ns="",map=[];for(let i=0;i<n.length;i++){const c=norm(n[i]);for(let k=0;k<c.length;k++)map.push(i);ns+=c;}
+  const at=ns.indexOf(Q);if(at<0)return esc(n);const s=map[at],e=map[at+Q.length-1]+1;return esc(n.slice(0,s))+"<mark>"+esc(n.slice(s,e))+"</mark>"+esc(n.slice(e));}
+const noMatch=()=>`<p class="empty">No players match “${esc(Q)}”.</p>`;
+function playerCell(p){
+  const st=p.st==="DAY_TO_DAY"?'<span class="st dtd">DTD</span>':p.st==="OUT"?'<span class="st out">OUT</span>':"";
+  const av=`<span class="av ${p.p<=2?"g":p.p<=4?"f":"c"}${p.st==="OUT"?" out":p.st==="DAY_TO_DAY"?" dtd":""}" aria-hidden="true">${initials(p.n)}</span>`;
+  return `<div class="pwho">${av}<div><div class="pname"><span class="nm">${hlName(p.n)}</span>${cups(p.n)}${st}</div><div class="pmeta">${p.t} · ${POS[p.p]}</div></div></div>`;
+}
+const slotTag=p=>{const s=slotOn(p,viewDay());return s==null?"":`<span class="slot${s===12?" bench":s===13?" ir":""}">${SLOT[s]}</span>`;};
+const perGameOf=s=>{if(!s||!s[11])return null;const g=s[11];const t=s.slice(0,11).map((v,i)=>i===6||i===7||i===8||i===9?v:v/g);return {t,gp:g,tot:s};};
+const perGame=p=>perGameOf(smode==="proj"?p.pj:p.ss);
+const projTag='<span class="projtag">ESPN projection</span>';
+const schedLegend=()=>`<div class="legendbar"><span><b>Played days</b> = points/rebounds/assists</span><span><span class="bn">BE</span> played on the bench (not counted)</span><span><span class="dnp">DNP</span> didn't play</span><span><b>vs</b> home · <b>@</b> away</span><span><span class="canst">can start</span> bench player with an open lineup spot that day</span><span>Tap a player for the full line</span></div>`;
+const statModeBar=()=>`<div class="smode"><div class="tabs sm"><button data-smode="week" aria-selected="${smode==="week"}">This week</button><button data-smode="season" aria-selected="${smode==="season"}">Season per game</button><button data-smode="proj" aria-selected="${smode==="proj"}">Projected</button></div>${smode==="proj"?pjBar():""}</div>`;
+const pjBar=()=>`<div class="tabs sm"><button data-pjmode="pg" aria-selected="${pjMode==="pg"}">Per game</button><button data-pjmode="tot" aria-selected="${pjMode==="tot"}">Season totals</button></div>`;
+// one stat from a raw season array (totals + GP at index 11): per game or total
+const statOf=(s,c,tot)=>{if(!s||!s[11])return null;if(c==="gp")return s[11];if(c==="min")return tot?s[K.MIN]:s[K.MIN]/s[11];if(c[1]==="pct")return s[c[3]]?s[c[2]]/s[c[3]]:0;return tot?s[c[2]]:s[c[2]]/s[11];};
+const fmtStat=(v,c,tot)=>v==null?"–":c==="gp"?Math.round(v):c!=="min"&&c[1]==="pct"?pct(v):tot?String(Math.round(v)):v.toFixed(1);
+// projected next to actual
+const pvPair=(p,c)=>{const tot=pjMode==="tot";return `<span class="pv"><b>${fmtStat(statOf(p.pj,c,tot),c,tot)}</b><i>${fmtStat(statOf(p.ss,c,tot),c,tot)}</i></span>`;};
+function statCells(p){
+  if(smode==="proj")return ["gp","min",...CATS].map(c=>`<td class="r num">${pvPair(p,c)}</td>`).join("");
+  if(smode==="season"){const g=perGame(p),pj="";if(!g)return `<td class="r num zero">${smode==="proj"?"–":"0"}</td><td class="r num zero">–</td>`+CATS.map(()=>`<td class="r num zero">–</td>`).join("");
+    const f=(v,c)=>c[1]==="pct"?pct(v):v.toFixed(1),tot=v=>Math.round(v);
+    return `<td class="r num${pj}">${tot(g.gp)}</td><td class="r num${pj}">${g.t[K.MIN].toFixed(1)}</td>`+CATS.map(c=>`<td class="r num${pj}">${f(val(g.t,c),c)}${c[1]==="pct"?`<span class="sub">${tot(g.tot[c[2]])}/${tot(g.tot[c[3]])}</span>`:""}</td>`).join("");}
+  const {t,gp}=totals([p]);
+  return `<td class="r num">${gp}</td><td class="r num${gp?"":" zero"}">${gp?t[K.MIN]:"–"}</td>`+CATS.map(c=>`<td class="r num${gp?"":" zero"}">${gp?show(val(t,c),c):"–"}${gp&&c[1]==="pct"?`<span class="sub">${t[c[2]]}/${t[c[3]]}</span>`:""}</td>`).join("");
+}
+let hideOpp=false;try{hideOpp=localStorage.getItem("ibHideOpp")==="1";}catch(e){}
+function lineupLink(id,side){const sp=Math.min(Math.max(viewDay(),TODAY),SEASON_END);
+  return ` <a class="elink" href="${espnLineup(id,sp)}" target="_blank" rel="noopener" title="Opens ESPN on ${dow(sp)} ${md(sp)}. Only the team's owner can make changes there.">${side==="me"?"Set lineup":"View in ESPN"} · ${dow(sp)} ${dateOf(sp).getDate()} ↗</a>`;}
+function teamSection(id,side){
+  if(side==="op"&&hideOpp)return `<section class="panel team op"><div class="teamhead"><span class="tn">${esc(TEAMS[id].name)}</span><button class="mini-b" data-opp="show">Show roster</button></div></section>`;
+  const P=TEAMS[id].P,cols=tab==="sched"?DAYS.length+4:CATS.length+4;
+  const [cp,cl,cb]=counts(id);
+  const played=totals(P).gp;
+  const head=tab==="sched"
+    ?`<tr><th class="pl">Player</th><th>Slot</th>${DAYS.map(sp=>`<th class="${sp===TODAY?"todayh":""}">${dow(sp)} ${dateOf(sp).getDate()}</th>`).join("")}<th class="c">Left</th><th class="c">Season</th></tr>`
+    :`<tr><th class="pl">Player</th><th>Slot</th>${smode==="proj"?["GP","MIN",...CATS.map(c=>c[0])].map(l=>`<th class="r">${l}<span class="pvh"><b>Proj</b><i>Act</i></span></th>`).join(""):`<th class="r">GP</th><th class="r">MIN</th>${CATS.map(c=>`<th class="r">${c[0]}</th>`).join("")}`}</tr>`;
+  let rows="",cards="";
+  GROUPS.forEach(([key,lab,f,collapsible])=>{
+    const vd=viewDay(),list=P.filter(p=>f(slotOn(p,vd))&&matches(p.n));if(!list.length)return;
+    const k=side+key,isOpen=!collapsible||open[k]||!!Q;
+    const btn=collapsible?`<button class="grpbtn" data-k="${k}" aria-expanded="${!!isOpen}"><span class="chev">›</span>${lab} · ${list.length}</button>`:`<div class="grplabel">${lab}</div>`;
+    rows+=`<tr class="grp"><td class="pl">${btn}</td><td colspan="${cols-1}"></td></tr>`;
+    cards+=`<div class="card-grp">${btn}</div>`;
+    if(!isOpen)return;
+    list.forEach(p=>{
+      const dim=selDay&&!gameOn(p.t,selDay);
+      const leftP=healthy(p)?DAYS.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)).length:"–";
+      const lk=id+"|"+p.n,isExp=expanded.has(lk);
+      rows+=`<tr${dim?' class="dim"':""}><td class="pl"><button class="who" data-log="${esc(lk)}" aria-expanded="${isExp}">${playerCell(p)}</button></td><td>${slotTag(p)}</td>`+(tab==="sched"?DAYS.map(sp=>schedCell(p,sp,id)).join("")+`<td class="c"><span class="left">${leftP}</span></td><td class="c num sl">${seasonLeft(p)??"–"}</td>`:statCells(p))+"</tr>";
+      if(isExp)rows+=`<tr class="logrow"><td colspan="${cols}"><div class="logwrap">${gameLog(p)}</div></td></tr>`;
+      let body;
+      if(tab==="sched"){body=`<div class="chips" style="--n:${Math.min(DAYS.length,7)}">${DAYS.map(sp=>{const g=gameOn(p.t,sp),d=p.d[sp];let v='<span class="none">·</span>';if(g)v=sp<TODAY||(sp===TODAY&&d)?(d?(startedOn(p,sp)?`${d[0]}p`:`<span class="benched">${d[0]}p BE</span>`):'<span class="dnp">DNP</span>'):`${g[1]?"":"@"}${g[0]}`;const cs=sp>=TODAY&&g&&slotOn(p,sp)===12&&benchPlan(id,sp).can.has(p.n);return `<div class="chip${sp<TODAY?" past":""}${selDay===sp?" sel":""}${g?" has":""}${cs?" csd":""}"><b>${dow(sp)[0]}${dateOf(sp).getDate()}</b>${v}</div>`;}).join("")}</div>`;}
+      else if(smode==="proj"){body=p.pj||p.ss?`<div class="cstats num pvc">${["gp",...CATS,"min"].map(c=>`<div><span>${c==="gp"?"GP":c==="min"?"MIN":c[0]}</span>${pvPair(p,c)}</div>`).join("")}</div>`:`<div class="muted">No ESPN projection</div>`;}
+      else if(smode==="season"){const g=perGame(p);body=g?`<div class="cstats num${smode==="proj"?" pj":""}"><div><span>GP</span>${g.gp}</div>${CATS.map(c=>`<div><span>${c[0]}</span>${c[1]==="pct"?pct(val(g.t,c)):val(g.t,c).toFixed(1)}</div>`).join("")}<div><span>MIN</span>${g.t[K.MIN].toFixed(1)}</div></div>`:`<div class="muted">${smode==="proj"?"No ESPN projection":"No games played this season"}</div>`;}
+      else{const {t,gp}=totals([p]);body=`<div class="cstats num"><div><span>GP</span>${gp}</div>${CATS.map(c=>`<div><span>${c[0]}</span>${gp?show(val(t,c),c):"–"}</div>`).join("")}<div><span>MIN</span>${gp?t[K.MIN]:"–"}</div></div>`;}
+      cards+=`<div class="card${dim?" dim":""}"><div class="top"><button class="who" data-log="${esc(lk)}" aria-expanded="${isExp}">${playerCell(p)}</button>${slotTag(p)}</div>${body}${isExp?`<div class="logwrap">${gameLog(p)}</div>`:""}</div>`;
+    });
+  });
+  if(tab==="stats"&&smode==="week"){const {t,gp}=totals(P);
+    rows+=`<tr class="tot"><td class="pl">Team total</td><td></td><td class="r num">${gp}</td><td class="r num">${gp?t[K.MIN]:"–"}</td>${CATS.map(c=>`<td class="r num">${gp?show(val(t,c),c):"–"}</td>`).join("")}</tr>`;}
+  const sum=tab==="sched"?`${scope()}: ${cp} played · ${cl} left${cb?` · <span class="bxs">+${cb} could start from bench</span>`:""}`:smode==="season"?"Season per-game averages; FG%/FT% from season makes/attempts":smode==="proj"?`${projTag} <b class="pvk">Proj</b> full season ${pjMode==="tot"?"totals":"per game"} · <i class="pvk">Act</i> season so far`:`${played} player games played this week`;
+  if(Q&&!P.some(p=>matches(p.n)))return `<section class="panel team ${side}"><div class="teamhead"><span class="tn">${esc(TEAMS[id].name)}</span></div>${noMatch()}</section>`;
+  return `<section class="panel team ${side}"><div class="teamhead"><span class="tn">${esc(TEAMS[id].name)}</span><span class="sum">${sum}${lineupLink(id,side)}${side==="op"?' <button class="mini-b" data-opp="hide">Hide</button>':""}</span></div>
+    <div class="scroll grid-wrap"><table class="grid${tab==="stats"&&smode==="proj"?" pjt":""}" style="min-width:${tab==="sched"?404+DAYS.length*84:(smode==="proj"&&tab==="stats"?256+10*88:344+10*66)}px"><colgroup><col class="pl"><col class="slot">${tab==="sched"?DAYS.map(()=>"<col>").join("")+'<col class="left"><col class="left">':"<col>".repeat(10)}</colgroup><thead>${head}</thead><tbody>${rows}</tbody></table></div><div class="cards">${cards}</div></section>`;
+}
+function renderRosters(){
+  const el=document.getElementById("rosters");
+  el.innerHTML=tab==="track"?trackerView():tab==="league"?leagueView():tab==="nba"?nbaView():tab==="all"?allView():(tab==="stats"?statModeBar():schedLegend())+teamSection(cur,"me")+teamSection(M.opp,"op");
+  el.querySelectorAll(".grpbtn").forEach(b=>b.onclick=()=>{open[b.dataset.k]=!open[b.dataset.k];renderRosters();});
+  el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>{const k=b.dataset.log;expanded.has(k)?expanded.delete(k):expanded.add(k);renderRosters();});
+  el.querySelectorAll("[data-opp]").forEach(b=>b.onclick=()=>{hideOpp=b.dataset.opp==="hide";try{localStorage.setItem("ibHideOpp",hideOpp?"1":"0")}catch(e){}renderRosters();});
+  fitScrolls();
+  el.querySelectorAll("[data-trk]").forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.trk.split(":");TRK[k]=v;saveTrk();renderRosters();});
+  el.querySelectorAll("[data-trksel]").forEach(s=>s.onchange=()=>{TRK[s.dataset.trksel]=+s.value;if(s.dataset.trksel==="to")TRK.toLatest=+s.value===weekOf(Math.min(TODAY,SEASON_END))[0];if(TRK.from>TRK.to){if(s.dataset.trksel==="from")TRK.to=TRK.from;else TRK.from=TRK.to;}saveTrk();renderRosters();});
+  el.querySelectorAll("[data-famode]").forEach(b=>b.onclick=()=>{faMode=b.dataset.famode;try{localStorage.setItem("ibFaMode",faMode)}catch(e){}renderRosters();});
+  el.querySelectorAll("[data-pjmode]").forEach(b=>b.onclick=()=>{pjMode=b.dataset.pjmode;try{localStorage.setItem("ibPjMode",pjMode)}catch(e){}renderRosters();});
+  el.querySelectorAll("[data-apmode]").forEach(b=>b.onclick=()=>{apMode=b.dataset.apmode;try{localStorage.setItem("ibApMode",apMode)}catch(e){}renderRosters();});
+  el.querySelectorAll("[data-pjm2]").forEach(b=>b.onclick=()=>{pjMode=b.dataset.pjm2;try{localStorage.setItem("ibPjMode",pjMode)}catch(e){}renderRosters();});
+  el.querySelectorAll("[data-apsort]").forEach(b=>b.onclick=()=>{const k=b.dataset.apsort;apSort=apSort===k?"-"+k:k;renderRosters();});
+  el.querySelectorAll("[data-appos]").forEach(b=>b.onclick=()=>{apPos=b.dataset.appos;renderRosters();});
+  el.querySelectorAll("[data-aptop]").forEach(b=>b.onclick=()=>{apTop=+b.dataset.aptop;if(apTop&&apSort==="PTS")apSort="rank";renderRosters();});
+  el.querySelectorAll("[data-apfa]").forEach(b=>b.onclick=()=>{apOwn=apOwn==="fa"?"all":"fa";if(apOwn==="fa"&&apSort==="PTS")apSort="left";renderRosters();});
+  el.querySelectorAll("[data-apown]").forEach(s=>s.onchange=()=>{apOwn=s.value;renderRosters();});
+  el.querySelectorAll("[data-cmp]").forEach(b=>b.onclick=()=>{const k=b.dataset.cmp,i=CMP.indexOf(k);if(i>=0)CMP.splice(i,1);else{if(CMP.length>=4)CMP.shift();CMP.push(k);}renderRosters();});
+  el.querySelectorAll("[data-cmpclear]").forEach(b=>b.onclick=()=>{CMP.length=0;renderRosters();});
+  el.querySelectorAll("[data-smode]").forEach(b=>b.onclick=()=>{smode=b.dataset.smode;try{localStorage.setItem("ibSmode",smode)}catch(e){}renderRosters();});
+  el.querySelectorAll("[data-fasort]").forEach(b=>b.onclick=()=>{const k=b.dataset.fasort;faSort=faSort===k?"-"+k:k;renderRosters();});
+  el.querySelectorAll("[data-team]").forEach(b=>b.onclick=()=>{cur=+b.dataset.team;try{localStorage.setItem("ibTeam",cur)}catch(e){}tab="sched";load();});
+}
+
+// ---- player game log: every day of the week this player's NBA team plays
+function gameLog(p){
+  const rows=DAYS.filter(sp=>gameOn(p.t,sp)).map(sp=>{
+    const g=gameOn(p.t,sp),d=p.d[sp],s=slotOn(p,sp),opp=`${g[1]?"vs":"@"} ${g[0]}`,day=`${dow(sp)} ${dateOf(sp).getDate()}`;
+    const slot=s==null?"—":SLOT[s];
+    if(sp>=TODAY)return `<tr class="up"><td>${day}</td><td>${opp}</td><td>${slot}</td><td colspan="9" class="muted">${sp===TODAY?`Tonight ${fmtTime(g[2])}`:`Scheduled ${fmtTime(g[2])}`}</td></tr>`;
+    if(!d)return `<tr><td>${day}</td><td>${opp}</td><td>${slot}</td><td colspan="9"><span class="dnp">Did not play</span></td></tr>`;
+    const bench=!startedOn(p,sp);
+    return `<tr${bench?' class="bn-row"':""}><td>${day}</td><td>${opp}</td><td>${slot}${bench?' <span class="bn">not counted</span>':""}</td><td>${d[K.MIN]}</td><td>${d[K.FGM]}-${d[K.FGA]}</td><td>${d[K.FTM]}-${d[K.FTA]}</td><td>${d[K.TPM]}</td><td>${d[K.REB]}</td><td>${d[K.AST]}</td><td>${d[K.STL]}</td><td>${d[K.BLK]}</td><td><b>${d[K.PTS]}</b></td></tr>`;
+  }).join("");
+  return rows?`<table class="logt num"><thead><tr><th>Day</th><th>Opp</th><th>Slot</th><th>MIN</th><th>FG</th><th>FT</th><th>3PM</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>PTS</th></tr></thead><tbody>${rows}</tbody></table>`:`<p class="muted">${esc(p.t)} has no games this week.</p>`;
+}
+
+// ---- tracker: this week (running totals by day) or over the season (week by week / day by day)
+let TRK={mode:"week",gran:"week",from:1,to:0,toLatest:true,cmp:"avg"};try{Object.assign(TRK,JSON.parse(localStorage.getItem("ibTrk")||"{}"));}catch(e){}
+const saveTrk=()=>{try{localStorage.setItem("ibTrk",JSON.stringify(TRK));}catch(e){}};
+const opponentIn=(id,n)=>{for(const [h,a] of DATA.W[n]||[]){if(h===id)return a;if(a===id)return h;}return null;};
+// a team's totals for a set of days, counting only games played from the starting lineup; null when no day has data
+function dayTotals(id,days){const t=new Array(10).fill(0);let any=false;TEAMS[id].P.forEach(p=>days.forEach(sp=>{const d=p.d[sp];if(d&&startedOn(p,sp)){any=true;for(let i=0;i<10;i++)t[i]+=d[i];}}));return any?t:null;}
+const weekDays=w=>{const out=[];for(let sp=w[1];sp<=Math.min(w[2],TODAY-1);sp++)out.push(sp);return out;};
+const hasDayData=sp=>Object.values(TEAMS).some(T=>T.P.some(p=>p.d[sp]));
+function weekTotals(id,n){const w=WEEKS[n-1];if(w[1]>=TODAY)return null;return SCORES[n]?.[id]||dayTotals(id,weekDays(w));}
+const sumArr=list=>{const ok=list.filter(Boolean);if(!ok.length)return null;const t=new Array(10).fill(0);ok.forEach(a=>a.forEach((v,i)=>t[i]+=v));return {t,n:ok.length};};
+// league average: counting stats averaged per team; FG%/FT% from the league's combined makes and attempts
+function leagueAvg(getter){const r=sumArr(Object.keys(TEAMS).map(id=>getter(+id)));if(!r)return null;return r.t.map((v,i)=>i>=6?v:v/r.n);}
+function miniCharts(labels,A,B,nameA,nameB,cum){
+  const W=300,H=140,L=36,R=44,T=12,Bm=22,n=labels.length;
+  const x=i=>L+(n===1?(W-L-R)/2:(i*(W-L-R))/(n-1));
+  const every=Math.max(1,Math.ceil(n/7));
+  return CATS.map(c=>{
+    const va=A.map(t=>t?val(t,c):null),vb=B.map(t=>t?val(t,c):null);
+    const all=[...va,...vb].filter(v=>v!=null);if(!all.length)return "";
+    let lo=0,hi=Math.max(...all,c[1]==="pct"?0.6:1);
+    if(c[1]==="pct"){lo=Math.max(0,Math.floor((Math.min(...all)-0.05)*10)/10);hi=Math.min(1,Math.ceil((hi+0.05)*10)/10);if(hi-lo<0.2)hi=Math.min(1,lo+0.2);}else hi=Math.ceil(hi*1.1);
+    const y=v=>T+(H-T-Bm)*(1-(v-lo)/((hi-lo)||1));
+    const fmt=v=>c[1]==="pct"?pct(v):(Number.isInteger(v)?v:v.toFixed(1));
+    const line=(vals,cls,who)=>{let segs=[],cur=[];vals.forEach((v,i)=>{if(v==null){if(cur.length)segs.push(cur);cur=[];}else cur.push(`${x(i)},${y(v)}`);});if(cur.length)segs.push(cur);
+      return segs.map(s=>`<polyline class="ln ${cls}${cls==="op"?" dash":""}" points="${s.join(" ")}"/>`).join("")+vals.map((v,i)=>v==null?"":`<circle class="pt ${cls}" cx="${x(i)}" cy="${y(v)}" r="${n>20?3:4}"><title>${labels[i][1]}: ${esc(who)} ${fmt(v)}</title></circle>`).join("");};
+    const ticks=[lo,(lo+hi)/2,hi].map(v=>`<line class="gridl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-6}" y="${y(v)+3}" text-anchor="end">${c[1]==="pct"?pct(v):Math.round(v)}</text>`).join("");
+    const xl=labels.map((l,i)=>i%every&&i!==n-1?"":`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="middle">${l[0]}</text>`).join("");
+    const pick=vals=>{const v=vals.filter(z=>z!=null);if(!v.length)return null;return cum?v[v.length-1]:(c[1]==="pct"?null:v.reduce((s,z)=>s+z,0)/v.length);};
+    let sa,sb;
+    if(c[1]==="pct"&&!cum){const agg=arr=>{const s=sumArr(arr);return s?val(s.t,c):null;};sa=agg(A);sb=agg(B);}else{sa=pick(va);sb=pick(vb);}
+    const cap=cum?"":`<span class="avgl">${c[1]==="pct"?"range":"avg"}</span>`;
+    const lastOf=vals=>{for(let i=vals.length-1;i>=0;i--)if(vals[i]!=null)return [i,vals[i]];return null;};
+    const ea=lastOf(va),eb=lastOf(vb);let yA=ea?y(ea[1]):0,yB=eb?y(eb[1]):0;
+    if(ea&&eb&&Math.abs(yA-yB)<11){const mid=(yA+yB)/2,up=yA<=yB;yA=mid+(up?-6:6);yB=mid+(up?6:-6);}
+    const endl=(e,yy,cls)=>e?`<text class="endv ${cls}" x="${x(e[0])+8}" y="${yy+3.5}">${fmt(e[1])}</text>`:"";
+    return `<figure class="mini"><figcaption><b>${c[0]}</b><span class="vals num">${cap}<span class="vk me"></span><span class="me-t">${sa==null?"–":fmt(sa)}</span><span class="vk op"></span><span class="op-t">${sb==null?"–":fmt(sb)}</span></span></figcaption>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c[0]}: ${esc(nameA)} ${sa==null?"no data":fmt(sa)}, ${esc(nameB)} ${sb==null?"no data":fmt(sb)}">${ticks}${xl}${line(vb,"op",nameB)}${line(va,"me",nameA)}${endl(eb,yB,"op")}${endl(ea,yA,"me")}</svg></figure>`;
+  }).join("");
+}
+function trackerView(){
+  const curW=weekOf(Math.min(TODAY,SEASON_END))[0];
+  if(TRK.toLatest!==false||!TRK.to||TRK.to>curW)TRK.to=curW;if(TRK.from>TRK.to)TRK.from=TRK.to;
+  const seg=(k,opts)=>`<div class="tabs sm">${opts.map(([v,l])=>`<button data-trk="${k}:${v}" aria-selected="${TRK[k]===v}">${l}</button>`).join("")}</div>`;
+  const wsel=(k)=>`<select data-trksel="${k}" aria-label="${k==="from"?"From week":"To week"}">${WEEKS.filter(w=>w[0]<=curW).map(w=>`<option value="${w[0]}"${TRK[k]===w[0]?" selected":""}>Week ${w[0]} · ${md(w[1])}</option>`).join("")}</select>`;
+  let controls=`<div class="trkbar">${seg("mode",[["week","This week"],["season","Over the season"]])}`;
+  if(TRK.mode==="season")controls+=`${seg("gran",[["week","Week by week"],["day","Day by day"]])}<span class="rng">${wsel("from")}<span class="muted">to</span>${wsel("to")}</span>${seg("cmp",[["avg","vs league avg"],["opp","vs opponent"]])}`;
+  controls+=`</div>`;
+  const me=TEAMS[cur].name;
+  let labels=[],A=[],B=[],nameB,cum=false,note="";
+  if(TRK.mode==="week"){
+    cum=true;nameB=TEAMS[M.opp].name;const days=DAYS.filter(sp=>sp<TODAY);
+    labels=DAYS.map(sp=>[`${dow(sp)[0]}${dateOf(sp).getDate()}`,`${dow(sp)} ${dateOf(sp).getDate()}`]);
+    let ra=null,rb=null;DAYS.forEach(sp=>{if(sp>=TODAY){A.push(null);B.push(null);return;}
+      const a=dayTotals(cur,[sp])||new Array(10).fill(0),b=dayTotals(M.opp,[sp])||new Array(10).fill(0);ra=ra?ra.map((v,i)=>v+a[i]):a.slice();rb=rb?rb.map((v,i)=>v+b[i]):b.slice();A.push(ra);B.push(rb);});
+    if(!days.length)return `<section class="panel team">${controls}<p class="empty">This week's games haven't started yet.</p></section>`;
+    note="Running totals through the week from players' box scores on days they were in the starting lineup.";
+  }else{
+    nameB=TRK.cmp==="avg"?"League average":"Opponent that week";
+    if(TRK.gran==="week"){
+      for(let n=TRK.from;n<=TRK.to;n++){labels.push([`W${n}`,`Week ${n}${WEEKS[n-1][2]>=TODAY?" (in progress)":""}`]);A.push(weekTotals(cur,n));
+        B.push(TRK.cmp==="avg"?leagueAvg(id=>weekTotals(id,n)):(()=>{const o=opponentIn(cur,n);return o?weekTotals(o,n):null;})());}
+      note="Each point is one matchup week's category total. FG%/FT% use that week's makes and attempts.";
+    }else{
+      for(let n=TRK.from;n<=TRK.to;n++){const w=WEEKS[n-1];for(let sp=w[1];sp<=Math.min(w[2],TODAY-1);sp++){if(!hasDayData(sp))continue;
+        labels.push([`${dateOf(sp).getMonth()+1}/${dateOf(sp).getDate()}`,`${dow(sp)} ${md(sp)}`]);A.push(dayTotals(cur,[sp]));
+        B.push(TRK.cmp==="avg"?leagueAvg(id=>dayTotals(id,[sp])):(()=>{const o=opponentIn(cur,n);return o?dayTotals(o,[sp]):null;})());}}
+      note="Each point is one day's totals from players in the starting lineup. Days without saved box scores are skipped.";
+    }
+    const missing=[];for(let n=TRK.from;n<=TRK.to;n++)if(WEEKS[n-1][1]<TODAY&&!SCORES[n]&&!weekDays(WEEKS[n-1]).some(hasDayData))missing.push(n);
+    if(missing.length)note+=` No saved data yet for week ${missing.join(", ")}; open that week and press Refresh to fill it in.`;
+    if(!A.some(Boolean))return `<section class="panel team">${controls}<p class="empty">No played games in this range yet.</p></section>`;
+  }
+  const head=`<div class="teamhead"><span class="tn">Tracker</span><span class="legend"><span class="key me"></span>${esc(me)}<span class="key op"></span>${esc(nameB)}</span></div>`;
+  return `<section class="panel team">${head}${controls}<div class="minis">${miniCharts(labels,A,B,me,nameB,cum)}</div><p class="foot-note">${note} Hover a point for its value.</p></section>`;
+}
+
+// ---- league: standings, this week's category ranks, matchups, transactions
+const rankList=vals=>vals.map(v=>1+vals.filter(o=>o>v+1e-9).length);
+const ord=n=>n+(n%100>=11&&n%100<=13?"th":["th","st","nd","rd"][n%10]||"th");
+function leagueView(){
+  const live=started(),ids=Object.keys(TEAMS).map(Number);
+  // standings (season)
+  const st=ids.map(id=>({id,rec:STAND[id]?.rec||[0,0,0],vbs:STAND[id]?.vbs||new Array(10).fill(0)}));
+  const pctW=r=>{const g=r[0]+r[1]+r[2];return g?(r[0]+r[2]/2)/g:0;};
+  st.sort((x,y)=>pctW(y.rec)-pctW(x.rec)||y.rec[0]-x.rec[0]||TEAMS[x.id].name.localeCompare(TEAMS[y.id].name));
+  const sRank=CATS.map(c=>rankList(st.map(s=>val(s.vbs,c))));
+  const stand=st.map((s,i)=>`<tr class="${s.id===cur?"mine":""}"><td class="c num">${i+1}</td><td class="nm"><button class="tlink" data-team="${s.id}">${esc(TEAMS[s.id].name)}</button></td><td class="rec">${s.rec.join("-")}</td>${CATS.map((c,ci)=>`<td>${show(val(s.vbs,c),c)}<small>${ord(sRank[ci][i])}</small></td>`).join("")}</tr>`).join("");
+  // this week's category ranks
+  const wk_=ids.map(id=>({id,sc:score(id)}));
+  const wRank=CATS.map(c=>rankList(wk_.map(w=>val(w.sc,c))));
+  const ranks=wk_.map((w,i)=>`<tr class="${w.id===cur?"mine":""}"><td><button class="tlink" data-team="${w.id}">${esc(TEAMS[w.id].name)}</button></td>${CATS.map((c,ci)=>{const r=wRank[ci][i];return `<td class="rk${live&&r<=3?" top":""}${live&&r>=8?" low":""}">${live?r:"–"}</td>`;}).join("")}<td class="c num">${live?(wRank.reduce((s,r)=>s+r[i],0)/CATS.length).toFixed(1):"–"}</td></tr>`).join("");
+  // matchups
+  const rows=DATA.W[wk[0]].map(([hm,aw])=>{
+    const sa=score(hm),sb=score(aw);let w=0,l=0,t=0;
+    const cells=CATS.map(c=>{const x=val(sa,c),y=val(sb,c);if(live){x===y?t++:x>y?w++:l++;}return [x,y];});
+    const r=(id,mine,rec)=>`<tr class="${id===cur||id===M.opp?"mine":""}"><td><button class="tlink" data-team="${id}">${esc(TEAMS[id].name)}</button></td>${CATS.map((c,i)=>{const [x,y]=cells[i],v=mine?x:y,o=mine?y:x;return `<td class="${live&&v>o?"lead":""}">${live?show(v,c):"–"}</td>`;}).join("")}<td class="rec">${rec}</td></tr>`;
+    return r(hm,true,live?`${w}-${l}-${t}`:"–")+r(aw,false,live?`${l}-${w}-${t}`:"–")+`<tr class="gap"><td colspan="10"></td></tr>`;
+  }).join("");
+  // transactions
+  const tname=id=>id&&TEAMS[id]?esc(TEAMS[id].name):"Free agency";
+  const txRows=TX.map(([ms,type,items])=>{const d=new Date(ms).toLocaleString("en-US",{timeZone:"America/New_York",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    const parts=items.map(([k,n,from,to])=>k==="ADD"?`<span class="tx add">Added</span> ${esc(n)}${cups(n)} <span class="muted">to ${tname(to)}</span>`:k==="DROP"?`<span class="tx drop">Dropped</span> ${esc(n)}${cups(n)} <span class="muted">from ${tname(from)}</span>`:`<span class="tx trade">Traded</span> ${esc(n)}${cups(n)} <span class="muted">${tname(from)} → ${tname(to)}</span>`).join("<br>");
+    return `<tr><td class="num muted">${d}</td><td>${type==="WAIVER"?"Waivers":type==="TRADE"?"Trade":"Free agent"}</td><td>${parts}</td></tr>`;}).join("");
+  const sec=(title,sum,body)=>`<section class="panel team"><div class="teamhead"><span class="tn">${title}</span><span class="sum">${sum}</span></div>${body}</section>`;
+  return sec(`${weekLabel(wk)} · all matchups`,"Tap a team to open its matchup",`<div class="scroll"><table class="box lg num"><colgroup><col class="name">${"<col>".repeat(8)}<col class="rec"></colgroup><thead><tr><th>Team</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th class="rec">W-L-T</th></tr></thead><tbody>${rows}</tbody></table></div>`)
+   +sec("This week's category ranks","1 = best in the league this week · last column is the average rank",`<div class="scroll"><table class="box lg rkt num"><colgroup><col class="name">${"<col>".repeat(8)}<col class="rec"></colgroup><thead><tr><th>Team</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th class="rec">Avg</th></tr></thead><tbody>${ranks}</tbody></table></div>`)
+   +sec("Standings","Season record and season category totals (small number = league rank)",`<div class="scroll"><table class="box lg num"><colgroup><col style="width:44px"><col class="name"><col style="width:80px">${"<col>".repeat(8)}</colgroup><thead><tr><th class="c">#</th><th>Team</th><th>W-L-T</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead><tbody>${stand}</tbody></table></div>`)
+   +sec("Recent transactions",META_AT?`Last 7 days · updated ${fmtStamp(META_AT)} ET`:"Last 7 days",TX.length?`<div class="scroll"><table class="txt"><tbody>${txRows}</tbody></table></div>`:`<p class="empty">No adds, drops or trades in the last 7 days.</p>`);
+}
+
+// ---- all players: every rostered player plus the top free agents, sortable, with a side-by-side compare
+function allPlayers(){
+  const out=[];
+  Object.values(TEAMS).forEach(T=>T.P.filter(p=>p.s!=null).forEach(p=>out.push({k:"r"+T.id+"|"+p.n,n:p.n,t:p.t,p:p.p,st:p.st,ss:p.ss,pj:p.pj,own:T.name,oid:T.id,ros:p.ro??null,w:false,rk:p.rk})));
+  FA.forEach(([n,t,pos,st,ss,pctOwn,kind,pj,rk])=>out.push({rk,k:"f|"+n,n,t,p:pos,st,ss,pj,own:kind==="W"?"Waivers":"Free agent",oid:0,ros:pctOwn,w:kind==="W"}));
+  return out;
+}
+const apSrc=r=>apMode==="proj"?r.pj:r.ss;
+// ESPN rank: projected = ESPN's preseason category (roto) rank; season = ESPN's season player-rater rank, preseason rank until ESPN ranks the season
+let apTop=0;
+const seasonRanked=()=>allPlayers().some(r=>r.rk&&r.rk[0]);
+const rankOf=(r,sr)=>{if(!r.rk)return null;const v=apMode==="proj"||!sr?r.rk[1]:r.rk[0];return v||null;};
+function compareView(list){
+  const sel=CMP.map(k=>list.find(r=>r.k===k)).filter(Boolean);if(!sel.length)return "";
+  const tot=pjMode==="tot",rowsDef=[["GP","gp"],["MIN","min"],...CATS.map(c=>[c[0],c])];
+  const body=rowsDef.map(([lab,c])=>{const vals=sel.map(r=>statOf(apSrc(r),c,tot));const best=Math.max(...vals.filter(v=>v!=null));
+    return `<tr><th>${lab}</th>${vals.map(v=>`<td class="r num${v!=null&&sel.length>1&&v===best&&c!=="gp"&&c!=="min"?" best":""}">${fmtStat(v,c,tot)}</td>`).join("")}</tr>`;}).join("");
+  const wins=sel.map((r,i)=>CATS.filter(c=>{const vs=sel.map(x=>statOf(apSrc(x),c,tot));return vs[i]!=null&&vs[i]===Math.max(...vs.filter(v=>v!=null));}).length);
+  return `<section class="panel team cmp"><div class="teamhead"><span class="tn">Compare</span><span class="sum">${apMode==="proj"?projTag+" ":""}${apMode==="proj"?"Full season":"Season so far"} · ${tot?"totals":"per game"} · best in each category highlighted <button class="mini-b" data-cmpclear>Clear</button></span></div>
+  <div class="scroll"><table class="cmpt"><thead><tr><th></th>${sel.map(r=>`<th><div class="cmph">${playerCell(r)}<button class="cmpx" data-cmp="${esc(r.k)}" aria-label="Remove ${esc(r.n)}">✕</button></div><div class="cmpo">${esc(r.own)}</div></th>`).join("")}</tr></thead>
+  <tbody>${body}<tr class="tot"><th>Categories won</th>${wins.map(w=>`<td class="r num${sel.length>1&&w&&w===Math.max(...wins)?" best":""}">${sel.length>1?w+" of "+CATS.length:"–"}</td>`).join("")}</tr></tbody></table></div></section>`;
+}
+function allView(){
+  const tot=pjMode==="tot",all=allPlayers(),sr=seasonRanked();
+  let list=all.filter(r=>matches(r.n)&&(!apTop||(rankOf(r,sr)!=null&&rankOf(r,sr)<=apTop))&&(apPos==="all"||POS[r.p]===apPos)&&(apOwn==="all"||(apOwn==="fa"?r.oid===0:apOwn==="ros"?r.oid!==0:String(r.oid)===apOwn)));
+  const leftOf=r=>DAYS.filter(sp=>upcoming(r.t,sp)&&gameOn(r.t,sp)).length;
+  const keyOf={rank:r=>-(rankOf(r,sr)??9999),name:r=>r.n,team:r=>r.own,left:leftOf,ros:r=>r.ros??-1,gp:r=>statOf(apSrc(r),"gp",tot)??-1,min:r=>statOf(apSrc(r),"min",tot)??-1};
+  CATS.forEach(c=>keyOf[c[0]]=r=>statOf(apSrc(r),c,tot)??-1);
+  const desc=!apSort.startsWith("-"),k=apSort.replace(/^-/,""),f=keyOf[k]||keyOf.PTS;
+  list.sort((a,b)=>{const x=f(a),y=f(b);const c=typeof x==="string"?x.localeCompare(y):(y-x);return desc?c:-c;});
+  const th=(key,label,cls="r")=>`<th class="${cls}"><button class="sortb${k===key?" on":""}" data-apsort="${key}">${label}${k===key?(desc?" ↓":" ↑"):""}</button></th>`;
+  const ctl=`<div class="smode apctl"><div class="tabs sm"><button data-apmode="season" aria-selected="${apMode==="season"}">Season</button><button data-apmode="proj" aria-selected="${apMode==="proj"}">Projected</button></div>
+    <div class="tabs sm"><button data-pjm2="pg" aria-selected="${!tot}">Per game</button><button data-pjm2="tot" aria-selected="${tot}">Totals</button></div>
+    <div class="tabs sm"><button data-apfa="1" aria-selected="${apOwn==="fa"}">Free agents</button></div>
+    <div class="tabs sm">${[0,25,50,100,150].map(x=>`<button data-aptop="${x}" aria-selected="${apTop===x}">${x?"Top "+x:"Any rank"}</button>`).join("")}</div>
+    <div class="tabs sm">${["all","PG","SG","SF","PF","C"].map(x=>`<button data-appos="${x}" aria-selected="${apPos===x}">${x==="all"?"All":x}</button>`).join("")}</div>
+    <select class="apown" data-apown aria-label="Whose players"><option value="all"${apOwn==="all"?" selected":""}>Everyone</option><option value="ros"${apOwn==="ros"?" selected":""}>Rostered</option><option value="fa"${apOwn==="fa"?" selected":""}>Free agents</option>${Object.values(TEAMS).map(T=>`<option value="${T.id}"${apOwn===String(T.id)?" selected":""}>${esc(T.name)}</option>`).join("")}</select></div>`;
+  const rows=list.map(r=>{const on=CMP.includes(r.k),s=apSrc(r);
+    return `<tr${on?' class="cmpon"':""}><td class="c"><button class="cmpb${on?" on":""}" data-cmp="${esc(r.k)}" aria-pressed="${on}" aria-label="Compare ${esc(r.n)}">${on?"✓":"+"}</button></td><td class="pl">${playerCell(r)}</td><td class="own">${r.w?'<span class="slot bench">W</span> ':""}${esc(r.own)}</td><td class="r num${rankOf(r,sr)?"":" zero"}">${rankOf(r,sr)??"–"}</td><td class="c"><span class="left">${leftOf(r)}</span></td><td class="r num${r.ros==null?" zero":""}">${r.ros==null?"–":r.ros.toFixed(1)}</td>${["gp","min",...CATS].map(c=>{const v=statOf(s,c,tot);return `<td class="r num${v==null?" zero":""}">${fmtStat(v,c,tot)}</td>`;}).join("")}</tr>`;}).join("");
+  return ctl+compareView(all)+`<section class="panel team"><div class="teamhead"><span class="tn">All players</span><span class="sum">${list.length} players · ${apMode==="proj"?projTag+" full season":"season so far"} ${tot?"totals":"per game"} · tap + to compare (up to 4)</span></div>
+  ${list.length?`<div class="scroll"><table class="grid fa ap" style="min-width:1200px"><colgroup><col style="width:44px"><col class="pl"><col style="width:130px"><col style="width:62px"><col style="width:66px"><col style="width:68px"><col style="width:56px"><col style="width:60px">${"<col>".repeat(8)}</colgroup>
+  <thead><tr><th></th>${th("name","Player","pl")}${th("team","Team","")}${th("rank","Rank")}${th("left","Left","c")}${th("ros","% Ros")}${th("gp","GP")}${th("min","MIN")}${CATS.map(c=>th(c[0],c[0])).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`:noMatch()}
+  <p class="foot-note">Every rostered player plus the ${FA.length} most-rostered free agents (W = on waivers). Rank = ${apMode==="proj"||!sr?"ESPN preseason rank (season ranks start once ESPN ranks the season)":"ESPN season rank"}. Left = games left this week. % Ros = share of all ESPN leagues that roster the player. Tap a column to sort; tap again to reverse.</p></section>`;
+}
+
+// ---- NBA schedule grid: all 30 teams by day for this week
+function nbaView(){
+  const teams=Object.keys(SCHED).filter(t=>t!=="FA");
+  const mine=id=>{const c={};TEAMS[id].P.filter(healthy).forEach(p=>c[p.t]=(c[p.t]||0)+1);return c;};
+  const cm=mine(cur),co=mine(M.opp);
+  const hits={};if(Q){Object.values(TEAMS).forEach(T=>T.P.filter(p=>p.s!=null&&matches(p.n)).forEach(p=>(hits[p.t]=hits[p.t]||[]).push(p.n)));FA.forEach(([n,t])=>{if(matches(n))(hits[t]=hits[t]||[]).push(n);});}
+  const rows=teams.filter(t=>!Q||norm(t).includes(Q)||hits[t]).map(t=>{const games=DAYS.filter(sp=>gameOn(t,sp));return {t,n:games.length,left:games.filter(sp=>upcoming(t,sp)).length,b2b:games.filter(sp=>gameOn(t,sp-1)).length};})
+    .sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t)).map(r=>{
+      const cells=DAYS.map(sp=>{const g=gameOn(r.t,sp),cls=`g${sp<TODAY?" past":""}${selDay===sp?" sel":""}`;
+        if(!g)return `<td class="${cls}"><span class="none">·</span></td>`;
+        const b2b=gameOn(r.t,sp-1),L=sp===TODAY&&LIVE&&LIVE.day===TODAY?LIVE.g[r.t]:null;
+        return `<td class="${cls}"><span class="gm"><span class="at">${g[1]?"vs":"@"}</span><span>${g[0]}</span>${b2b?' <span class="b2b">B2B</span>':""}${L?`<span class="t ${L.s==="in"?"live":""}">${liveTxt(L)}</span>`:""}</span></td>`;}).join("");
+      return `<tr><td class="pl"><b>${r.t}</b><span class="pmeta">${cm[r.t]?` · You ${cm[r.t]}`:""}${co[r.t]?` · Opp ${co[r.t]}`:""}</span>${hits[r.t]?`<div class="hits">${hits[r.t].map(hlName).join(", ")}</div>`:""}</td>${cells}<td class="c"><span class="left">${r.n}</span></td><td class="c num">${r.left}</td><td class="c num">${r.b2b||"–"}</td></tr>`;
+    }).join("");
+  if(!rows)return `<section class="panel team"><div class="teamhead"><span class="tn">NBA schedule</span></div><p class="empty">No NBA team or player matches “${esc(Q)}”.</p></section>`;
+  return `<section class="panel team"><div class="teamhead"><span class="tn">NBA schedule · ${weekLabel(wk).replace(/^Matchup \d+ · /,"")}</span><span class="sum">"You"/"Opp" = healthy rostered players on that NBA team</span></div>
+    <div class="scroll"><table class="grid nba" style="min-width:${260+DAYS.length*84}px"><colgroup><col class="pl">${DAYS.map(()=>"<col>").join("")}<col class="left"><col class="left"><col class="left"></colgroup>
+    <thead><tr><th class="pl">Team</th>${DAYS.map(sp=>`<th>${dow(sp)} ${dateOf(sp).getDate()}</th>`).join("")}<th class="c">Games</th><th class="c">Left</th><th class="c">B2B</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+const TABS={sched:"tabSched",stats:"tabStats",track:"tabTrack",league:"tabLeague",nba:"tabNba",all:"tabAll"};
+function setTab(t){if(t==="fa"){t="all";apOwn="fa";}if(!TABS[t])t="sched";tab=t;try{localStorage.setItem("ibTab",t)}catch(e){}
+  for(const [k,id] of Object.entries(TABS))document.getElementById(id).setAttribute("aria-selected",k===t);
+  document.getElementById("searchWrap").hidden=!["sched","stats","nba","all"].includes(t);renderRosters();}
+const qEl=document.getElementById("q"),qX=document.getElementById("qClear");
+qEl.addEventListener("input",()=>{Q=norm(qEl.value.trim());qX.hidden=!qEl.value;renderRosters();});
+qX.onclick=()=>{qEl.value="";Q="";qX.hidden=true;renderRosters();qEl.focus();};
+for(const [k,id] of Object.entries(TABS))document.getElementById(id).onclick=()=>setTab(k);
+const pick=document.getElementById("teamPick"),wpick=document.getElementById("weekPick");
+pick.innerHTML=Object.values(TEAMS).map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+const fillWeeks=()=>{wpick.innerHTML=WEEKS.map(w=>`<option value="${w[0]}">${weekLabel(w)}${TODAY>=w[1]&&TODAY<=w[2]?" (now)":""}</option>`).join("");};
+function load(){
+  pick.value=cur;wpick.value=wk[0];
+  DAYS=[];for(let sp=wk[1];sp<=wk[2];sp++)DAYS.push(sp);
+  M={opp:opponentOf(cur)};selDay=null;
+  document.getElementById("prevW").disabled=wk[0]===1;document.getElementById("nextW").disabled=wk[0]===WEEKS.length;
+  document.getElementById("weekTitle").textContent=weekLabel(wk);
+  document.getElementById("statHint").textContent="";
+  document.getElementById("todayBtn").disabled=wk===weekOf(TODAY);
+  renderBox();renderDays();setTab(tab);
+}
+pick.onchange=()=>{cur=+pick.value;try{localStorage.setItem("ibTeam",cur)}catch(e){}load();};
+wpick.onchange=()=>{wk=WEEKS[+wpick.value-1];load();};
+document.getElementById("prevW").onclick=()=>{if(wk[0]>1){wk=WEEKS[wk[0]-2];load();}};
+document.getElementById("nextW").onclick=()=>{if(wk[0]<WEEKS.length){wk=WEEKS[wk[0]];load();}};
+
+// ---- quality of life: swap, today, compact, sticky headers, shortcuts
+document.getElementById("swapBtn").onclick=()=>{cur=M.opp;try{localStorage.setItem("ibTeam",cur)}catch(e){}load();};
+document.getElementById("todayBtn").onclick=()=>{wk=weekOf(TODAY);load();};
+const cBtn=document.getElementById("compactBtn");
+function setCompact(on){document.body.classList.toggle("compact",on);cBtn.setAttribute("aria-pressed",on);try{localStorage.setItem("ibCompact",on?"1":"0")}catch(e){}}
+cBtn.onclick=()=>setCompact(!document.body.classList.contains("compact"));
+try{if(localStorage.getItem("ibCompact")==="1")setCompact(true);}catch(e){}
+// tables scroll sideways only when they don't fit; otherwise their headers can stick under the top bar
+function fitScrolls(){document.querySelectorAll("main .scroll").forEach(s=>{s.classList.remove("fits");if(s.scrollWidth<=s.clientWidth+1)s.classList.add("fits");});
+  document.documentElement.style.setProperty("--barh",document.querySelector(".bar").offsetHeight+"px");}
+window.addEventListener("resize",()=>fitScrolls());
+
+// help
+const helpDlg=document.getElementById("helpDlg");
+document.getElementById("helpBtn").onclick=()=>{helpDlg.showModal();helpDlg.querySelector(".hbody").scrollTop=0;};
+document.getElementById("helpClose").onclick=()=>helpDlg.close();
+helpDlg.addEventListener("click",e=>{if(e.target===helpDlg)helpDlg.close();});
+helpDlg.querySelectorAll(".htoc a").forEach(a=>a.onclick=e=>{e.preventDefault();helpDlg.querySelector(a.getAttribute("href")).scrollIntoView({block:"start",behavior:"smooth"});});
+document.addEventListener("keydown",e=>{
+  if(helpDlg.open)return;
+  if(e.key==="?"&&!(e.target&&/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))){document.getElementById("helpBtn").click();e.preventDefault();return;}
+  const t=e.target,typing=t&&(t.tagName==="INPUT"||t.tagName==="SELECT"||t.tagName==="TEXTAREA");
+  if(typing){if(e.key==="Escape"&&t.id==="q"){qX.click();t.blur();}return;}
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==="ArrowLeft"){document.getElementById("prevW").click();e.preventDefault();}
+  else if(e.key==="ArrowRight"){document.getElementById("nextW").click();e.preventDefault();}
+  else if(e.key==="/"){if(document.getElementById("searchWrap").hidden)setTab("sched");qEl.focus();e.preventDefault();}
+  else if(e.key==="t"||e.key==="T"){document.getElementById("todayBtn").click();}
+  else if(e.key==="s"||e.key==="S"){document.getElementById("swapBtn").click();}
+  else if(/^[1-6]$/.test(e.key)){setTab(Object.keys(TABS)[+e.key-1]);}
+});
+setInterval(()=>{if(!busy)showUpdated();},60000);
+// badge tooltips: hover on desktop, tap on phones (a tap on a badge doesn't open the game log)
+(()=>{const tip=document.createElement("div");tip.id="awTip";tip.hidden=true;document.body.appendChild(tip);let cur=null,at=0;
+  const show=el=>{if(cur!==el)at=Date.now();cur=el;tip.textContent=el.dataset.tip;tip.hidden=false;const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
+    let x=Math.min(Math.max(8,r.left+r.width/2-w/2),innerWidth-w-8),y=r.top-h-8;if(y<8)y=r.bottom+8;tip.style.left=x+"px";tip.style.top=y+"px";};
+  const hide=()=>{cur=null;tip.hidden=true;};
+  document.addEventListener("mouseover",e=>{const a=e.target.closest?.(".awd");if(a)show(a);else if(cur&&Date.now()-at>600)hide();});
+  document.addEventListener("click",e=>{const a=e.target.closest?.(".awd");if(a){e.preventDefault();e.stopPropagation();cur===a&&!tip.hidden&&Date.now()-at>500?hide():show(a);}else hide();},true);
+  document.addEventListener("mouseout",e=>{if(e.target.closest?.(".awd")&&!e.relatedTarget?.closest?.(".awd")&&Date.now()-at>600)hide();});
+  addEventListener("scroll",hide,true);})();
+
+
+// ---------- Refresh: pull fresh data from ESPN's API through the Claude app's browser ----------
+const LEAGUE="https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/2027/segments/0/leagues/234626984";
+const PRO={0:"FA",1:"ATL",2:"BOS",3:"NO",4:"CHI",5:"CLE",6:"DAL",7:"DEN",8:"DET",9:"GS",10:"HOU",11:"IND",12:"LAC",13:"LAL",14:"MIA",15:"MIL",16:"MIN",17:"BKN",18:"NY",19:"ORL",20:"PHI",21:"PHX",22:"POR",23:"SAC",24:"SA",25:"OKC",26:"UTAH",27:"WSH",28:"TOR",29:"MEM",30:"CHA"};
+const SID=[0,1,2,3,6,17,13,14,15,16,40],SCID=[0,1,2,3,6,17,13,14,15,16];
+const HOST="host:claude_browser";
+const fmtStamp=ms=>new Date(ms).toLocaleString("en-US",{timeZone:"America/New_York",weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+function showUpdated(msg,err){
+  const u=document.getElementById("updated");u.textContent=msg||`Updated ${fmtStamp(UPDATED)} ET`;u.classList.toggle("err",!!err);
+  const age=Date.now()-UPDATED;u.classList.toggle("stale",!msg&&age>3*3600e3&&age<=24*3600e3);u.classList.toggle("old",!msg&&age>24*3600e3);
+  if(!msg)u.title=age>24*3600e3?"Data is more than a day old. Press Refresh in the desktop app.":age>3*3600e3?"Data is a few hours old.":"Data is current.";
+  document.getElementById("foot").innerHTML=`Data from ESPN's fantasy API (<code>lm-api-reads.fantasy.espn.com</code>, league 234626984), last pulled ${fmtStamp(UPDATED)} ET. Refresh updates the week you're viewing. It runs from the Claude desktop app (signed in to ESPN in its browser), and the result shows on your other devices too. <span class="keys">Keyboard: ← → weeks · / search · 1–6 tabs · T today · S switch team</span>`;
+}
+// ---- data: newest data comes from the page's data store (written by Refresh and by the scheduled refresh)
+function applyMeta(m){
+  if(!m||m.v!==3)return false;
+  TODAY=m.TODAY;META_AT=m.UPDATED;UPDATED=Math.max(UPDATED,m.UPDATED);
+  (m.teams||[]).forEach(t=>{if(!TEAMS[t.id])return;TEAMS[t.id].name=t.name||TEAMS[t.id].name;STAND[t.id]={rec:t.rec,vbs:t.vbs};});
+  for(const [id,rows] of Object.entries(m.roster||{})){const T=TEAMS[id];if(!T)continue;const names=new Set(rows.map(r=>r[0]));
+    T.P.forEach(p=>{if(!names.has(p.n))p.s=null;});
+    rows.forEach(([n,t,pos,s,st,ss,pj,el,rk,ro])=>{let p=T.P.find(q=>q.n===n);if(!p){p={n,t,p:pos,s,st,d:{},sl:{}};T.P.push(p);}p.t=t;p.p=pos;p.s=s;p.st=st;p.ss=ss;if(pj!==undefined)p.pj=pj;if(el)p.el=el;if(rk)p.rk=rk;if(ro!=null)p.ro=ro;});
+    T.P=T.P.filter(p=>p.s!=null||Object.keys(p.d).length);}
+  if(m.fa)FA=m.fa;if(m.tx)TX=m.tx;if(m.live)LIVE=m.live;
+  return true;
+}
+function applyWeek(n,w){
+  if(!w)return;SCORES[n]=Object.fromEntries(Object.entries(w.scores||{}).map(([k,v])=>[+k,v]));
+  for(const [sp,teams] of Object.entries(w.days||{}))for(const [id,entries] of Object.entries(teams)){const T=TEAMS[id];if(!T)continue;const seen=new Set();
+    entries.forEach(([n,slot,stats,t,pos,el])=>{seen.add(n);let p=T.P.find(q=>q.n===n);if(!p){p={n,t,p:pos,s:null,st:"ACTIVE",d:{},sl:{}};T.P.push(p);}
+      if(el)p.el=el;(p.sl=p.sl||{})[sp]=slot;if(+sp<=TODAY){if(stats)p.d[sp]=stats;else delete p.d[sp];}});
+    T.P.forEach(p=>{if(!seen.has(p.n)){(p.sl=p.sl||{})[sp]=null;delete p.d[sp];}});}
+}
+let STORE={meta:null,weeks:{}};
+function buildMeta(){return {v:3,TODAY,UPDATED,teams:Object.values(TEAMS).map(t=>({id:t.id,name:t.name,rec:STAND[t.id]?.rec||[0,0,0],vbs:STAND[t.id]?.vbs||new Array(10).fill(0)})),
+  roster:Object.fromEntries(Object.values(TEAMS).map(t=>[t.id,t.P.filter(p=>p.s!=null).map(p=>[p.n,p.t,p.p,p.s,p.st,p.ss||null,p.pj||null,p.el||null,p.rk||null,p.ro??null])])),fa:FA,tx:TX,live:LIVE};}
+function rerender(keepWeek){pick.innerHTML=Object.values(TEAMS).map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");fillWeeks();if(!keepWeek)wk=weekOf(TODAY);showUpdated();load();}
+function cacheLocal(){try{localStorage.setItem("ibData3",JSON.stringify(STORE));}catch(e){}}
+function applyStore(){if(STORE.meta)applyMeta(STORE.meta);for(const [n,w] of Object.entries(STORE.weeks))applyWeek(+n,w);}
+function restore(){try{const s=JSON.parse(localStorage.getItem("ibData3")||"null");if(s&&s.meta){STORE=s;applyStore();}}catch(e){}}
+async function loadShared(){try{const db=await claude.use("db");if(!db)return;
+  const m=await db.doc("board/meta").get();if(!m.exists)return;const meta=JSON.parse(m.data().json);
+  if(STORE.meta&&STORE.meta.UPDATED>=meta.UPDATED)return;
+  const ws=await db.collection("weeks").get();const weeks={};(ws.docs||[]).forEach(d=>{const id=d.id||d.ref?.id;const n=+(String(id).replace(/^w/,""));if(n)weeks[n]=JSON.parse(d.data().json);});
+  const wasNow=wk===weekOf(TODAY);STORE={meta,weeks};applyStore();cacheLocal();rerender(!wasNow);}catch(e){}}
+async function saveShared(weeksTouched){
+  STORE.meta=buildMeta();weeksTouched.forEach(n=>{if(STORE.weeks[n]===undefined)STORE.weeks[n]=null;});cacheLocal();
+  try{const db=await claude.use("db");if(!db)return;
+    await db.doc("board/meta").set({updated:UPDATED,json:JSON.stringify(STORE.meta)});
+    for(const n of weeksTouched)if(STORE.weeks[n])await db.doc("weeks/w"+n).set({updated:UPDATED,json:JSON.stringify(STORE.weeks[n])});}catch(e){}}
+const liveTxt=L=>L.s==="in"?`${L.d} · ${L.sc}`:L.s==="post"?`Final ${L.sc}`:L.d;
+let tabId=null;try{tabId=localStorage.getItem("ibTab2")||null;}catch(e){}
+const textOf=r=>(r?.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+async function fetchJSON(mcp,url){
+  let reused=false;
+  if(tabId){try{await mcp.callTool(HOST,"navigate",{url,tabId},{cache:false});reused=true;}catch(e){if(e?.code!=="tool_error")throw e;tabId=null;}}
+  if(!reused){const r=await mcp.callTool(HOST,"preview_start",{url},{cache:false});tabId=(textOf(r).match(/tabId\s+([\w-]+)/)||[])[1]||null;try{if(tabId)localStorage.setItem("ibTab2",tabId);}catch(e){}}
+  const r=await mcp.callTool(HOST,"get_page_text",tabId?{tabId,max_chars:4000000}:{max_chars:4000000},{cache:false});
+  const s=textOf(r),i=s.indexOf("{"),j=s.lastIndexOf("}");
+  if(i<0||j<i)throw {code:"bad_page"};
+  return JSON.parse(s.slice(i,j+1));
+}
+const ERR={server_not_connected:"Refresh runs from the Claude desktop app. Data refreshed there shows here too.",not_in_manifest:"Browser access was declined for this page.",approval_required:"Refresh needs your approval for the browser.",cancelled:"Refresh was cancelled.",bad_page:"ESPN didn't send league data. Sign in to ESPN in the Claude app's browser, then refresh.",not_league:"ESPN didn't send league data. Sign in to ESPN in the Claude app's browser, then refresh."};
+const rankPair=pe=>[pe?.ratings?.[0]?.totalRanking||0,pe?.player?.draftRanksByRankType?.ROTO?.rank||0];
+let busy=false;
+async function refresh(){
+  if(busy)return;const btn=document.getElementById("refreshBtn");
+  const mcp=await claude.use("mcp");
+  if(!mcp){showUpdated("Refresh runs from the Claude desktop app. Data refreshed there shows here too.",true);return;}
+  busy=true;btn.disabled=true;
+  try{
+    showUpdated("Checking ESPN…");
+    const st=await fetchJSON(mcp,LEAGUE+"?view=mStatus");
+    if(!st.scoringPeriodId)throw {code:"not_league"};
+    TODAY=st.scoringPeriodId;
+    const curWk=weekOf(Math.min(TODAY,SEASON_END)),pull=[curWk];if(wk[0]!==curWk[0]&&wk[1]<=TODAY)pull.push(wk);
+    const total=pull.reduce((s,w)=>s+w[2]-w[1]+1,0);let step=0;
+    for(const w of pull){const W={scores:{},days:{}};
+      for(let sp=w[1];sp<=w[2];sp++){step++;showUpdated(`Loading ${dow(sp)} ${md(sp)} (${step} of ${total})…`);
+        const bx=await fetchJSON(mcp,`${LEAGUE}?view=mBoxscore&scoringPeriodId=${sp}&matchupPeriodId=${w[0]}`);
+        if(!bx.schedule)throw {code:"not_league"};const D={};
+        bx.schedule.filter(x=>x.matchupPeriodId===w[0]).forEach(x=>[x.home,x.away].forEach(s=>{if(!s)return;
+          if(s.cumulativeScore?.scoreByStat){const b=s.cumulativeScore.scoreByStat;W.scores[s.teamId]=SCID.map(k=>b[k]?.score??0);}
+          D[s.teamId]=(s.rosterForCurrentScoringPeriod?.entries||[]).map(e=>{const pl=e.playerPoolEntry.player;const S=(pl.stats||[]).find(z=>z.statSourceId===0&&z.statSplitTypeId===5&&z.scoringPeriodId===sp);
+            return [pl.fullName,e.lineupSlotId,(sp<=TODAY&&S&&Object.keys(S.stats||{}).length)?SID.map(k=>Math.round(S.stats[k]||0)):null,PRO[pl.proTeamId]||"FA",pl.defaultPositionId,(pl.eligibleSlots||[]).filter(s=>LINEUP.includes(s))];});}));
+        W.days[sp]=D;}
+      STORE.weeks[w[0]]=W;applyWeek(w[0],W);}
+    // current lineups from today's box score
+    const todayW=STORE.weeks[curWk[0]]?.days?.[Math.min(TODAY,curWk[2])];
+    if(todayW)for(const [id,entries] of Object.entries(todayW)){const T=TEAMS[id];if(!T)continue;const names=new Set(entries.map(e=>e[0]));
+      T.P.forEach(p=>{if(!names.has(p.n))p.s=null;});entries.forEach(([n,slot,,t])=>{const p=T.P.find(q=>q.n===n);if(p){p.s=slot;p.t=t;}});}
+    showUpdated("Loading standings…");
+    const tm=await fetchJSON(mcp,LEAGUE+"?view=mTeam");
+    (tm.teams||[]).forEach(t=>{if(!TEAMS[t.id])return;TEAMS[t.id].name=(t.name||"").trim()||TEAMS[t.id].name;STAND[t.id]={rec:[t.record?.overall?.wins||0,t.record?.overall?.losses||0,t.record?.overall?.ties||0],vbs:SCID.map(k=>t.valuesByStat?.[k]??0)};});
+    // injuries and season stats for the two teams on screen
+    const opp=opponentOf(cur);
+    for(const id of [cur,opp]){
+      showUpdated(`Loading ${TEAMS[id].name}…`);
+      const r=await fetchJSON(mcp,`${LEAGUE}?view=mRoster&forTeamId=${id}&scoringPeriodId=${TODAY}`);
+      const t=(r.teams||[]).find(x=>x.id===id);if(!t)continue;
+      t.roster.entries.forEach(e=>{const pl=e.playerPoolEntry.player,p=TEAMS[id].P.find(q=>q.n===pl.fullName);if(!p)return;p.st=pl.injuryStatus||e.injuryStatus||"ACTIVE";
+        const S=(pl.stats||[]).find(z=>z.statSourceId===0&&z.statSplitTypeId===0&&z.seasonId===2027);p.ss=S&&Object.keys(S.stats||{}).length?[...SID,42].map(k=>Math.round((S.stats[k]||0)*10)/10):null;
+        const P2=(pl.stats||[]).find(z=>z.statSourceId===1&&z.statSplitTypeId===0&&z.seasonId===2027);if(P2&&Object.keys(P2.stats||{}).length)p.pj=[...SID,42].map(k=>Math.round((P2.stats[k]||0)*10)/10);p.rk=rankPair(e.playerPoolEntry);const o=pl.ownership?.percentOwned;if(o!=null)p.ro=Math.round(o*10)/10;});
+    }
+    // live NBA game status for today
+    try{showUpdated("Loading NBA scores…");const d=dateOf(TODAY),ymd=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+      const sb=await fetchJSON(mcp,`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${ymd}`);
+      const g={};(sb.events||[]).forEach(ev=>{const c=ev.competitions?.[0];if(!c)return;const s=c.status?.type||ev.status?.type||{};const tms=c.competitors||[];
+        tms.forEach(me=>{const ot=tms.find(x=>x!==me);const ab=me.team?.abbreviation;if(!ab)return;
+          g[ab]={s:s.state||"pre",d:s.state==="pre"?fmtTime((()=>{const t=new Date(ev.date);const et=new Date(t.toLocaleString("en-US",{timeZone:"America/New_York"}));return et.getHours()*60+et.getMinutes();})()):(s.shortDetail||""),sc:`${me.score??0}-${ot?.score??0}`};});});
+      LIVE={day:TODAY,at:Date.now(),g};}catch(e){if(e?.code&&!["tool_error","bad_page"].includes(e.code))throw e;}
+    UPDATED=Date.now();await saveShared(pull.map(w=>w[0]));
+    rerender(true);if(wk[1]>TODAY+7||wk[2]<TODAY-7){}
+  }catch(e){
+    showUpdated(ERR[e?.code]||(e?.code?`Refresh failed (${e.code}). Try again.`:"Refresh failed. Try again."),true);
+  }finally{busy=false;btn.disabled=false;}
+}
+document.getElementById("refreshBtn").onclick=refresh;
+
+restore();fillWeeks();wk=weekOf(TODAY);showUpdated();load();loadShared();
+</script>
+
+</body></html>

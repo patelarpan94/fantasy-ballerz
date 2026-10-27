@@ -106,7 +106,7 @@ async function refresh(){
 
 // a new version on GitHub: reload when the app is opened or brought back, so nobody runs a stale copy
 async function checkVersion(){
-  try{const r=await fetch(`${DF_ASSETS}version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
+  try{const r=await fetch(`version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
     const u=new URL(location.href);if(j.v&&DF_CONFIG.build&&j.v!==DF_CONFIG.build&&!FEED.busy&&u.searchParams.get("v")!==j.v){u.searchParams.set("v",j.v);location.replace(u.toString());}}catch(e){}
 }
 setTimeout(checkVersion,1500);

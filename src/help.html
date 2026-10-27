@@ -1,0 +1,110 @@
+<dialog id="helpDlg" class="help" aria-labelledby="helpTitle">
+  <div class="hhead"><h2 id="helpTitle">How the app works</h2><button class="hx" id="helpClose" aria-label="Close help">✕</button></div>
+  <nav class="htoc"><a href="#h-basics">Basics</a><a href="#h-refresh">Stats and Refresh</a><a href="#h-team">My Team</a><a href="#h-matchup">Matchup</a><a href="#h-players">Players</a><a href="#h-league">League</a><a href="#h-analytics">Analytics</a><a href="#h-draft">Draft</a><a href="#h-badges">Badges</a><a href="#h-terms">Terms</a><a href="#h-keys">Shortcuts</a></nav>
+  <div class="hbody">
+  <section id="h-basics"><h3>Basics</h3>
+    <p>Indian Ballerz is a head-to-head categories league. Since version 2.0 (Oct 26, 2026) <b>the app runs the league</b>: set lineups, add, drop, claim off waivers and trade here, not on ESPN. Rosters started as an exact copy of our ESPN league on Oct 26. ESPN is only the source for NBA box scores, games, injuries and news. ESPN preseason projections are always labeled <span class="projtag">ESPN projection</span>.</p>
+    <ul>
+      <li><b>Team picker</b>: look at any team. <b>⇄</b> next to it swaps to that team's opponent.</li>
+      <li><b>Week picker</b> with ‹ ›: move between matchup weeks. <b>Today</b> jumps back to the current week.</li>
+      <li><b>Chat</b>: the round button at the bottom right. League chat goes to everyone. Direct messages go to one team or the commissioner. A red count shows unread messages.</li>
+      <li><b>Your code</b>: the app opens with a dial pad. Enter the 6-digit code the commissioner gave your team. Tap your team name at the top to log out.</li>
+      <li><b>Tap a player's name</b> anywhere for his card: health, projection vs season vs last 7 days, and recent news. Tap elsewhere on his row for his game log. A blue dot by a name means news in the last 2 days.</li>
+    </ul></section>
+  <section id="h-refresh"><h3>Stats and Refresh</h3>
+    <ul>
+      <li>The dot and time at the top show when data was last pulled from ESPN. Green is current, amber is a few hours old, red is more than a day old.</li>
+      <li>Each pull brings in NBA box scores, tonight's scores, the injury report and news from ESPN. Rosters, lineups and settings live in the app and are never overwritten by a pull.</li>
+      <li><b>Refresh</b>: for the commissioner it starts a pull in Claude's cloud. New data shows on everyone's devices a few minutes later. After pressing it, wait about 10 minutes before pressing again.</li>
+      <li>For everyone else, new data appears on its own whenever the commissioner refreshes. In the Claude desktop app, Refresh can also read ESPN directly.</li>
+      <li>Scores, standings and playoffs update from the pulled box scores automatically.</li>
+    </ul></section>
+  <section id="h-team"><h3>My Team</h3>
+    <ul>
+      <li>The header card shows your record, streak, league rank and chance to win this matchup, with shortcut chips to Schedule, Trades, Transactions, News and Analytics.</li>
+      <li>Your roster for the day you pick in the day strip (today if none), grouped into starters, bench and IR, with each slot as set that day.</li>
+      <li><b>Schedule</b> shows each player's games this week: points/rebounds/assists for played days, the opponent and tip time for days ahead. <b>Stats</b> shows the full box score lines. <b>Left</b> is games left this week.</li>
+      <li>Tap a slot (MOVE, then HERE) to change your lineup. A player locks once his game starts. <b>Auto-set today</b> and <b>Rest of matchup</b> start your healthy players with games, best first.</li>
+      <li><span class="canst">can start</span> and <b>+N could start from bench</b> mark bench players who have a game and an open slot they could fill. Tap Fix lineup to sort it.</li>
+      <li>Today is shown in green in the day strip and the schedule columns.</li>
+    </ul></section>
+  <section id="h-matchup"><h3>Matchup</h3>
+    <ul>
+      <li>The top card shows both teams with each side's <b>win %</b>: every category's odds come from its projected finish (box scores so far plus ESPN projections for games left), combined into the chance of winning more categories. <b>Now</b> is the live category score, <b>projected</b> the expected final.</li>
+      <li>The <b>category board</b> lists each category with the leader highlighted in green and the projected finish under each total.</li>
+      <li><b>Scoreboard</b>: both teams' category totals for the week. Green is ahead. W-L-T is the category score.</li>
+      <li><b>Played / Left</b>: starter games played and still to come. <b>Bench could start</b>: extra games available by moving bench players into open slots.</li>
+      <li><b>Rosters</b>, <b>Stats</b> and <b>Tracker</b> show both teams side by side. Only stats from players in the starting lineup that day count.</li>
+    </ul></section>
+  <section id="h-players"><h3>Players</h3>
+    <ul>
+      <li>Free agents by default. Switch to everyone, rostered, or one team. Filter by rank and position, and sort by any column.</li>
+      <li>Tap <b>+</b> in the first column to compare up to 4 players side by side.</li>
+      <li><b>+</b> adds a free agent (with a drop if your roster is full), <b>−</b> drops, <b>⇄</b> offers a trade. A dropped player goes on waivers for 24 hours; claims run Sundays at 8 AM ET in rolling order. Accepted trades go to a 48-hour league vote, and the commissioner can approve, veto or reverse any move.</li>
+    </ul></section>
+  <section id="h-league"><h3>League</h3>
+    <dl>
+      <dt>Scoreboard</dt><dd>Every matchup this week and this week's category ranks.</dd>
+      <dt>Standings</dt><dd>Season record, season category totals and ranks, the playoff line and the bracket (top 4 make the playoffs, seeded by record).</dd>
+      <dt>Schedule</dt><dd>The 19 regular-season matchup weeks (copied from ESPN) and results.</dd>
+      <dt>News</dt><dd>The injury report for every rostered player (status, what it is, expected return, ESPN's note) and the latest ESPN NBA stories, filterable to rostered players or your team.</dd>
+      <dt>NBA schedule</dt><dd>All 30 NBA teams by day for the week, games left and back-to-backs.</dd>
+      <dt>Settings</dt><dd>Only the commissioner sees this tab. Settings are set in the app: 8 categories (FG%, FT%, 3PM, REB, AST, STL, BLK, PTS), PG, SG, SF, PF, C, G, F, 3 UTIL, 3 bench and 3 IR slots, 4 playoff teams, waiver rules and trade review. The commissioner also sets each team's access code here.</dd>
+    </dl></section>
+  <section id="h-analytics"><h3>Analytics</h3>
+    <ul>
+      <li><b>Matchup forecast</b>: this matchup's box scores so far plus ESPN per-game projections for each starter's remaining games, category by category.</li>
+      <li><b>Category heat map</b>: every team's rank in each category, from projections or actual stats so far. Darker is better.</li>
+      <li><b>Strengths and punts</b>: how far the selected team is above or below the league average in each category.</li>
+      <li><b>Games left</b>, <b>Heating up / Cooling off</b> (last 7 days vs projection), <b>Hot free agents</b> and <b>Streaming pickups</b> (free agents with the most games left this matchup, weighted by value).</li>
+    </ul></section>
+  <section id="h-draft"><h3>Draft</h3>
+    <p>This season's draft happened on ESPN and its results were copied in. From next season the Draft tab is a live draft room with snake or straight order, a pick clock, queues and autodraft.</p></section>
+  <section id="h-badges"><h3>Badges</h3>
+    <p>Icons next to a name mark last season's honors. Hover over one (or tap it on a phone) to see what it means.</p>
+    <div class="hbadges">
+      <span><svg class="cupi"><use href="#sChamp"/></svg>2026 NBA champion</span>
+      <span><svg class="cupi"><use href="#sCup"/></svg>2025 NBA Cup champion</span>
+      <span><svg class="cupi"><use href="#aMvp"/></svg>MVP</span>
+      <span><svg class="cupi"><use href="#aDpoy"/></svg>Defensive Player of the Year</span>
+      <span><svg class="cupi"><use href="#aRoy"/></svg>Rookie of the Year</span>
+      <span><svg class="cupi"><use href="#a6moy"/></svg>Sixth Man of the Year</span>
+      <span><svg class="cupi"><use href="#aMip"/></svg>Most Improved Player</span>
+      <span><svg class="cupi"><use href="#aClutch"/></svg>Clutch Player of the Year</span>
+      <span><svg class="cupi"><use href="#aMedal"/></svg>Finals, Conference Finals or NBA Cup MVP</span>
+      <span><svg class="cupi"><use href="#aAsg"/></svg>All-Star Game MVP</span>
+      <span><svg class="cupi"><use href="#aCrown"/></svg>League leader in a stat</span>
+      <span><svg class="cupi"><use href="#aHustle"/></svg>Hustle Award</span>
+      <span><svg class="cupi"><use href="#aSport"/></svg>Sportsmanship Award</span>
+    </div></section>
+  <section id="h-terms"><h3>Terms</h3>
+    <dl class="hterms">
+      <dt><span class="bn">BE</span></dt><dd>Played while on the bench, so the stats didn't count.</dd>
+      <dt><span class="dnp">DNP</span></dt><dd>Had a game but didn't play.</dd>
+      <dt><span class="canst">can start</span></dt><dd>Bench player with a game and an open starting slot he's eligible for that day.</dd>
+      <dt>IR</dt><dd>Injured reserve. Up to 3 players; their stats don't count.</dd>
+      <dt>vs / @</dt><dd>Home / away game.</dd>
+      <dt>B2B</dt><dd>Back-to-back: the second of games on consecutive days.</dd>
+      <dt>DTD / OUT</dt><dd>ESPN injury status: day-to-day or out.</dd>
+      <dt>Rank</dt><dd>Season: our rank from this season's per-game category stats. Projected: ESPN's preseason rank.</dd>
+      <dt>Proj / Act</dt><dd>ESPN's full-season projection / actual stats so far.</dd>
+    </dl></section>
+  <section id="h-keys"><h3>Keyboard shortcuts</h3>
+    <dl class="hterms">
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next week</dd>
+      <dt><kbd>T</kbd></dt><dd>Jump to the current week</dd>
+      <dt><kbd>S</kbd></dt><dd>Swap to the opponent</dd>
+      <dt><kbd>/</kbd></dt><dd>Search players</dd>
+      <dt><kbd>1</kbd>–<kbd>6</kbd></dt><dd>My Team, Matchup, Players, League, Draft, Analytics</dd>
+      <dt><kbd>?</kbd></dt><dd>Open this help</dd>
+    </dl></section>
+  </div>
+</dialog>
+<dialog id="relDlg" class="help" aria-labelledby="relTitle">
+  <div class="hhead"><h2 id="relTitle">Release notes</h2><button class="hx" id="relClose" aria-label="Close release notes">✕</button></div>
+  <div class="hbody" id="relBody"></div>
+</dialog>
+<dialog id="sheet" class="help sheet" aria-labelledby="sheetTitle">
+  <div class="hhead"><h2 id="sheetTitle">Add player</h2><button class="hx" id="sheetClose" aria-label="Close">✕</button></div>
+  <div class="hbody" id="sheetBody"></div>
+</dialog>
