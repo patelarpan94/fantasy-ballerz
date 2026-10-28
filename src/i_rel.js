@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.7",date:"2026-10-28",title:"Locked out after 10 tries",notes:[
+    ["157","Change","10 wrong passwords in a row lock a team out (it shows 🔒 on the login screen and in League › Settings › Passwords). Phones already logged in stay in. The commissioner unlocks it by unticking Locked out and setting a new 6-digit code; the team logs in with that code and picks a new password. The commissioner login never locks."],
+    ["158","Change","No more emails: Forgot password now tells you to ask the commissioner for a new code, and New code in League › Settings › Passwords replaces Reset. Change your own password under Account › Change password."]]},
   {v:"2.6",date:"2026-10-28",title:"Your own password",notes:[
     ["149","New","Phone app: log in by picking your team and typing your own password. The first time, the 6-digit code from the commissioner lets you pick one; after that the code stops working for your team."],
     ["150","New","Forgot password? The app emails a 6-digit code to the address on file. Change your password or reset email any time under Account › Password and email. The commissioner can set emails and reset a team in League › Settings › Passwords."],

@@ -143,11 +143,12 @@ function badges_() {
    Each team (and the commissioner) owns a password once it has claimed one
    with the commissioner's 6-digit code. Accounts live in Script properties
    (never in the Sheet, so no one can sync them): ACCT_<tN|commish> =
-   {pw, salt, email, reset:{code, exp, tries}, sent:[times]}. A login hands
-   the phone a session token; only its sha256 is kept (SESS_<hash>). Once a
-   team has a password, its 6-digit code stops working until the
-   commissioner resets the password. */
-var SESSION_DAYS = 60, RESET_MIN = 15;
+   {pw, salt, fails, locked, sess}. A login hands the phone a session token;
+   only its sha256 is kept (SESS_<hash>). Once a team has a password, its
+   6-digit code stops working. No emails: 10 wrong passwords lock a team
+   until the commissioner gives it a new code in Settings (the commissioner
+   never locks). */
+var SESSION_DAYS = 60, LOCK_FAILS = 10;
 function acct_(k) { return parse_(props_().getProperty('ACCT_' + k)) || {}; }
 function saveAcct_(k, a) { props_().setProperty('ACCT_' + k, JSON.stringify(a)); }
 function pwHash_(salt, pw) {
@@ -199,16 +200,14 @@ function badgeFor_(k) {
   for (var h in B) if (k === 'commish' ? B[h].role === 'commish' : B[h].team === k) return h;
   return null;
 }
-function mask_(e) { if (!e) return ''; var p = String(e).split('@'); return p[0].charAt(0) + '•••@' + (p[1] || ''); }
 function validPw_(pw) { if (!pw || String(pw).length < 6) throw err_('weak', 'Use at least 6 characters.'); return String(pw); }
-function validEmail_(e) { e = String(e || '').trim(); if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw err_('email', 'That email doesn\'t look right.'); return e; }
 function league_() { return getDoc_('league', SEASON) || {}; }
 function keyOk_(k) { return k === 'commish' || (league_().teams || []).some(function (t) { return t.id === k; }); }
 
-// what the login screen needs: which teams have a password, and a hint of the reset email
+// what the login screen needs: which teams have a password, and which are locked out
 function accts_(who) {
   var out = {}, keys = ['commish'].concat((league_().teams || []).map(function (t) { return t.id; }));
-  keys.forEach(function (k) { var a = acct_(k); out[k] = {pw: !!a.pw, email: who.commish ? a.email || '' : mask_(a.email)}; });
+  keys.forEach(function (k) { var a = acct_(k); out[k] = {pw: !!a.pw, locked: !!a.locked}; });
   return {accts: out};
 }
 function auth_(b, who) {
@@ -218,55 +217,37 @@ function auth_(b, who) {
     case 'login':
       a = acct_(k);
       if (!a.pw) throw err_('no_pw', 'This team hasn\'t set a password yet. Use the 6-digit code from the commissioner.');
-      if ((a.lockUntil || 0) > Date.now()) throw err_('locked', 'Too many tries. Wait a few minutes.');
+      var cm = k === 'commish', LOCKED = 'Locked out after ' + LOCK_FAILS + ' wrong passwords. Ask the commissioner for a new 6-digit code.';
+      if (!cm && a.locked) throw err_('locked', LOCKED);
       if (pwHash_(a.salt, String(b.pw || '')) !== a.pw) {
-        a.fails = (a.fails || 0) + 1; if (a.fails >= 6) { a.fails = 0; a.lockUntil = Date.now() + 5 * 60e3; }
-        saveAcct_(k, a); throw err_('bad_pw', 'Wrong password.');
+        if (cm) throw err_('bad_pw', 'Wrong password.');
+        a.fails = (a.fails || 0) + 1; if (a.fails >= LOCK_FAILS) a.locked = true;
+        saveAcct_(k, a);
+        if (a.locked) throw err_('locked', LOCKED);
+        var left = LOCK_FAILS - a.fails;
+        throw err_('bad_pw', 'Wrong password.' + (left <= 5 ? ' ' + left + (left === 1 ? ' try' : ' tries') + ' left before it locks.' : ''));
       }
-      a.fails = 0; saveAcct_(k, a);
+      a.fails = 0; delete a.lockUntil; saveAcct_(k, a);
       return {s: newSession_(k), k: k};
     case 'claim':                                // first password, proven with the team's 6-digit code
       a = acct_(k);
-      if (a.pw) throw err_('has_pw', 'This team already has a password. Log in with it, or use Forgot password.');
+      if (a.pw) throw err_('has_pw', 'This team already has a password. Log in with it, or ask the commissioner for a new code.');
       var h = badgeFor_(k);
       if (!h || h !== b.h) throw err_('bad_code', 'That code doesn\'t match this team.');
-      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw));
-      if (b.email != null) a.email = validEmail_(b.email);
+      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); a.fails = 0; delete a.locked;
       saveAcct_(k, a); CacheService.getScriptCache().remove('badges');
       return {s: newSession_(k), k: k};
-    case 'forgot':
-      a = acct_(k);
-      if (!a.pw) throw err_('no_pw', 'No password yet: use the 6-digit code from the commissioner.');
-      if (!a.email) throw err_('no_email', 'No reset email on file for this team. Ask the commissioner to reset your password.');
-      var now = Date.now(); a.sent = (a.sent || []).filter(function (t) { return now - t < 864e5; });
-      if (a.sent.length >= 5 || (a.sent.length && now - a.sent[a.sent.length - 1] < 60e3)) throw err_('slow', 'A code was just sent. Check your email (and spam), or try again in a minute.');
-      var code = String(Math.floor(100000 + Math.random() * 900000));
-      a.reset = {code: bid_(code + a.salt), exp: now + RESET_MIN * 60e3, tries: 0}; a.sent.push(now); saveAcct_(k, a);
-      var L = league_(), nm = k === 'commish' ? 'the commissioner' : ((L.teams || []).filter(function (t) { return t.id === k; })[0] || {}).name || k;
-      MailApp.sendEmail(a.email, (L.name || 'Fantasy league') + ' password reset code: ' + code,
-        'Your code to reset the password for ' + nm + ' is ' + code + '.\n\nIt works for ' + RESET_MIN + ' minutes. If you didn\'t ask for this, you can ignore this email.');
-      return {sent: mask_(a.email)};
-    case 'reset':
-      a = acct_(k);
-      if (!a.reset || a.reset.exp < Date.now() || a.reset.tries >= 5) throw err_('bad_code', 'That code expired. Ask for a new one.');
-      if (bid_(String(b.code || '').trim() + a.salt) !== a.reset.code) { a.reset.tries++; saveAcct_(k, a); throw err_('bad_code', 'That code isn\'t right.'); }
-      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); delete a.reset; a.fails = 0; saveAcct_(k, a);
-      dropSessions_(k);
-      return {s: newSession_(k), k: k};
-    case 'acctme':                               // a logged-in phone changes its own password or email
+    case 'acctme':                               // a logged-in phone changes its own password
       var mk = who.commish ? 'commish' : who.team;
       if (!mk || !who.b || who.h) throw err_('denied', 'Log in with your password first.');
       a = acct_(mk);
-      if (b.pw != null) { a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); }
-      if (b.email != null) a.email = validEmail_(b.email);
+      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw));
       saveAcct_(mk, a);
-      return {ok: true, email: a.email || ''};
-    case 'acctadmin':                            // the commissioner sets a team's email or clears its password
+      return {ok: true};
+    case 'acctadmin':                            // the commissioner clears a team's password and lock (after giving it a new code)
       if (!who.commish) throw err_('denied', 'Only the commissioner can do that.');
-      a = acct_(k);
-      if (b.email != null) a.email = validEmail_(b.email);
-      if (b.reset) { delete a.pw; delete a.salt; delete a.reset; saveAcct_(k, a); dropSessions_(k); a = acct_(k); }
-      saveAcct_(k, a); CacheService.getScriptCache().remove('badges');
+      if (b.reset) { a = acct_(k); ['pw', 'salt', 'reset', 'locked', 'fails', 'lockUntil', 'email', 'sent'].forEach(function (x) { delete a[x]; }); saveAcct_(k, a); dropSessions_(k); }
+      CacheService.getScriptCache().remove('badges');
       return {ok: true};
     case 'logout':
       if (b.s) props_().deleteProperty('SESS_' + bid_(b.s));
@@ -333,7 +314,7 @@ function api_(b) {
   var who = who_(b.h, b.s);
   switch (b.op) {
     case 'accts': return accts_(who);
-    case 'login': case 'claim': case 'forgot': case 'reset': case 'acctme': case 'acctadmin': case 'logout': return auth_(b, who);
+    case 'login': case 'claim': case 'acctme': case 'acctadmin': case 'logout': return auth_(b, who);
     case 'sync': return sync_(b.cols || {}, who);
     case 'get': return get_(b.c, b.i, who);
     case 'set': case 'update': case 'del': return mutate_(b, who);
@@ -443,6 +424,12 @@ function setup() {
   setupTimers();
 }
 /* ------------------------------------------------------------------ timers */
+// forgot the commissioner password? Run this from the Apps Script editor, then log in with the commissioner's 6-digit code
+function resetCommishPassword() {
+  var a = acct_('commish'); ['pw', 'salt', 'reset', 'locked', 'fails', 'lockUntil', 'email', 'sent'].forEach(function (x) { delete a[x]; });
+  saveAcct_('commish', a); dropSessions_('commish'); CacheService.getScriptCache().remove('badges');
+  Logger.log('Commissioner password cleared. Log in with the commissioner 6-digit code and pick a new one.');
+}
 function setupTimers() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'tick') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();

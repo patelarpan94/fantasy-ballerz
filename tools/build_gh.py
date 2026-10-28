@@ -9,7 +9,7 @@ The artifact's Store (Claude artifact database) is swapped for web/store_gas.js
 and Refresh asks the backend. Backend addresses come from config.json.
 Each site gets its own version.json, so a UAT build never reloads Live phones.
 """
-import hashlib, json, os, re, sys, time
+import shutil, hashlib, json, os, re, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if len(sys.argv) != 2 or sys.argv[1] not in ("uat", "live"):
@@ -147,6 +147,9 @@ os.makedirs(os.path.join(ROOT, path or "."), exist_ok=True)
 open(os.path.join(ROOT, path, "index.html"), "w", encoding="utf-8").write(page(env))
 open(os.path.join(ROOT, path, "manifest.webmanifest"), "w").write(manifest(env))
 json.dump({"v": BUILD, "release": RELEASE, "src": SRC_HASH}, open(os.path.join(ROOT, path, "version.json"), "w"))
+# the league server for this site, picked up by tools/server/release.sh (clasp) on Arp's Mac
+os.makedirs(os.path.join(ROOT, path, "server"), exist_ok=True)
+shutil.copyfile(os.path.join(ROOT, "apps-script", "Code.gs"), os.path.join(ROOT, path, "server", "Code.js"))
 print(f"built {env}: {RELEASE} (build {BUILD}, source {SRC_HASH})")
 if env == "live":
     print(f"commit as: Release {RELEASE}")
