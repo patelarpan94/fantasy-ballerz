@@ -20,7 +20,7 @@ document.head.insertAdjacentHTML("beforeend",`<style>
 .pwform{display:flex;flex-direction:column;gap:10px}.pwform label{display:flex;flex-direction:column;gap:4px;font-size:13px}
 .pwform input,.pwtab input{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .pwtab td{padding:6px 8px;vertical-align:middle}.pwtab label{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}.pwtab input[type=checkbox]{width:18px;height:18px}
-.pwlock{color:var(--bad,#d33);font-weight:700}.pwtab label:has(input:disabled){opacity:.45}.pwteams .btn.lk{opacity:.7}
+.pwlock{color:var(--bad,#d33);font-weight:700}.pwmsg{margin:0;font-weight:600}.pwmsg.err{color:var(--bad,#d33)}.pwtab label:has(input:disabled){opacity:.45}.pwteams .btn.lk{opacity:.7}
 </style>`);
 let ACCTS=null;const PW={step:"pick",k:null,h:null,msg:"",err:false,busy:false,sent:""};
 async function loadAccts(){try{const j=await Store._call("accts",{});ACCTS=j.accts||{};}catch(e){}if(!gate.hidden)renderGate();}
@@ -124,8 +124,16 @@ function pwNewCode(k,unlock){
 document.addEventListener("change",e=>{const c=e.target.closest("[data-pwlock]");if(!c)return;if(c.checked)return;c.checked=true;pwNewCode(c.dataset.pwlock,true);});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-pwreset]");if(b)pwNewCode(b.dataset.pwreset,false);});
 document.addEventListener("submit",async e=>{const f=e.target.closest("[data-pwnew]");if(!f)return;e.preventDefault();const k=f.dataset.pwnew,code=String(new FormData(f).get("code")||"").trim();
-  if(!/^\d{6}$/.test(code))return toast("The code needs 6 digits.");
-  if(Object.entries(SECRET?.codes||{}).some(([x,c])=>x!==k&&c===code))return toast("Another team already has that code.");
-  try{CODEF={...(SECRET?.codes||{}),[k]:code};CODE_DIRTY=true;await saveCodes();if(CODE_DIRTY)return;
-    await Store._call("acctadmin",{k,reset:true});sheet().close();await loadAccts();renderRosters();toast(`Done. ${acctName(k)} logs in with ${code} and picks a new password.`);}
-  catch(x){toast(x.message||"Couldn't save. Try again.");}});
+  // messages go inside the sheet: a toast would sit behind it
+  const say=m=>{let el=f.querySelector(".pwmsg");if(!el){f.insertAdjacentHTML("afterbegin",`<p class="pwmsg"></p>`);el=f.querySelector(".pwmsg");}el.textContent=m;el.classList.toggle("err",m!=="Saving…");};
+  if(!/^\d{6}$/.test(code))return say("The code needs 6 digits.");
+  const btn=f.querySelector("button.btn:not(.ghost)");btn.disabled=true;say("Saving…");
+  try{
+    // the current codes straight from the server, so no other team's code gets lost
+    const cur=(await Store._call("get",{c:"secret",i:"codes"})).v||SECRET||{};SECRET={...cur,id:"codes"};
+    const codes=cur.codes||{};
+    if(!codes.commish){btn.disabled=false;return say("Set every team's code once in League › Settings › Access codes first (the commissioner code is missing).");}
+    if(Object.entries(codes).some(([x,c])=>x!==k&&c===code)){btn.disabled=false;return say("Another team already has that code. Pick a different one.");}
+    sheet().close();CODEF={...codes,[k]:code};CODE_DIRTY=true;await saveCodes();if(CODE_DIRTY)return;
+    await Store._call("acctadmin",{k,reset:true});await loadAccts();document.activeElement?.blur?.();renderRosters();toast(`Done. ${acctName(k)} logs in with ${code} and picks a new password.`);}
+  catch(x){btn.disabled=false;if(sheet().open)say(x.message||"Couldn't save. Try again.");else toast(x.message||"Couldn't save. Try again.");}});

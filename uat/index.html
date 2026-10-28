@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028234831"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028235736"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4146,7 +4146,8 @@ const RELEASES=[
   {v:"2.7",date:"2026-10-28",title:"Locked out after 10 tries",notes:[
     ["157","Change","10 wrong passwords in a row lock a team out (it shows 🔒 on the login screen and in League › Settings › Passwords). Phones already logged in stay in. The commissioner unlocks it by unticking Locked out and setting a new 6-digit code; the team logs in with that code and picks a new password. The commissioner login never locks."],
     ["158","Change","No more emails: Forgot password now tells you to ask the commissioner for a new code, and New code in League › Settings › Passwords replaces Reset. Change your own password under Account › Change password."],
-    ["159","Fix","A new code from the commissioner works right away on the team's phone: the login screen now checks codes and locks with the league server instead of an older copy saved on the phone."]]},
+    ["159","Fix","A new code from the commissioner works right away on the team's phone: the login screen now checks codes and locks with the league server instead of an older copy saved on the phone."],
+    ["160","Fix","Unlock and New code in League › Settings › Passwords now always save: they read the current codes from the league server, and any problem shows inside the window instead of behind it."]]},
   {v:"2.6",date:"2026-10-28",title:"Your own password",notes:[
     ["149","New","Phone app: log in by picking your team and typing your own password. The first time, the 6-digit code from the commissioner lets you pick one; after that the code stops working for your team."],
     ["150","New","Forgot password? The app emails a 6-digit code to the address on file. Change your password or reset email any time under Account › Password and email. The commissioner can set emails and reset a team in League › Settings › Passwords."],
@@ -6776,7 +6777,7 @@ document.head.insertAdjacentHTML("beforeend",`<style>
 .pwform{display:flex;flex-direction:column;gap:10px}.pwform label{display:flex;flex-direction:column;gap:4px;font-size:13px}
 .pwform input,.pwtab input{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .pwtab td{padding:6px 8px;vertical-align:middle}.pwtab label{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}.pwtab input[type=checkbox]{width:18px;height:18px}
-.pwlock{color:var(--bad,#d33);font-weight:700}.pwtab label:has(input:disabled){opacity:.45}.pwteams .btn.lk{opacity:.7}
+.pwlock{color:var(--bad,#d33);font-weight:700}.pwmsg{margin:0;font-weight:600}.pwmsg.err{color:var(--bad,#d33)}.pwtab label:has(input:disabled){opacity:.45}.pwteams .btn.lk{opacity:.7}
 </style>`);
 let ACCTS=null;const PW={step:"pick",k:null,h:null,msg:"",err:false,busy:false,sent:""};
 async function loadAccts(){try{const j=await Store._call("accts",{});ACCTS=j.accts||{};}catch(e){}if(!gate.hidden)renderGate();}
@@ -6880,10 +6881,18 @@ function pwNewCode(k,unlock){
 document.addEventListener("change",e=>{const c=e.target.closest("[data-pwlock]");if(!c)return;if(c.checked)return;c.checked=true;pwNewCode(c.dataset.pwlock,true);});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-pwreset]");if(b)pwNewCode(b.dataset.pwreset,false);});
 document.addEventListener("submit",async e=>{const f=e.target.closest("[data-pwnew]");if(!f)return;e.preventDefault();const k=f.dataset.pwnew,code=String(new FormData(f).get("code")||"").trim();
-  if(!/^\d{6}$/.test(code))return toast("The code needs 6 digits.");
-  if(Object.entries(SECRET?.codes||{}).some(([x,c])=>x!==k&&c===code))return toast("Another team already has that code.");
-  try{CODEF={...(SECRET?.codes||{}),[k]:code};CODE_DIRTY=true;await saveCodes();if(CODE_DIRTY)return;
-    await Store._call("acctadmin",{k,reset:true});sheet().close();await loadAccts();renderRosters();toast(`Done. ${acctName(k)} logs in with ${code} and picks a new password.`);}
-  catch(x){toast(x.message||"Couldn't save. Try again.");}});
+  // messages go inside the sheet: a toast would sit behind it
+  const say=m=>{let el=f.querySelector(".pwmsg");if(!el){f.insertAdjacentHTML("afterbegin",`<p class="pwmsg"></p>`);el=f.querySelector(".pwmsg");}el.textContent=m;el.classList.toggle("err",m!=="Saving…");};
+  if(!/^\d{6}$/.test(code))return say("The code needs 6 digits.");
+  const btn=f.querySelector("button.btn:not(.ghost)");btn.disabled=true;say("Saving…");
+  try{
+    // the current codes straight from the server, so no other team's code gets lost
+    const cur=(await Store._call("get",{c:"secret",i:"codes"})).v||SECRET||{};SECRET={...cur,id:"codes"};
+    const codes=cur.codes||{};
+    if(!codes.commish){btn.disabled=false;return say("Set every team's code once in League › Settings › Access codes first (the commissioner code is missing).");}
+    if(Object.entries(codes).some(([x,c])=>x!==k&&c===code)){btn.disabled=false;return say("Another team already has that code. Pick a different one.");}
+    sheet().close();CODEF={...codes,[k]:code};CODE_DIRTY=true;await saveCodes();if(CODE_DIRTY)return;
+    await Store._call("acctadmin",{k,reset:true});await loadAccts();document.activeElement?.blur?.();renderRosters();toast(`Done. ${acctName(k)} logs in with ${code} and picks a new password.`);}
+  catch(x){btn.disabled=false;if(sheet().open)say(x.message||"Couldn't save. Try again.");else toast(x.message||"Couldn't save. Try again.");}});
 
 </script>
