@@ -81,6 +81,8 @@ async function feedTick(force){
     const lease=await feedLease(force);if(!lease)return {msg:"Another phone is pulling ESPN right now.",saved:0};
     const full=force||Date.now()-(lease.lastFull||0)>=59.5*60e3;
     if(!full&&!feedInWindow()&&!(mirror()&&Date.now()-(FEED.meta?.rosterAt||0)>=10*60e3))return null;
+    // mirroring: rosters first, so they show up before the slower box-score pull finishes
+    if(mirror()&&(full||!Object.keys(ESPNDAYS).length)){const r0=await feedRun(true,-1);FEED.meta=r0.meta;await feedSave(r0.out);}
     const r=await feedRun(full,8);FEED.meta=r.meta;
     r.saved=await feedSave(r.out);FEED.log.push({at:Date.now(),full,msg:r.msg,saved:r.saved});if(FEED.log.length>30)FEED.log.shift();
     if(full)await Store._call("update",{c:"refresh",i:"feed",v:{lastFull:Date.now(),msg:String(r.msg).slice(0,500)}}).catch(()=>{});

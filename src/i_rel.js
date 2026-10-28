@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
+    ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[
     ["146","New","League › Settings › Mirror ESPN rosters: the commissioner can let ESPN run the league for now and switch back any time. Turning it off copies every ESPN add, drop and lineup since mirroring started, so rosters match on day one."],
     ["147","Change","While mirroring, nobody needs a team code to look around. Only the commissioner logs in (for Settings); team codes still work for chat and Pick'em."],

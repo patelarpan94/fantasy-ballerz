@@ -378,6 +378,7 @@ function syncEspn_(full, maxDays) {
       try { log.push(syncRosters_(LG, last, now, MR.rosterDay)); MR.rosterAt = now; MR.rosterDay = last; saveMeta_(MR); } catch (e) { log.push('rosters failed: ' + e); }
     }
   }
+  if (maxDays === -1) return 'Rosters. ' + log.join('; ');    // a quick rosters-only pass
   var M = meta_(), NBA = getDoc_('nba', SEASON) || {}, live = null;
   var frm = 1;
   while (frm < last && M.days[frm] && M.days[frm].final) frm++;
