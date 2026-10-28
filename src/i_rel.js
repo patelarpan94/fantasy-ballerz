@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.6",date:"2026-10-28",title:"Your own password",notes:[
+    ["149","New","Phone app: log in by picking your team and typing your own password. The first time, the 6-digit code from the commissioner lets you pick one; after that the code stops working for your team."],
+    ["150","New","Forgot password? The app emails a 6-digit code to the address on file. Change your password or reset email any time under Account › Password and email. The commissioner can set emails and reset a team in League › Settings › Passwords."],
+    ["151","Change","The league server now checks every change: a team can only set its own lineup, make its own moves, claims, offers and votes. The commissioner can still change anything."],
+    ["153","Fix","Mirror mode: a day whose ESPN lineup never got saved (the app was closed mid-pull) borrowed another day's lineup, so a starter could show on the bench. Missing days are now pulled again, and a day whose save failed is retried."],
+    ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."]]},
   {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
     ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[

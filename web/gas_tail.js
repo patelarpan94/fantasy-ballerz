@@ -23,7 +23,7 @@ bid.m={};
    on, a full pull (injuries, news, ownership) once an hour. Results are saved for
    everyone; unchanged docs are skipped. */
 const FEED_SRC=/*FEED_SRC*/"";
-const FEED_SHIMS=`var __props={},__cache={},__meta=null,__in={},__out=[];
+const FEED_SHIMS=`var __props={},__cache={},__meta=null,__in={},__out=[],__espn=[];
 var PropertiesService={getScriptProperties:function(){return {getProperty:function(k){return k in __props?__props[k]:null},setProperty:function(k,v){__props[k]=String(v)},deleteProperty:function(k){delete __props[k]},getProperties:function(){return Object.assign({},__props)}}}};
 var CacheService={getScriptCache:function(){return {get:function(k){var x=__cache[k];return x&&x.e>Date.now()?x.v:null},put:function(k,v,s){__cache[k]={v:v,e:Date.now()+(s||600)*1000}},remove:function(k){delete __cache[k]}}}};
 var Utilities={sleep:function(){},formatDate:function(d,tz,f){var p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(d).forEach(function(x){p[x.type]=x.value});
@@ -36,13 +36,15 @@ var SpreadsheetApp={},ContentService={},ScriptApp={},DriveApp={},Logger={log:fun
 `;
 const FEED_TAIL=`
 getDoc_=function(c,id){return __in[c+"/"+id]||null};
-getCol_=function(){return {}};
+getCol_=function(c){var o={};if(c==="espn")(__espn||[]).forEach(function(sp){o[SEASON+"_d"+sp]={sp:sp}});return o};
 putDoc_=function(c,id,v){__out.push({c:c,i:id,v:v});return true};
 meta_=function(){return __meta};
 saveMeta_=function(m){__meta=m};
 onmessage=function(e){var d=e.data;__in=d.docs;__out=[];
-  if(!__meta)__meta={days:{},tips:{}};
-  for(var sp in d.days){var a=__meta.days[sp]||(__meta.days[sp]={}),b=d.days[sp];if(b.final){a.final=true;a.finalAt=a.finalAt||b.finalAt;}if(b.hist)a.hist=true;}
+  if(!__meta)__meta={days:{},tips:{}};__espn=d.espn||[];
+  // what's saved is the truth: a day whose save failed gets pulled again
+  for(var k in __meta.days)if(!d.days[k]){__meta.days[k].final=false;__meta.days[k].hist=false;}
+  for(var sp in d.days){var a=__meta.days[sp]||(__meta.days[sp]={}),b=d.days[sp];a.final=!!b.final;if(b.final)a.finalAt=a.finalAt||b.finalAt;a.hist=!!b.hist;}
   var msg;try{msg=syncEspn_(d.full,d.maxDays||4);}catch(x){msg="failed: "+x;}
   postMessage({id:d.id,msg:msg,out:__out,meta:__meta});};
 `;
@@ -56,11 +58,11 @@ const feedStrip=d=>{if(!d)return null;const {id,...v}=d;return v;};
 function feedRun(full,maxDays){return new Promise(res=>{const id=++FEED.id;FEED.cb[id]=res;
   const docs={};if(L)docs["league/"+SEASON]=feedStrip(L);if(NBA)docs["nba/"+SEASON]=feedStrip(NBA);
   const days={};Object.values(STATS||{}).forEach(s=>{if(s&&s.sp!=null)days[s.sp]={final:!!s.final,finalAt:s.at||0,hist:!!s.hist};});
-  feedWorker().postMessage({id,full,maxDays,docs,days});});}
+  feedWorker().postMessage({id,full,maxDays,docs,days,espn:Object.keys(ESPNDAYS).map(Number)});});}
 const feedSame=(a,b)=>{const x={...a},y={...b};delete x.at;delete y.at;delete x.id;delete y.id;return JSON.stringify(x)===JSON.stringify(y);};
 async function feedSave(out){let n=0;
   for(const x of out){const cur=Store._d[x.c]?.[x.i]?.v;if(cur&&feedSame(cur,x.v))continue;
-    try{await Store.set(x.c,x.i,x.v);n++;}catch(e){}}
+    for(let k=0;k<2;k++){try{await Store.set(x.c,x.i,x.v);n++;break;}catch(e){if(/denied|session|retired/.test(e?.code||e?.message||""))break;await new Promise(z=>setTimeout(z,1500));}}}
   return n;}
 // the lease: only one device pulls at a time; a forced pull (commissioner's Refresh) takes it over
 async function feedLease(force){
@@ -75,7 +77,7 @@ function feedInWindow(){const M=FEED.meta;if(!M)return true;const T=todaySp(),no
   for(let sp=T-1;sp<=T;sp++){const t=M.tips[sp],d=M.days[sp]||{};if(!t||now<t[0]-3600e3)continue;if(!d.final||now<=(d.finalAt||0)+3600e3)return true;}
   return false;}
 async function feedTick(force){
-  if(FEED.busy||Store.local||!Store.db||!SESSION||!L||(document.hidden&&!force))return null;
+  if(FEED.busy||Store.local||!Store.db||!L||(document.hidden&&!force))return null;
   FEED.busy=true;
   try{
     const lease=await feedLease(force);if(!lease)return {msg:"Another phone is pulling ESPN right now.",saved:0};

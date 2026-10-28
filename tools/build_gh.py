@@ -59,13 +59,14 @@ i0, i1 = a.index("const Store={"), a.index("function merge(a,b)")
 a = a[:i0] + w("store_gas.js") + "\n" + a[i1:]
 
 d = r("d_app.js")
-d = sub(d, "const b=SESSION&&BADGES?.[SESSION.h];", "const b=SESSION&&BADGES?.[bid(SESSION.h)];", "sessionValid")
+d = sub(d, "const sessionValid=()=>{const b=SESSION&&BADGES?.[SESSION.h];", "const sessionValid=()=>{if(SESSION?.s)return true;const b=SESSION&&BADGES?.[bid(SESSION.h)];", "sessionValid")
+d = sub(d, "if(gate.hidden||e.metaKey||e.ctrlKey||e.altKey)return;", "if(gate.hidden||e.metaKey||e.ctrlKey||e.altKey||e.target.closest?.(\"input,textarea,select\"))return;", "gate keys in inputs")
 d = sub(d, "BADGES={...BADGES,[h]:{role:\"commish\",team:null}};", "BADGES={...BADGES,[bid(h)]:{role:\"commish\",team:null}};", "setup badge")
 d = sub(d, "const b=BADGES?.[h];GATE.busy=false;", "const b=BADGES?.[bid(h)];GATE.busy=false;", "login badge")
 i = d.rindex("</script>")
 gs = open(os.path.join(ROOT, "apps-script", "Code.gs"), encoding="utf-8").read()
 tail = sub(w("gas_tail.js"), '/*FEED_SRC*/""', json.dumps(gs).replace("</", "<\\/"), "feed source")
-d = d[:i] + tail + "\n" + d[i:]
+d = d[:i] + tail + "\n" + w("auth_gh.js") + "\n" + d[i:]
 
 c = r("c_views.js")
 c = sub(c, "const b=BADGES?.[h];\n", "const b=BADGES?.[bid(h)];\n", "codes badge")

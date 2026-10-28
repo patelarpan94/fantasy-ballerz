@@ -12,7 +12,7 @@ const Store={db:null,user:null,uid:null,local:false,canAdmin:true,url:"",
   },
   // one POST per call; text/plain keeps it a "simple" request (no CORS preflight)
   async _call(op,body){
-    const r=await fetch(this.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({op,h:SESSION?.h||null,...body}),redirect:"follow"});
+    const r=await fetch(this.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({op,h:SESSION?.s?null:SESSION?.h||null,s:SESSION?.s||null,...body}),redirect:"follow"});
     if(!r.ok)throw {code:"network",message:`Server error ${r.status}`};
     const j=await r.json();if(j.error)throw {code:j.error,message:j.message||j.error};return j;
   },

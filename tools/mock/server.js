@@ -4,6 +4,7 @@ if(process.env.SEED){const dump=require(process.env.SEED);const cm=dump.docs.fin
   for(let i=0;i<dump.docs.length;i+=60)G.doPost({postData:{contents:JSON.stringify({op:'import',docs:dump.docs.slice(i,i+60),h:cm})}});}
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.json':'application/json','.png':'image/png','.webmanifest':'application/manifest+json'};
 http.createServer((q,s)=>{
+  if(q.url==='/mail'){s.writeHead(200,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'});return s.end(JSON.stringify(st.mail||[]));}
   if(q.url.startsWith('/exec')){
     if(q.method==='OPTIONS'){s.writeHead(204,{'Access-Control-Allow-Origin':'*'});return s.end();}
     let b='';q.on('data',c=>b+=c);q.on('end',()=>{const t=Date.now();let out;

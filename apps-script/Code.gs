@@ -21,6 +21,7 @@ var DAY0 = Date.UTC(2026, 9, 19);            // day 0 of the 2026-27 calendar (M
 var ESPN = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 var TAB = 'docs', PART = 45000, HEAD = 6;
 var ADMIN_COLS = {league: 1, badges: 1, secret: 1};   // commissioner-only writes
+var FEED_COLS = {stats: 1, nba: 1, espn: 1, hist: 1, shots: 1, refresh: 1};   // ESPN data: any open app may write it, logged in or not
 var TZ = 'America/New_York';
 var DAILY_CAP = 85 * 60e3, SLOW_AT = 70 * 60e3;       // Google allows ~90 trigger-minutes a day
 
@@ -138,15 +139,184 @@ function badges_() {
   try { cache.put('badges', JSON.stringify(b), 300); } catch (e) {}
   return b;
 }
-function who_(h) {
-  var B = badges_(), b = h ? B[h] || null : null, any = false;
-  for (var k in B) if (B[k].role === 'commish') any = true;
-  return {h: h, b: b, commish: !!b && b.role === 'commish', setup: !any};
+/* ---------------------------------------------------------------- logins
+   Each team (and the commissioner) owns a password once it has claimed one
+   with the commissioner's 6-digit code. Accounts live in Script properties
+   (never in the Sheet, so no one can sync them): ACCT_<tN|commish> =
+   {pw, salt, email, reset:{code, exp, tries}, sent:[times]}. A login hands
+   the phone a session token; only its sha256 is kept (SESS_<hash>). Once a
+   team has a password, its 6-digit code stops working until the
+   commissioner resets the password. */
+var SESSION_DAYS = 60, RESET_MIN = 15;
+function acct_(k) { return parse_(props_().getProperty('ACCT_' + k)) || {}; }
+function saveAcct_(k, a) { props_().setProperty('ACCT_' + k, JSON.stringify(a)); }
+function pwHash_(salt, pw) {
+  var h = salt + '|' + pw;
+  for (var i = 0; i < 200; i++) h = bid_(h + '|' + salt);
+  return h;
 }
-function canWrite_(who, c) {
+function token_() { return bid_(Utilities.getUuid() + Utilities.getUuid() + Date.now()); }
+function newSession_(k) {
+  var t = token_(), P = props_();
+  P.setProperty('SESS_' + bid_(t), JSON.stringify({k: k, at: Date.now()}));
+  var a = acct_(k); a.sess = (a.sess || []).concat([bid_(t)]).slice(-12); saveAcct_(k, a);
+  return t;
+}
+function dropSessions_(k) {
+  var a = acct_(k), P = props_();
+  (a.sess || []).forEach(function (x) { P.deleteProperty('SESS_' + x); });
+  a.sess = []; saveAcct_(k, a);
+}
+function session_(t) {
+  if (!t) return null;
+  var x = parse_(props_().getProperty('SESS_' + bid_(t)));
+  if (!x || Date.now() - x.at > SESSION_DAYS * 864e5) return null;
+  return x.k;
+}
+function keyRole_(k) { return k === 'commish' ? {role: 'commish', team: null} : {role: 'team', team: k}; }
+function who_(h, s) {
+  var B = badges_(), any = false;
+  for (var k in B) if (B[k].role === 'commish') any = true;
+  if (s) {
+    var sk = session_(s);
+    if (!sk) return {h: null, b: null, commish: false, setup: !any, expired: true};
+    var r = keyRole_(sk);
+    return {h: null, b: r, team: r.team, commish: r.role === 'commish', setup: false};
+  }
+  var b = h ? B[h] || null : null;
+  // a team with a password no longer logs in with its code
+  if (b && acct_(b.role === 'commish' ? 'commish' : b.team).pw) return {h: h, b: null, commish: false, setup: !any, retired: true};
+  return {h: h, b: b, team: b ? b.team : null, commish: !!b && b.role === 'commish', setup: !any};
+}
+function canWrite_(who, c, op) {
   if (who.setup) return true;                  // brand-new Sheet: anyone can set it up or import
+  if (FEED_COLS[c] && op !== 'del') return true;
   if (!who.b) return false;
   return !ADMIN_COLS[c] || who.commish;
+}
+function badgeFor_(k) {
+  var B = badges_();
+  for (var h in B) if (k === 'commish' ? B[h].role === 'commish' : B[h].team === k) return h;
+  return null;
+}
+function mask_(e) { if (!e) return ''; var p = String(e).split('@'); return p[0].charAt(0) + '•••@' + (p[1] || ''); }
+function validPw_(pw) { if (!pw || String(pw).length < 6) throw err_('weak', 'Use at least 6 characters.'); return String(pw); }
+function validEmail_(e) { e = String(e || '').trim(); if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw err_('email', 'That email doesn\'t look right.'); return e; }
+function league_() { return getDoc_('league', SEASON) || {}; }
+function keyOk_(k) { return k === 'commish' || (league_().teams || []).some(function (t) { return t.id === k; }); }
+
+// what the login screen needs: which teams have a password, and a hint of the reset email
+function accts_(who) {
+  var out = {}, keys = ['commish'].concat((league_().teams || []).map(function (t) { return t.id; }));
+  keys.forEach(function (k) { var a = acct_(k); out[k] = {pw: !!a.pw, email: who.commish ? a.email || '' : mask_(a.email)}; });
+  return {accts: out};
+}
+function auth_(b, who) {
+  var k = String(b.k || ''), a;
+  if (b.op !== 'acctme' && b.op !== 'logout' && !keyOk_(k)) throw err_('bad_request', 'Unknown team.');
+  switch (b.op) {
+    case 'login':
+      a = acct_(k);
+      if (!a.pw) throw err_('no_pw', 'This team hasn\'t set a password yet. Use the 6-digit code from the commissioner.');
+      if ((a.lockUntil || 0) > Date.now()) throw err_('locked', 'Too many tries. Wait a few minutes.');
+      if (pwHash_(a.salt, String(b.pw || '')) !== a.pw) {
+        a.fails = (a.fails || 0) + 1; if (a.fails >= 6) { a.fails = 0; a.lockUntil = Date.now() + 5 * 60e3; }
+        saveAcct_(k, a); throw err_('bad_pw', 'Wrong password.');
+      }
+      a.fails = 0; saveAcct_(k, a);
+      return {s: newSession_(k), k: k};
+    case 'claim':                                // first password, proven with the team's 6-digit code
+      a = acct_(k);
+      if (a.pw) throw err_('has_pw', 'This team already has a password. Log in with it, or use Forgot password.');
+      var h = badgeFor_(k);
+      if (!h || h !== b.h) throw err_('bad_code', 'That code doesn\'t match this team.');
+      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw));
+      if (b.email != null) a.email = validEmail_(b.email);
+      saveAcct_(k, a); CacheService.getScriptCache().remove('badges');
+      return {s: newSession_(k), k: k};
+    case 'forgot':
+      a = acct_(k);
+      if (!a.pw) throw err_('no_pw', 'No password yet: use the 6-digit code from the commissioner.');
+      if (!a.email) throw err_('no_email', 'No reset email on file for this team. Ask the commissioner to reset your password.');
+      var now = Date.now(); a.sent = (a.sent || []).filter(function (t) { return now - t < 864e5; });
+      if (a.sent.length >= 5 || (a.sent.length && now - a.sent[a.sent.length - 1] < 60e3)) throw err_('slow', 'A code was just sent. Check your email (and spam), or try again in a minute.');
+      var code = String(Math.floor(100000 + Math.random() * 900000));
+      a.reset = {code: bid_(code + a.salt), exp: now + RESET_MIN * 60e3, tries: 0}; a.sent.push(now); saveAcct_(k, a);
+      var L = league_(), nm = k === 'commish' ? 'the commissioner' : ((L.teams || []).filter(function (t) { return t.id === k; })[0] || {}).name || k;
+      MailApp.sendEmail(a.email, (L.name || 'Fantasy league') + ' password reset code: ' + code,
+        'Your code to reset the password for ' + nm + ' is ' + code + '.\n\nIt works for ' + RESET_MIN + ' minutes. If you didn\'t ask for this, you can ignore this email.');
+      return {sent: mask_(a.email)};
+    case 'reset':
+      a = acct_(k);
+      if (!a.reset || a.reset.exp < Date.now() || a.reset.tries >= 5) throw err_('bad_code', 'That code expired. Ask for a new one.');
+      if (bid_(String(b.code || '').trim() + a.salt) !== a.reset.code) { a.reset.tries++; saveAcct_(k, a); throw err_('bad_code', 'That code isn\'t right.'); }
+      a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); delete a.reset; a.fails = 0; saveAcct_(k, a);
+      dropSessions_(k);
+      return {s: newSession_(k), k: k};
+    case 'acctme':                               // a logged-in phone changes its own password or email
+      var mk = who.commish ? 'commish' : who.team;
+      if (!mk || !who.b || who.h) throw err_('denied', 'Log in with your password first.');
+      a = acct_(mk);
+      if (b.pw != null) { a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); }
+      if (b.email != null) a.email = validEmail_(b.email);
+      saveAcct_(mk, a);
+      return {ok: true, email: a.email || ''};
+    case 'acctadmin':                            // the commissioner sets a team's email or clears its password
+      if (!who.commish) throw err_('denied', 'Only the commissioner can do that.');
+      a = acct_(k);
+      if (b.email != null) a.email = validEmail_(b.email);
+      if (b.reset) { delete a.pw; delete a.salt; delete a.reset; saveAcct_(k, a); dropSessions_(k); a = acct_(k); }
+      saveAcct_(k, a); CacheService.getScriptCache().remove('badges');
+      return {ok: true};
+    case 'logout':
+      if (b.s) props_().deleteProperty('SESS_' + bid_(b.s));
+      return {ok: true};
+  }
+}
+
+// who may change what: teams only touch their own lineup, claims, offers, votes and picks
+function own_(who, c, id, v, old, op) {
+  if (who.setup || who.commish) return true;
+  if (FEED_COLS[c]) return op !== 'del';
+  var T = who.team;
+  if (!T) return false;
+  var mine = function (x) { return !!x && x === T; };
+  switch (c) {
+    case 'queue': return id.slice(-(T.length + 1)) === '_' + T;
+    case 'lineups':
+      if (id.slice(-(T.length + 1)) === '_' + T) return true;
+      // "set my lineup every day": the first open app fills in today's lineup for a team that turned it on
+      var d0 = String(todaySp_()), ks = Object.keys(v || {}), ss = Object.keys((v && v.snaps) || {});
+      return op === 'update' && !!old && !!old.auto && ks.length === 1 && ks[0] === 'snaps' && ss.length === 1 && ss[0] === d0 && !(old.snaps || {})[d0];
+    case 'prefs': return id === T;
+    case 'votes': case 'pickem': return op === 'del' ? !!old && mine(old.team) : mine(v && v.team) && (!old || mine(old.team));
+    case 'claims':
+      if (op === 'set') return mine(v && v.team) && (!old || mine(old.team));
+      if (old && mine(old.team)) return true;
+      // the waiver run (any open app) only marks claims won, lost or failed
+      return !!old && old.status === 'pending' && Object.keys(v || {}).every(function (f) { return f === 'status' || f === 'why' || f === 'ranAt'; });
+    case 'picks':
+      if (op === 'del') return false;
+      return mine(v && v.team) || !!(v && v.auto);
+    case 'chat':
+      return !!v && (v.from === T || v.from === 'sys');
+    case 'tx':
+      if (op === 'del') return false;
+      if (!old) {
+        if (!v) return false;
+        if (v.type === 'trade') return mine(v.from) && v.status === 'proposed' && !v.reverses;
+        if (v.role === 'waiver') { var cl = v.claim ? getDoc_('claims', v.claim) : null; return !!cl && cl.team === v.team && cl.add === v.add; }
+        return mine(v.team) && v.role !== 'commish' && !v.forced;
+      }
+      if (old.type !== 'trade') return false;
+      var st = v && v.status;
+      if (v && v.resolved === 'commish') return false;
+      if (st === 'review' || st === 'rejected' || st === 'countered') return old.status === 'proposed' && mine(old.to);
+      if (st === 'cancelled') return old.status === 'proposed' && mine(old.from);
+      // the vote or the 48-hour clock settles a trade under review, from any open app
+      return old.status === 'review';
+  }
+  return true;   // automation: stats, nba, espn, hist, shots, refresh, waivers, trivia
 }
 
 /* --------------------------------------------------------------------- API */
@@ -160,8 +330,10 @@ function doPost(e) {
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
 function api_(b) {
-  var who = who_(b.h);
+  var who = who_(b.h, b.s);
   switch (b.op) {
+    case 'accts': return accts_(who);
+    case 'login': case 'claim': case 'forgot': case 'reset': case 'acctme': case 'acctadmin': case 'logout': return auth_(b, who);
     case 'sync': return sync_(b.cols || {}, who);
     case 'get': return get_(b.c, b.i, who);
     case 'set': case 'update': case 'del': return mutate_(b, who);
@@ -169,7 +341,7 @@ function api_(b) {
     case 'pull':
       if (!who.commish) throw err_('denied', 'Only the commissioner can start a pull.');
       return {msg: pullNow_()};
-    case 'info': return {rev: rev_(), setup: who.setup, me: who.b ? who.b.role : null, timers: ScriptApp.getProjectTriggers().length};
+    case 'info': return {rev: rev_(), setup: who.setup, me: who.b ? who.b.role : null, team: who.team || null, expired: !!who.expired, retired: !!who.retired, timers: ScriptApp.getProjectTriggers().length};
   }
   throw err_('bad_request', 'Unknown op ' + b.op);
 }
@@ -199,9 +371,15 @@ function get_(c, id, who) {
 function mutate_(b, who) {
   var c = String(b.c || ''), id = String(b.i || '');
   if (!c || !id) throw err_('bad_request');
-  if (!canWrite_(who, c)) throw err_('denied', ADMIN_COLS[c] ? 'Only the commissioner can change that.' : 'Log in with your team code first.');
+  if (who.expired) throw err_('session', 'You were logged out. Log in again.');
+  if (who.retired) throw err_('retired', 'Your team uses a password now. Log in again.');
+  if (!canWrite_(who, c, b.op)) throw err_('denied', ADMIN_COLS[c] ? 'Only the commissioner can change that.' : 'Log in with your team code first.');
   var res = locked_(function () {
     var sh = sheet_(), idx = index_(sh);
+    if (!who.commish && !who.setup) {
+      var at = find_(idx, c, id), was = at && !at.del ? parse_(readJson_(sh, [at])[at.row]) : null;
+      if (!own_(who, c, id, b.v, was, b.op)) throw err_('denied', 'That belongs to another team.');
+    }
     if (c === 'badges' && b.op === 'del') {      // the app deletes badges by their public id
       idx.forEach(function (x) { if (x.c === 'badges' && bid_(x.i) === id) id = x.i; });
     }
@@ -445,12 +623,15 @@ function syncSettings_(L, LG) {
   return 'settings updated from ESPN';
 }
 
-// from the last day already saved (that day again, in case it changed) to today
+// from the last day already saved (that day again, in case it changed) to today,
+// plus any earlier day that never got saved (newest gaps first, 10 a run)
 function syncRosters_(LG, last, now, done) {
-  var ids = Object.keys(getCol_('espn')).map(function (k) { return +k.split('_d')[1] || 0; });
+  var saved = {}, ids = Object.keys(getCol_('espn')).map(function (k) { var d = +k.split('_d')[1] || 0; saved[d] = 1; return d; });
   var have = Math.max(done || 0, ids.length ? Math.max.apply(null, ids) : 0);
-  var first = Math.max(1, Math.min(have, last)), n = 0;
-  for (var sp = first; sp <= last; sp++) {
+  var first = Math.max(1, Math.min(have, last)), n = 0, want = [], gaps = [];
+  for (var sp = 1; sp <= last; sp++) { if (sp >= first) want.push(sp); else if (!saved[sp]) gaps.push(sp); }
+  want = gaps.reverse().slice(0, 10).concat(want);
+  for (var w = 0; w < want.length; w++) { sp = want[w];
     var jr = getJson_(LG + '?view=mRoster&scoringPeriodId=' + sp), r = {}, any = false;
     (jr.teams || []).forEach(function (t) {
       var es = g_(t, 'roster', 'entries');

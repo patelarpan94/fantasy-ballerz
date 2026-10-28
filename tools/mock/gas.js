@@ -55,10 +55,11 @@ function makeEnv(state) {
       put: (k, v, s) => { if (v.length > 100000) throw new Error('cache value too big'); cache[k] = {v, exp: Date.now() + (s || 600) * 1000}; },
       remove: k => { delete cache[k]; }})},
     Utilities: {
-      formatDate: fmt, sleep: () => {}, ungzip: b => ({getDataAsString: () => require('zlib').gunzipSync(b.bytes).toString('utf8')}),
+      formatDate: fmt, sleep: () => {}, getUuid: () => crypto.randomUUID(), ungzip: b => ({getDataAsString: () => require('zlib').gunzipSync(b.bytes).toString('utf8')}),
       DigestAlgorithm: {SHA_256: 'sha256'}, Charset: {UTF_8: 'utf8'},
       computeDigest: (alg, s) => [...crypto.createHash(alg).update(s, 'utf8').digest()].map(b => (b > 127 ? b - 256 : b))
     },
+    MailApp: {sendEmail(to, subj, body) { (state.mail = state.mail || []).push({to, subj, body}); if (process.env.LOG) console.log('MAIL', to, subj, body); }, getRemainingDailyQuota: () => 100},
     UrlFetchApp: {
       fetch(url, o = {}) {
         state.fetches = (state.fetches || 0) + 1;
