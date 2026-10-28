@@ -370,7 +370,13 @@ function syncEspn_(full, maxDays) {
   var log = [];
   if (full) {
     try { log.push(syncSettings_(L, LG)); } catch (e) { log.push('settings failed: ' + e); }
-    if (L.source === 'espn') { try { log.push(syncRosters_(LG, last, now)); } catch (e) { log.push('rosters failed: ' + e); } }
+  }
+  // mirroring ESPN: rosters every full pull, and at most every 10 minutes in between
+  if (L.source === 'espn') {
+    var MR = meta_();
+    if (full || now - (MR.rosterAt || 0) >= 10 * 60e3) {
+      try { log.push(syncRosters_(LG, last, now)); MR.rosterAt = now; saveMeta_(MR); } catch (e) { log.push('rosters failed: ' + e); }
+    }
   }
   var M = meta_(), NBA = getDoc_('nba', SEASON) || {}, live = null;
   var frm = 1;

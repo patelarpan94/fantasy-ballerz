@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[
+    ["146","New","League › Settings › Mirror ESPN rosters: the commissioner can let ESPN run the league for now and switch back any time. Turning it off copies every ESPN add, drop and lineup since mirroring started, so rosters match on day one."],
+    ["147","Change","While mirroring, nobody needs a team code to look around. Only the commissioner logs in (for Settings); team codes still work for chat and Pick'em."],
+    ["148","New","While mirroring, My Team, Matchup, Players and the League pages say where moves happen and have an Open ESPN button that goes straight to your ESPN team."]]},
   {v:"2.4",date:"2026-10-27",title:"Nothing waits for someone to open the app",notes:[
     ["144","Fix","Waivers: an app left open now notices the claim time within a minute and runs the claims. A claim made on an out-of-date screen after waivers already ran is turned away with a note, instead of sitting stuck."],
     ["145","Fix","Trades that pass on time move players the day after the 48-hour vote ends, even if nobody had the app open right then. Never onto a day where one of the players already played."]]},

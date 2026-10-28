@@ -85,7 +85,7 @@ hp = sub(hp, "<li id=\"hRefreshLi\"><b>Refresh</b>: for the commissioner it star
 
 body = (a + r("b_board.js") + r("b2_tracker.js") + c + r("e_ui.js") + r("f_feat.js") + r("g_anim.js") + r("h_shots.js") + r("i_rel.js")
         + r("j_prefs.js") + r("n_colors.js") + r("k_waivers.js") + r("l_trades.js") + r("m_wow.js") + oh + ps + r("q_compare.js")
-        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + d)
+        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + r("y_mirror.js") + d)
 
 # the touch layout for wider screens: copy every phone-width rule under body.fold (same as the artifact build)
 def fold(css):

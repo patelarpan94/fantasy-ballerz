@@ -30,8 +30,8 @@ function renderBanner(){
   if(Store.local)h+=`<div class="note">Preview mode: changes save in this browser only.</div>`;
   if(L?.uat&&nav==="team")h+=`<div class="note info banner">UAT test copy. Rosters, lineups and settings were copied from ESPN on ${esc(L.uatFrom||"Oct 22")}, and nothing here changes ESPN or the live app. Try lineups, Auto-set, adds, drops and trades freely.</div>`;
   if(L&&!draftDone()&&nav!=="draft"){const D=draftState();h+=`<div class="note info banner">${D.status==="live"?`The draft is live. Pick ${D.cur} of ${D.total} is on the clock.`:PICKS.length?`The draft is ${D.status==="paused"?"paused":"in progress"}: ${PICKS.length} of ${D.total} picks made.`:"Rosters fill from the draft, which hasn't started yet."} <button class="btn sm" data-nav="draft">Go to the draft</button></div>`;}
-  if(mirror()&&(nav==="team"||nav==="league"&&["trades","tx"].includes(SUB.league))){const last=Math.max(0,...Object.values(ESPNDAYS).map(x=>x.at||0));
-    h+=`<div class="note info banner">This season mirrors your ESPN league${last?` (rosters synced ${fmtStamp(last)} ET)`:""}. Set lineups and make moves on ESPN, then press Refresh to bring them in.</div>`;}
+  if(mirror()&&(["team","matchup","players"].includes(nav)||nav==="league"&&["trades","tx","stand","score"].includes(SUB.league))){const last=Math.max(0,...Object.values(ESPNDAYS).map(x=>x.at||0)),me=myTeamNum();
+    h+=`<div class="note info banner mirban">This season mirrors your ESPN league${last?` (rosters synced ${fmtStamp(last)} ET)`:""}. Set lineups and make adds, drops and trades on ESPN; they show up here after the next ESPN pull. <a class="btn sm" href="${espnUrl(me)}" target="_blank" rel="noopener">Open ESPN</a></div>`;}
   const tn=tradesNeedingMe();
   if(tn&&!(nav==="league"&&(SUB.league==="trades"||SUB.league==="tx")))h+=`<div class="note info banner">${tn} ${tn===1?"trade needs":"trades need"} ${isCommish()?"a decision or vote":"your answer or vote"}. <button class="btn sm" data-sub-go="league:trades">Go to Trades</button></div>`;
   b.innerHTML=h;b.hidden=!h;
@@ -389,7 +389,7 @@ const GATE_TXT={load:["Loading","Checking the league…"],login:["Enter your cod
 function renderWho(){const w=$("#whoBtn");if(!SESSION){w.hidden=true;return;}const cm=SESSION.role==="commish";
   w.hidden=false;w.classList.toggle("cm",cm);w.innerHTML=`<span>${esc(cm?"Commissioner":teamName(SESSION.team))}</span><b>· Log out</b>`;}
 function renderGate(){
-  const on=BADGES?!sessionValid():!SESSION;
+  const on=(BADGES?!sessionValid():!SESSION)&&!mirrorOpen();
   gate.hidden=!on;document.documentElement.style.overflow=on?"hidden":"";renderWho();chatSync();
   if(!on)return;
   const m=gateMode(),[t,sub]=GATE_TXT[m],wait=Math.ceil((GATE.until-Date.now())/1000);
