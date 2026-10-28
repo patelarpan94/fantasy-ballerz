@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028225935"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028232142"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -573,7 +573,7 @@ details.dset:not([open])>summary{border-bottom:0}
 /* badge gate: a phone-style dial pad that opens the app */
 .gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto}
 .gate[hidden]{display:none}
-.gskip{display:block;margin:10px auto 0}.mirl{margin:6px 0 10px 18px;max-height:40vh;overflow:auto}.mirl li{margin:2px 0}#mLogin{margin-left:6px}
+.gskip{display:block;margin:10px auto 0}.mirl{margin:6px 0 10px 18px;max-height:40vh;overflow:auto}.mirl li{margin:2px 0}#mLogin{margin-left:6px}.btn[hidden]{display:none}
 .gcard{width:100%;max-width:320px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 .gbadge{width:56px;height:56px;border-radius:16px;background:var(--accent);color:var(--surface);display:grid;place-items:center;margin-bottom:6px}
 .gbadge svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -4148,7 +4148,8 @@ const RELEASES=[
     ["150","New","Forgot password? The app emails a 6-digit code to the address on file. Change your password or reset email any time under Account › Password and email. The commissioner can set emails and reset a team in League › Settings › Passwords."],
     ["151","Change","The league server now checks every change: a team can only set its own lineup, make its own moves, claims, offers and votes. The commissioner can still change anything."],
     ["153","Fix","Mirror mode: a day whose ESPN lineup never got saved (the app was closed mid-pull) borrowed another day's lineup, so a starter could show on the bench. Missing days are now pulled again, and a day whose save failed is retried."],
-    ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."]]},
+    ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."],
+    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."]]},
   {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
     ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[

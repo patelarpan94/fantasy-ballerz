@@ -9,7 +9,8 @@ const RELEASES=[
     ["150","New","Forgot password? The app emails a 6-digit code to the address on file. Change your password or reset email any time under Account › Password and email. The commissioner can set emails and reset a team in League › Settings › Passwords."],
     ["151","Change","The league server now checks every change: a team can only set its own lineup, make its own moves, claims, offers and votes. The commissioner can still change anything."],
     ["153","Fix","Mirror mode: a day whose ESPN lineup never got saved (the app was closed mid-pull) borrowed another day's lineup, so a starter could show on the bench. Missing days are now pulled again, and a day whose save failed is retried."],
-    ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."]]},
+    ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."],
+    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."]]},
   {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
     ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[
