@@ -62,7 +62,9 @@ function pwLogin(j){if(!j?.s)return;const r=j.k==="commish"?{role:"commish",team
     h=`<p class="muted">Ask the commissioner to unlock it. They'll give you a new 6-digit code: log in with it, then pick a new password.</p><div class="pwlinks"><button class="linkbtn" data-pw="pick">Pick another team</button></div>`;}
   const keep=box.dataset.v===h;if(!keep){box.innerHTML=h;box.dataset.v=h;}};}
 document.getElementById("gate").addEventListener("click",e=>{const t=e.target.closest("[data-pwk],[data-pw]");if(!t)return;e.preventDefault();
-  if(t.dataset.pwk){const k=t.dataset.pwk,a=ACCTS?.[k]||{};return pwGo(a.locked&&k!=="commish"?"locked":a.pw?"pw":"code",{k});}
+  if(t.dataset.pwk){const k=t.dataset.pwk,go=()=>{const a=ACCTS?.[k]||{};pwGo(a.locked&&k!=="commish"?"locked":a.pw?"pw":"code",{k});};
+    // ask the server first: the commissioner may have just unlocked this team or given it a new code
+    PW.busy=true;return loadAccts().finally(()=>{PW.busy=false;go();});}
   pwGo(t.dataset.pw);});
 document.getElementById("gate").addEventListener("submit",async e=>{const f=e.target.closest("[data-pwf]");if(!f)return;e.preventDefault();if(PW.busy)return;
   const v=Object.fromEntries(new FormData(f).entries()),kind=f.dataset.pwf;
@@ -73,10 +75,12 @@ document.getElementById("gate").addEventListener("submit",async e=>{const f=e.ta
 // the dial pad is only for the first-time code
 {const _gs=gateSubmit;gateSubmit=async function(){if(!pwMode())return _gs.apply(this,arguments);
   if(PW.step!=="code")return;const code=GATE.buf;GATE.busy=true;renderGate();
-  try{const h=await badgeHash(code),b=BADGES?.[bid(h)];GATE.busy=false;
-    const ok=b&&(PW.k==="commish"?b.role==="commish":b.team===PW.k);
-    if(!ok){if(++GATE.fails>=5){GATE.fails=0;GATE.until=Date.now()+30000;}return gateFail(`That code doesn't match ${acctName(PW.k)}.`);}
-    GATE.fails=0;pwGo("setpw",{h});}
+  try{const h=await badgeHash(code);
+    try{await Store._call("checkcode",{k:PW.k,h});}
+    catch(x){GATE.busy=false;if(x?.code==="locked"||x?.code==="has_pw"){loadAccts();return pwGo(x.code==="locked"?"locked":"pw");}
+      if(x?.code!=="bad_code")return gateFail(x?.message||"Couldn't reach the league server. Try again.");
+      if(++GATE.fails>=5){GATE.fails=0;GATE.until=Date.now()+30000;}return gateFail(`That code doesn't match ${acctName(PW.k)}.`);}
+    GATE.busy=false;GATE.fails=0;pwGo("setpw",{h});}
   catch(e){GATE.busy=false;gateFail("Something went wrong. Try again.");}};}
 {const _gk=gateKey;gateKey=function(k){if(pwMode()&&PW.step!=="code")return;return _gk.apply(this,arguments);};}
 // a logged-out phone starts at the team list

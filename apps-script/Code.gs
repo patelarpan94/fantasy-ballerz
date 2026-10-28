@@ -229,6 +229,12 @@ function auth_(b, who) {
       }
       a.fails = 0; delete a.lockUntil; saveAcct_(k, a);
       return {s: newSession_(k), k: k};
+    case 'checkcode':                            // the login screen checks a 6-digit code with the server, never a cached copy
+      a = acct_(k);
+      if (a.pw && !(k !== 'commish' && a.locked)) throw err_('has_pw', 'This team already has a password. Log in with it.');
+      if (a.locked && k !== 'commish') throw err_('locked', 'Locked out after ' + LOCK_FAILS + ' wrong passwords. Ask the commissioner for a new 6-digit code.');
+      if (!b.h || badgeFor_(k) !== b.h) throw err_('bad_code', 'That code doesn\'t match ' + (k === 'commish' ? 'the commissioner' : 'this team') + '.');
+      return {ok: true};
     case 'claim':                                // first password, proven with the team's 6-digit code
       a = acct_(k);
       if (a.pw) throw err_('has_pw', 'This team already has a password. Log in with it, or ask the commissioner for a new code.');
@@ -314,7 +320,7 @@ function api_(b) {
   var who = who_(b.h, b.s);
   switch (b.op) {
     case 'accts': return accts_(who);
-    case 'login': case 'claim': case 'acctme': case 'acctadmin': case 'logout': return auth_(b, who);
+    case 'login': case 'checkcode': case 'claim': case 'acctme': case 'acctadmin': case 'logout': return auth_(b, who);
     case 'sync': return sync_(b.cols || {}, who);
     case 'get': return get_(b.c, b.i, who);
     case 'set': case 'update': case 'del': return mutate_(b, who);
