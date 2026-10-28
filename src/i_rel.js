@@ -10,7 +10,8 @@ const RELEASES=[
     ["151","Change","The league server now checks every change: a team can only set its own lineup, make its own moves, claims, offers and votes. The commissioner can still change anything."],
     ["153","Fix","Mirror mode: a day whose ESPN lineup never got saved (the app was closed mid-pull) borrowed another day's lineup, so a starter could show on the bench. Missing days are now pulled again, and a day whose save failed is retried."],
     ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."],
-    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."]]},
+    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."],
+    ["156","Change","Not logged in (like most people while the league mirrors ESPN): the app uses the default look (Match device theme, no team colors, Auto layout, Stats table rows) and Display settings are locked. Log in and your own settings come back."]]},
   {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
     ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[

@@ -37,7 +37,7 @@ async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.ge
 addEventListener("load",()=>setTimeout(loadPrefs,600));
 // the ◐ button opens Display: theme and layout, saved for this login
 function displaySheet(){
-  const row=(name,opts,cur)=>`<div class="tabs sm dsrow" role="group" aria-label="${name}">${opts.map(([k,l])=>`<button data-ds="${name}:${k}" aria-selected="${cur===k}">${l}</button>`).join("")}</div>`;
+  const row=(name,opts,cur)=>`<div class="tabs sm dsrow" role="group" aria-label="${name}">${opts.map(([k,l])=>`<button data-ds="${name}:${k}" aria-selected="${cur===k}"${prefKey()?"":" disabled"}>${l}</button>`).join("")}</div>`;
   const who=prefKey()?(prefKey()==="commish"?"the commissioner login":esc(teamName(tnum(prefKey())))):"";
   openSheet("Display",`<h3>Theme</h3>${row("theme",[["auto","Match device"],["light","Light"],["dark","Dark"]],THEME)}
     ${typeof nbaThemeHtml==="function"?nbaThemeHtml():""}
@@ -46,7 +46,7 @@ function displaySheet(){
     <p class="muted dsnote"><b>Stats table</b> shows My Team and Matchup › Players as one table like ESPN (player on the left, stats slide sideways). <b>Cards</b> is the earlier layout with a card per player.</p>
 
     <p class="muted dsnote"><b>Auto</b> uses the phone layout on phones and on an unfolded foldable like the iPhone Duo, and the desktop layout on computers. <b>Two-pane</b> puts the menu, notes and team card in a rail on the right (for an unfolded foldable held wide; Auto picks it there). <b>Phone style</b> always uses the touch layout with the bottom tabs. ${document.body.classList.contains("fold")?"This screen is using the foldable layout now.":""}</p>
-    <p class="muted dsnote">${who?`Saved for ${who}, so it follows you to any device you log in on.`:"Log in to save these for your team on every device."}</p>
+    <p class="muted dsnote">${who?`Saved for ${who}, so it follows you to any device you log in on.`:"Not logged in, so the app uses the default look. Log in to pick your own; it's saved for your team on every device."}</p>
     <div class="sheetacts"><button class="btn" data-sheet="close">Done</button></div>`);}
 $("#themeBtn").onclick=displaySheet;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ds]");if(!b)return;const [k,v]=b.dataset.ds.split(":");

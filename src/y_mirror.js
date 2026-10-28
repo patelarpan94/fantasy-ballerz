@@ -78,3 +78,12 @@ document.addEventListener("click",e=>{if(e.target.closest("#mLogin")){GATE.want=
 {const _rg=renderGate;renderGate=function(){_rg.apply(this,arguments);const s=$("#gSkip");if(s)s.hidden=!(mirror()&&hasCommish());
   if(SESSION&&GATE.want)GATE.want=false;
   if(GATE.want&&mirror()){$("#gSub").textContent="Only the commissioner needs to log in while the league mirrors ESPN. Team codes still work for chat and Pick'em.";}};}
+
+// Display is locked to the default look when nobody is logged in (2.6, Arp): Match device theme,
+// no team colors, Auto layout, Stats table rows. Logging in brings back that team's own settings.
+function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";applyNbaTheme();}
+function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";}catch(e){}
+  applyTheme();applyLayout();applyNbaTheme();}
+{const _ss=saveSession;saveSession=function(s){const had=!!SESSION;_ss.apply(this,arguments);if(!!s===had)return;s?displayLocal():displayDefaults();if(L)try{render();}catch(e){}};}
+setTimeout(()=>{if(!SESSION){displayDefaults();if(L)try{render();}catch(e){}}},0);
+document.addEventListener("click",e=>{if(!SESSION&&e.target.closest("[data-ds],[data-nbat]")){e.stopImmediatePropagation();e.preventDefault();toast("Log in to change the display settings.");}},true);

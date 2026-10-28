@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028232142"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261028232656"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -573,7 +573,7 @@ details.dset:not([open])>summary{border-bottom:0}
 /* badge gate: a phone-style dial pad that opens the app */
 .gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto}
 .gate[hidden]{display:none}
-.gskip{display:block;margin:10px auto 0}.mirl{margin:6px 0 10px 18px;max-height:40vh;overflow:auto}.mirl li{margin:2px 0}#mLogin{margin-left:6px}.btn[hidden]{display:none}
+.gskip{display:block;margin:10px auto 0}.mirl{margin:6px 0 10px 18px;max-height:40vh;overflow:auto}.mirl li{margin:2px 0}#mLogin{margin-left:6px}.btn[hidden]{display:none}.dsrow button[disabled],html.dslock .nbagrid{opacity:.45;cursor:default}
 .gcard{width:100%;max-width:320px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 .gbadge{width:56px;height:56px;border-radius:16px;background:var(--accent);color:var(--surface);display:grid;place-items:center;margin-bottom:6px}
 .gbadge svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -4149,7 +4149,8 @@ const RELEASES=[
     ["151","Change","The league server now checks every change: a team can only set its own lineup, make its own moves, claims, offers and votes. The commissioner can still change anything."],
     ["153","Fix","Mirror mode: a day whose ESPN lineup never got saved (the app was closed mid-pull) borrowed another day's lineup, so a starter could show on the bench. Missing days are now pulled again, and a day whose save failed is retried."],
     ["154","Change","Anyone with the app open now pulls ESPN stats, rosters and news, logged in or not. Only league moves need a login."],
-    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."]]},
+    ["155","Fix","Mirror mode: the Log in button now goes away once you're logged in, and \"Not now, just look around\" only shows when it should."],
+    ["156","Change","Not logged in (like most people while the league mirrors ESPN): the app uses the default look (Match device theme, no team colors, Auto layout, Stats table rows) and Display settings are locked. Log in and your own settings come back."]]},
   {v:"2.5.1",date:"2026-10-28",title:"Mirror rosters show up right away",notes:[
     ["152","Fix","Turning on Mirror ESPN rosters now pulls ESPN's rosters first, in a few seconds, instead of after the full stats pull finishes."]]},
   {v:"2.5",date:"2026-10-28",title:"Mirror ESPN switch",notes:[
@@ -4417,7 +4418,7 @@ async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.ge
 addEventListener("load",()=>setTimeout(loadPrefs,600));
 // the ◐ button opens Display: theme and layout, saved for this login
 function displaySheet(){
-  const row=(name,opts,cur)=>`<div class="tabs sm dsrow" role="group" aria-label="${name}">${opts.map(([k,l])=>`<button data-ds="${name}:${k}" aria-selected="${cur===k}">${l}</button>`).join("")}</div>`;
+  const row=(name,opts,cur)=>`<div class="tabs sm dsrow" role="group" aria-label="${name}">${opts.map(([k,l])=>`<button data-ds="${name}:${k}" aria-selected="${cur===k}"${prefKey()?"":" disabled"}>${l}</button>`).join("")}</div>`;
   const who=prefKey()?(prefKey()==="commish"?"the commissioner login":esc(teamName(tnum(prefKey())))):"";
   openSheet("Display",`<h3>Theme</h3>${row("theme",[["auto","Match device"],["light","Light"],["dark","Dark"]],THEME)}
     ${typeof nbaThemeHtml==="function"?nbaThemeHtml():""}
@@ -4426,7 +4427,7 @@ function displaySheet(){
     <p class="muted dsnote"><b>Stats table</b> shows My Team and Matchup › Players as one table like ESPN (player on the left, stats slide sideways). <b>Cards</b> is the earlier layout with a card per player.</p>
 
     <p class="muted dsnote"><b>Auto</b> uses the phone layout on phones and on an unfolded foldable like the iPhone Duo, and the desktop layout on computers. <b>Two-pane</b> puts the menu, notes and team card in a rail on the right (for an unfolded foldable held wide; Auto picks it there). <b>Phone style</b> always uses the touch layout with the bottom tabs. ${document.body.classList.contains("fold")?"This screen is using the foldable layout now.":""}</p>
-    <p class="muted dsnote">${who?`Saved for ${who}, so it follows you to any device you log in on.`:"Log in to save these for your team on every device."}</p>
+    <p class="muted dsnote">${who?`Saved for ${who}, so it follows you to any device you log in on.`:"Not logged in, so the app uses the default look. Log in to pick your own; it's saved for your team on every device."}</p>
     <div class="sheetacts"><button class="btn" data-sheet="close">Done</button></div>`);}
 $("#themeBtn").onclick=displaySheet;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ds]");if(!b)return;const [k,v]=b.dataset.ds.split(":");
@@ -6060,6 +6061,15 @@ document.addEventListener("click",e=>{if(e.target.closest("#mLogin")){GATE.want=
 {const _rg=renderGate;renderGate=function(){_rg.apply(this,arguments);const s=$("#gSkip");if(s)s.hidden=!(mirror()&&hasCommish());
   if(SESSION&&GATE.want)GATE.want=false;
   if(GATE.want&&mirror()){$("#gSub").textContent="Only the commissioner needs to log in while the league mirrors ESPN. Team codes still work for chat and Pick'em.";}};}
+
+// Display is locked to the default look when nobody is logged in (2.6, Arp): Match device theme,
+// no team colors, Auto layout, Stats table rows. Logging in brings back that team's own settings.
+function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";applyNbaTheme();}
+function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";}catch(e){}
+  applyTheme();applyLayout();applyNbaTheme();}
+{const _ss=saveSession;saveSession=function(s){const had=!!SESSION;_ss.apply(this,arguments);if(!!s===had)return;s?displayLocal():displayDefaults();if(L)try{render();}catch(e){}};}
+setTimeout(()=>{if(!SESSION){displayDefaults();if(L)try{render();}catch(e){}}},0);
+document.addEventListener("click",e=>{if(!SESSION&&e.target.closest("[data-ds],[data-nbat]")){e.stopImmediatePropagation();e.preventDefault();toast("Log in to change the display settings.");}},true);
 
 /* ============================================================================
    NAVIGATION AND RENDERING
