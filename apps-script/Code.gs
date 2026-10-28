@@ -375,7 +375,7 @@ function syncEspn_(full, maxDays) {
   if (L.source === 'espn') {
     var MR = meta_();
     if (full || now - (MR.rosterAt || 0) >= 10 * 60e3) {
-      try { log.push(syncRosters_(LG, last, now)); MR.rosterAt = now; saveMeta_(MR); } catch (e) { log.push('rosters failed: ' + e); }
+      try { log.push(syncRosters_(LG, last, now, MR.rosterDay)); MR.rosterAt = now; MR.rosterDay = last; saveMeta_(MR); } catch (e) { log.push('rosters failed: ' + e); }
     }
   }
   var M = meta_(), NBA = getDoc_('nba', SEASON) || {}, live = null;
@@ -444,9 +444,11 @@ function syncSettings_(L, LG) {
   return 'settings updated from ESPN';
 }
 
-function syncRosters_(LG, last, now) {
+// from the last day already saved (that day again, in case it changed) to today
+function syncRosters_(LG, last, now, done) {
   var ids = Object.keys(getCol_('espn')).map(function (k) { return +k.split('_d')[1] || 0; });
-  var first = Math.max(1, Math.min(ids.length ? Math.max.apply(null, ids) : 0, last)), n = 0;
+  var have = Math.max(done || 0, ids.length ? Math.max.apply(null, ids) : 0);
+  var first = Math.max(1, Math.min(have, last)), n = 0;
   for (var sp = first; sp <= last; sp++) {
     var jr = getJson_(LG + '?view=mRoster&scoringPeriodId=' + sp), r = {}, any = false;
     (jr.teams || []).forEach(function (t) {

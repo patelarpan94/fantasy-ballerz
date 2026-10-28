@@ -2,7 +2,7 @@
  "live": {
   "title": "Fantasy Ballerz",
   "short": "Ballerz",
-  "backend": "",
+  "backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec",
   "assets": ""
  },
  "uat": {
