@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.15",date:"2026-10-29",title:"Two-pane layout uses the rail better",notes:[
+    ["176","Change","Two-pane (unfolded Duo held sideways): the right rail's header is shorter. Display, Release notes and Help sit next to the league name, the update time shares a row with Refresh, the week arrows and Today share a row with the week, and the six sections are a 3 x 2 grid. The team card and mini scoreboard on My Team now show without scrolling."],
+    ["177","Change","Two-pane Matchup: the score card, the Score / Players / Tracker switch and Advanced matchup move into the rail, so the whole category board fits on one screen and the Players table starts at the top."],
+    ["178","Change","Two-pane Players: Player list / Market, Waivers, the Free agents picker, the position tabs and More filters move into the rail under the search box, so the player list starts at the top."],
+    ["179","Change","Two-pane My Team: the starters line (Auto-set today, Rest of matchup, Matchup history) sits above the team card in the rail, and the Starters / Bench label rows are thinner, so two more players show."],
+    ["180","Fix","Layout fixes: team logos no longer cover the first letter of team names on League › Scoreboard or get cut off in Matchup › Players; Fun's tabs wrap instead of running off the rail; wide tables (Standings, NBA schedule) fade at the right edge until you scroll them; History keeps each game on one line; a docked player card shows its stats one category per row so nothing is cut off."]]},
   {v:"2.14",date:"2026-10-29",title:"Pickup limits, FAAB options and Match ESPN",notes:[
     ["173","New","League › Settings › Pickup limit counts per matchup, per day or per season. Waiver claims count toward it; commissioner moves don't."],
     ["174","New","League › Settings › Match ESPN: the commissioner pulls the ESPN league's waiver, pickup and trade rules, sees what would change, and fills them in with one tap. Nothing is saved until Save settings, and everything stays editable."],

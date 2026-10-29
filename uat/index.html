@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029155657"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029204102"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -936,6 +936,45 @@ body.fold.duow #sheet.dock .pckeys{flex-wrap:wrap;gap:6px 12px}body.fold.duow #s
 body.fold.duow .sbs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
 body.fold.duow .sbs #x,body.fold.duow #rosters .sbs .cards{grid-template-columns:minmax(0,1fr)!important}
 body.fold.duow .sbs .teamhead{flex-wrap:wrap}body.fold.duow .sbs .panel.team{min-width:0}
+/* 2.15 two-pane tidy (r_duo.js, Arp 2026-10-29): slimmer rail header, Matchup/Players controls and the starters line in the rail */
+body.fold.duow>.bar>.wrap{gap:6px}
+body.fold.duow .rtop{display:flex;align-items:center;gap:4px;min-height:28px}
+body.fold.duow .rtop #lgName{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.62rem;margin:0}
+body.fold.duow .rtop .hbtn{width:28px;height:28px;min-width:0;font-size:.8rem;padding:0}
+body.fold.duow .rtop .hbtn svg{width:14px;height:14px}
+body.fold.duow>.bar .weeknav{flex-wrap:nowrap;align-items:stretch}body.fold.duow>.bar .weeknav select{flex:1 1 auto;width:auto;min-width:0}
+body.fold.duow>.bar .weeknav .arrow,body.fold.duow>.bar .weeknav .todayb{flex:none}
+body.fold.duow>.bar .refresh{flex-wrap:nowrap;align-items:center}
+body.fold.duow>.bar .refresh .upd{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.72rem}
+body.fold.duow>.bar .refresh #refreshBtn{order:2;padding:6px 12px}
+body.fold.duow>.bar .refresh #whoBtn{order:3}
+body.fold.duow .mainnav{grid-template-columns:repeat(3,1fr);gap:5px}
+body.fold.duow .mainnav button{flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:6px 2px;font-size:.6rem;text-align:center}
+body.fold.duow .mainnav button svg{width:17px;height:17px}
+body.fold.duow tr.ptgrp td{height:auto!important;padding-top:3px!important;padding-bottom:3px!important;line-height:1.2}
+body.fold.duow #rail .hero{margin:0;padding:10px}
+body.fold.duow #rail .hero .hrow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:start}
+body.fold.duow #rail .hero .hwho{flex-direction:column;align-items:flex-start;gap:4px}
+body.fold.duow #rail .hero .hside.op .hwho{align-items:flex-end;text-align:right}
+body.fold.duow #rail .hero .hav{width:30px;height:30px;font-size:.7rem}
+body.fold.duow #rail .hero .hside{min-width:0}
+body.fold.duow #rail .hero .hname{font-size:.8rem;line-height:1.15;white-space:normal}
+body.fold.duow #rail .hero .hsub,body.fold.duow #rail .hero .hwin{font-size:.68rem}
+body.fold.duow #rail .hero .hmid{font-size:.7rem}
+body.fold.duow #rail .ptmv{margin:0}body.fold.duow #rail .ptmv button{padding:7px 4px;font-size:.8rem}
+body.fold.duow #rail .advt{margin:0;padding:8px 10px}body.fold.duow #rail .advt small{display:none}
+body.fold.duow #rail .apv,body.fold.duow #rail .apctl,body.fold.duow #rail .wpanel{margin:0}
+body.fold.duow #rail .apctl{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+body.fold.duow #rail .apctl .tabs{display:flex}body.fold.duow #rail .apctl .tabs button{flex:1}
+body.fold.duow #rail .ptline{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+body.fold.duow #rail .ptline>span{flex:1 0 100%}body.fold.duow #rail .ptline .ptlink{padding:2px 0;min-height:0}
+body.fold.duow #rail .subbar .tabs{flex-wrap:wrap}body.fold.duow #rail .subbar .tabs button{flex:1 1 auto}
+body.fold.duow .scroll.more{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent)}
+body.fold.duow #rosters table.htbl td{white-space:nowrap}
+body.fold.duow #sheet.dock table.pcv{width:100%}body.fold.duow #sheet.dock table.pcv th{font-size:.66rem;white-space:normal;line-height:1.15}
+/* team logos keep their small size on the phone and foldable layouts (the copied phone .hav size covered names) */
+body .scs .hav.xs{width:24px;height:24px;font-size:.58rem}
+body tr.ptteam .hav{width:22px;height:22px;font-size:.55rem;justify-content:center;align-items:center;letter-spacing:0}
 
 /* 1.32 phone stats table (s_ptable.js) */
 .ptchat{display:none;position:relative}.ptchat svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}.ptchat .chatcount{position:absolute;top:-5px;right:-5px}
@@ -984,7 +1023,7 @@ table.pt .pl{font-family:var(--f-body)}tr.ptteam td.pl{white-space:nowrap;overfl
 body.duow table.pt th,body.duow table.pt td{padding:0 8px;font-size:.9rem}body.duow table.pt th{font-size:.68rem}body.duow .ptn .nmb{max-width:130px}body.duow .ptn small{max-width:140px}body.duow table.pt .pl{width:190px;min-width:190px;max-width:190px}body.duow .ptstrip{margin:0;border-radius:0 0 12px 12px}body.duow tr.ptgrp td{font-size:.62rem}tr.ptteam .hav{width:22px;height:22px;font-size:.6rem}
 .ptnote{font-size:.7rem;color:var(--muted);margin:6px 2px 10px}
 body.fold.duow .dpick{top:calc(8px + env(safe-area-inset-top,0px))}
-body.fold.duow>.bar .weeknav{flex-wrap:wrap}body.fold.duow>.bar .weeknav select{order:-1;flex:1 0 100%}body.fold.duow>.bar .weeknav .todayb{margin-left:auto}.mview button{padding:7px 22px}#compactBtn[hidden]{display:none}.cbfoot button.tlink{font:600 .74rem var(--f-body);color:var(--muted);text-decoration:underline}
+.mview button{padding:7px 22px}#compactBtn[hidden]{display:none}.cbfoot button.tlink{font:600 .74rem var(--f-body);color:var(--muted);text-decoration:underline}
 @media (max-width:520px){button.cbrow.s,.cbxv{grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr)}.cbgames{grid-template-columns:1fr 1fr;font-size:.7rem}.cbgl{grid-column:1/-1;grid-row:1}.cbfoot .muted{display:none}.cbfoot{justify-content:flex-end}}
 .cbhead .me{color:var(--accent)}.cbhead .op{color:var(--opp);text-align:right}
 .cbrow{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);border-bottom:1px solid var(--line)}
@@ -4215,6 +4254,12 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.15",date:"2026-10-29",title:"Two-pane layout uses the rail better",notes:[
+    ["176","Change","Two-pane (unfolded Duo held sideways): the right rail's header is shorter. Display, Release notes and Help sit next to the league name, the update time shares a row with Refresh, the week arrows and Today share a row with the week, and the six sections are a 3 x 2 grid. The team card and mini scoreboard on My Team now show without scrolling."],
+    ["177","Change","Two-pane Matchup: the score card, the Score / Players / Tracker switch and Advanced matchup move into the rail, so the whole category board fits on one screen and the Players table starts at the top."],
+    ["178","Change","Two-pane Players: Player list / Market, Waivers, the Free agents picker, the position tabs and More filters move into the rail under the search box, so the player list starts at the top."],
+    ["179","Change","Two-pane My Team: the starters line (Auto-set today, Rest of matchup, Matchup history) sits above the team card in the rail, and the Starters / Bench label rows are thinner, so two more players show."],
+    ["180","Fix","Layout fixes: team logos no longer cover the first letter of team names on League › Scoreboard or get cut off in Matchup › Players; Fun's tabs wrap instead of running off the rail; wide tables (Standings, NBA schedule) fade at the right edge until you scroll them; History keeps each game on one line; a docked player card shows its stats one category per row so nothing is cut off."]]},
   {v:"2.14",date:"2026-10-29",title:"Pickup limits, FAAB options and Match ESPN",notes:[
     ["173","New","League › Settings › Pickup limit counts per matchup, per day or per season. Waiver claims count toward it; commissioner moves don't."],
     ["174","New","League › Settings › Match ESPN: the commissioner pulls the ESPN league's waiver, pickup and trade rules, sees what would change, and fills them in with one tap. Nothing is saved until Save settings, and everything stays editable."],
@@ -5358,6 +5403,40 @@ function addImpact(n){
     <div class="scroll"><table class="lg imtab"><thead><tr><th class="nm">Cat</th><th class="num">Now</th><th class="num">With him</th><th class="num">±</th>${op?`<th class="num">${esc(tmInit(M.opp))}</th>`:""}</tr></thead><tbody>${rows}</tbody></table></div>`;}
 {const _pc=playerCard;playerCard=function(n){DOCK=duoOn();try{_pc(n);}finally{DOCK=false;}
   if(!sheet().classList.contains("dock"))return;const ov=$("#sheetBody [data-pane=\"ov\"]");const h=addImpact(n);if(ov&&h)ov.insertAdjacentHTML("afterbegin",h);};}
+// ---- 5. (2.15, Arp 2026-10-29) the rail carries each page's controls: a slimmer header (league name with the
+// Display, Release notes and Help icons), Matchup's score card, view switch and Advanced toggle, Players' filters,
+// and My Team's starters line. Moved pieces are tagged .railx and swapped for the fresh ones on every render.
+function duoTidy(){
+  const wrap=document.querySelector("body>.bar>.wrap"),lg=$("#lgName"),ref=document.querySelector("body>.bar .refresh"),rail=$("#rail");if(!wrap||!lg||!ref)return;
+  let top=wrap.querySelector(".rtop");const icons=["#themeBtn","#relBtn","#helpBtn"].map(s=>$(s)).filter(Boolean);
+  if(!duoOn()){if(top){top.before(lg);icons.forEach(b=>ref.appendChild(b));top.remove();}
+    document.querySelectorAll(".railx").forEach(e=>e.remove());return;}
+  if(!top){top=document.createElement("div");top.className="rtop";wrap.insertBefore(top,wrap.firstChild);}
+  if(lg.parentNode!==top)top.appendChild(lg);icons.forEach(b=>{if(b.parentNode!==top)top.appendChild(b);});
+  if(!rail)return;
+  // kind: m = Matchup (from #heroWrap), p = Players (from #rosters), t = My Team (from #rosters)
+  const plan={m:nav==="matchup"?[["#heroWrap",[".hero",".ptscorewrap",".ptmv",".advt"]]]:[],p:nav==="players"?[["#rosters",[".apv",".wpanel",".apctl"]]]:[],t:nav==="team"?[["#rosters",[".ptline"]]]:[]};
+  for(const [k,src] of Object.entries(plan)){
+    const fresh=src.flatMap(([w,sels])=>{const box=$(w);return box?sels.map(s=>box.querySelector(":scope "+s)).filter(e=>e&&!e.closest("#rail")):[];});
+    const old=[...rail.querySelectorAll(".railx.rx"+k)];
+    if(!src.length){old.forEach(e=>e.remove());continue;}
+    if(!fresh.length)continue;
+    old.forEach(e=>e.remove());
+    // Matchup and Players go under the page buttons (sub-tabs, search); My Team's line sits above the team card
+    let at=k==="t"?null:$("#subbar");
+    fresh.forEach(e=>{e.classList.add("railx","rx"+k);if(k==="t"){const h=$("#heroWrap");h&&h.parentNode===rail?rail.insertBefore(e,h):rail.appendChild(e);}else if(at&&at.parentNode===rail){at.after(e);at=e;}else rail.insertBefore(e,rail.firstChild);});}
+  duoFades();}
+// a table that runs past the left pane fades at the right edge until it's scrolled to the end
+function duoFades(){document.querySelectorAll("main .scroll").forEach(s=>s.classList.toggle("more",duoOn()&&s.scrollWidth-s.clientWidth-s.scrollLeft>4));}
+document.addEventListener("scroll",e=>{const s=e.target;if(s?.classList?.contains("scroll"))s.classList.toggle("more",duoOn()&&s.scrollWidth-s.clientWidth-s.scrollLeft>4);},true);
+{const _pr=placeRail;placeRail=function(){_pr.apply(this,arguments);try{duoTidy();}catch(e){}};}
+// wrapped once every file has loaded, so the tidy runs after all the other render add-ons
+addEventListener("DOMContentLoaded",()=>{const _rr=renderRosters;renderRosters=function(){_rr.apply(this,arguments);if(duoOn())try{duoTidy();}catch(e){}};
+  const _rh=renderHero;renderHero=function(){_rh.apply(this,arguments);if(duoOn())try{duoTidy();}catch(e){}};});
+// docked player card: the per-game table turns sideways (one row per category) so all of it fits the rail
+{const _pc=playerCard;playerCard=function(n){_pc.apply(this,arguments);if(!sheet().classList.contains("dock"))return;
+  const t=$("#sheetBody table.pcstats");if(!t)return;const head=[...t.tHead.rows[0].cells].map(c=>c.innerHTML),rows=[...t.tBodies[0].rows].map(r=>[...r.cells].map(c=>c.innerHTML));
+  t.outerHTML=`<table class="lg pcstats pcv"><thead><tr><th class="nm">${head[0]}</th>${rows.map(r=>`<th class="num">${r[0]}</th>`).join("")}</tr></thead><tbody>${head.slice(1).map((h,i)=>`<tr><td class="nm">${h}</td>${rows.map(r=>`<td class="num">${r[i+1]}</td>`).join("")}</tr>`).join("")}</tbody></table>`;};}
 const ptName=n=>{if(n.length<=13)return n;const w=n.split(" ");return w.length>1?w[0][0]+". "+w.slice(1).join(" "):n;};
 
 /* ============================================================================
@@ -5467,7 +5546,7 @@ document.addEventListener("click",e=>{let b=e.target.closest("[data-ptv]");
   if(nav==="team"){if(duoOn())return _rh.apply(this,arguments);el.innerHTML="";el.hidden=true;return;}
   if(SUB.matchup!=="track"&&SUB.matchup!=="players")SUB.matchup="stats";
   const s=SUB.matchup,has=M.opp&&TEAMS[M.opp];
-  el.innerHTML=(s==="players"&&has?`<div class="ptscorewrap">${ptScore(cur,M.opp,false)}</div>`:matchupHero())+(has?`<div class="ptviews ptmv" role="group" aria-label="Matchup view"><button data-ptmv="stats" aria-pressed="${s==="stats"}">Score</button><button data-ptmv="players" aria-pressed="${s==="players"}">Players</button><button data-ptmv="track" aria-pressed="${s==="track"}">Tracker</button></div>`:"")+(s==="stats"?catBoard():"");
+  el.innerHTML=(s==="players"&&has&&!duoOn()?`<div class="ptscorewrap">${ptScore(cur,M.opp,false)}</div>`:matchupHero())+(has?`<div class="ptviews ptmv" role="group" aria-label="Matchup view"><button data-ptmv="stats" aria-pressed="${s==="stats"}">Score</button><button data-ptmv="players" aria-pressed="${s==="players"}">Players</button><button data-ptmv="track" aria-pressed="${s==="track"}">Tracker</button></div>`:"")+(s==="stats"?catBoard():"");
   el.hidden=false;$("#boxWrap").hidden=true;};}
 // header chat button (the chat bar above the tabs is hidden in table mode)
 {const bar=document.querySelector(".bar .teamnav");if(bar&&!$("#ptChat"))bar.insertAdjacentHTML("beforeend",`<button class="arrow ptchat" id="ptChat" aria-label="League chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="chatcount" id="ptChatN" hidden></span></button>`);
