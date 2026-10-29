@@ -4,6 +4,8 @@
    processing time at least L.waivers.hours after the drop. Teams put in claims
    (claims/<id>); at each processing time the first manager to open the app runs
    them once (waivers/<season>_r<time>, claimed under a lease) in priority order:
+   (since 2.12 the league server's 1-minute timer runs them on time; an app
+   only steps in 10 minutes late, when that timer is off or a run got stuck)
    rolling (a winner moves to the back), reverse standings, or FAAB bids.
    Every rule lives in L.waivers and is edited in League > Settings > Waivers.
    ============================================================================ */
@@ -23,7 +25,8 @@ const fmtET=ms=>new Date(ms).toLocaleString("en-US",{timeZone:"America/New_York"
 // players on waivers now: {name: clear time}
 function waiverMap(){const out={},c=wcfg(),now=Date.now();if(!L||mirror())return out;
   TXLOG.forEach(t=>{if(!t.ok||!t.drop||t.by==="ESPN import"||t.role==="waiver-clear")return;const at=t.at||0,clr=nextProcess(at+(+c.hours||0)*3600e3);
-    if(clr>now&&!ownerNow(t.drop))out[t.drop]=Math.max(out[t.drop]||0,clr);});return out;}
+    // past the run time but his claims haven't run yet: still on waivers, so nobody grabs him first
+    if((clr>now||CLAIMS.some(c=>c.status==="pending"&&c.add===t.drop&&c.clearAt===clr))&&!ownerNow(t.drop))out[t.drop]=Math.max(out[t.drop]||0,clr);});return out;}
 let WMAP={};
 const onWaivers=n=>!!WMAP[n];
 const wdoc=()=>WDOCS.find(d=>d.id===SEASON)||null;
@@ -43,7 +46,8 @@ function sheetClaim(n){const T=actTeam();if(!T)return;const c=wcfg(),full=roster
     <p class="flabel">${full?"Your roster is full. Drop one player if the claim wins:":"Drop a player if the claim wins (optional)"}</p>
     ${full?"":`<div class="picklist"><label><input type="radio" name="drop" value="" checked><span>Don't drop anyone</span></label></div>`}${rosterPick(T,"drop","radio",[],false)}
     <div class="sheetacts"><button class="btn ghost" data-sheet="close">Cancel</button><button class="btn good" data-wclaim="${esc(n)}">Put in claim</button></div>`);}
-async function saveClaim(n){if(!WMAP[n]||WMAP[n]<=Date.now()){WMAP=waiverMap();sheet().close();queueRebuild();return toast(WMAP[n]?`${n}'s waiver time moved. Try again.`:`Waivers for ${n} just ran. The app is updating, so check Transactions or try adding him again.`);}
+async function saveClaim(n){if(WMAP[n]&&WMAP[n]<=Date.now()){sheet().close();return toast(`Claims for ${n} are running right now. Check Transactions in a minute.`);}
+  if(!WMAP[n]){WMAP=waiverMap();sheet().close();queueRebuild();return toast(WMAP[n]?`${n}'s waiver time moved. Try again.`:`Waivers for ${n} just ran. The app is updating, so check Transactions or try adding him again.`);}
   const T=actTeam(),body=$("#sheetBody"),c=wcfg(),drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
   if(rosterNow(T).length>=ROSTER_MAX&&!drop)return toast("Pick a player to drop first.");
   let bid=0;if(c.type==="faab"){bid=Math.round(+body.querySelector("#wBid").value||0);if(bid<(+c.minBid||0))return toast(`The minimum bid is $${c.minBid}.`);if(bid>faabLeft(T))return toast(`You only have $${faabLeft(T)} left.`);}
@@ -55,9 +59,12 @@ async function saveClaim(n){if(!WMAP[n]||WMAP[n]<=Date.now()){WMAP=waiverMap();s
 let WRUN=false;
 async function runWaivers(){
   if(WRUN||!L||mirror()||WRITE_BLOCKED||!SESSION||!(Store.db||Store.local))return;const now=Date.now();
-  const due=[...new Set(CLAIMS.filter(c=>c.status==="pending"&&c.clearAt&&c.clearAt<=now).map(c=>c.clearAt))].sort((a,b)=>a-b);if(!due.length)return;
+  saveStandOrder();
+  // the server runs claims on time; an app is the backup 10 minutes later (and takes over a run stuck that long)
+  const late=Store.local?0:10*60e3;
+  const due=[...new Set(CLAIMS.filter(c=>c.status==="pending"&&c.clearAt&&c.clearAt+late<=now).map(c=>c.clearAt))].sort((a,b)=>a-b);if(!due.length)return;
   WRUN=true;try{for(const T0 of due){
-    try{await Store.claimSet("waivers",`${SEASON}_r${T0}`,{season:SEASON,kind:"run",at:T0,by:SESSION.team||SESSION.role,ranAt:Date.now()},()=>false);}catch(e){continue;}
+    try{await Store.claimSet("waivers",`${SEASON}_r${T0}`,{season:SEASON,kind:"run",at:T0,by:SESSION.team||SESSION.role,ranAt:Date.now()},cur=>Date.now()-(+cur.ranAt||0)>late);}catch(e){continue;}
     const c=wcfg(),pend=CLAIMS.filter(x=>x.status==="pending"&&x.clearAt===T0),own={},room={},aroom={},bad={},used={},order=priorityOrder(),res=[],lim=+L.addLimit||0;
     Object.keys(OWN).forEach(n=>{const o=ownerNow(n);if(o)own[n]=o;});L.teams.forEach(t=>{const id=tnum(t.id);room[id]=ROSTER_MAX-rosterNow(id).length;aroom[id]=activeMax()-Object.values(legalSlots(id)).filter(v=>v!==13).length;bad[id]=!!legalIssues(id);used[id]=pickupsUsed(id,TODAY);});
     const left=new Set(pend.map(x=>x.id)),spent={},wonNow=new Set();
@@ -77,6 +84,11 @@ async function runWaivers(){
     const won=res.filter(r=>r[1]==="won");
     if(won.length)Store.claimSet("chat",`sys_waivers_${SEASON}_${T0}`,{ch:"league",members:["all"],from:"sys",kind:"waivers",text:`Waivers ran ${fmtET(T0)}\n`+won.map(([x])=>`✅ ${teamName(x.team)} claimed ${x.add}${c.type==="faab"?` ($${+x.bid||0})`:""}${x.drop?`, dropped ${x.drop}`:""}`).join("\n"),at:Date.now()},d=>!d.text).catch(()=>{});
   }}finally{WRUN=false;}}
+// reverse-standings priority: the server can't work out standings, so a logged-in app saves the order for it
+let SORDER_AT=0;
+function saveStandOrder(){if(wcfg().type!=="standings"||Date.now()-SORDER_AT<10*60e3)return;SORDER_AT=Date.now();
+  let o;try{o=standOrder().slice().reverse().map(t=>"t"+t);}catch(e){return;}const w=wdoc();if(w&&JSON.stringify(w.sorder||[])===JSON.stringify(o))return;
+  (w?Store.update("waivers",SEASON,{sorder:o}):Store.set("waivers",SEASON,{season:SEASON,order:[],sorder:o,at:Date.now()})).catch(()=>{});}
 // ---- Players tab panel: your claims, waiver priority, players on waivers
 function waiverPanel(){if(!L||mirror())return "";WMAP=waiverMap();const T=actTeam(),c=wcfg(),order=priorityOrder(),mine=T?myClaims(T):[],on=Object.entries(WMAP).sort((a,b)=>a[1]-b[1]);
   const recent=CLAIMS.filter(x=>(x.status==="won"||x.status==="lost")&&Date.now()-(x.ranAt||0)<3*864e5&&(!T||tnum(x.team)===T||x.status==="won")).sort((a,b)=>(b.ranAt||0)-(a.ranAt||0)).slice(0,8);

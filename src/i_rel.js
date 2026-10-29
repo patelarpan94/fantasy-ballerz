@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.12",date:"2026-10-29",title:"Waivers and trades run on time",notes:[
+    ["168","Change","Waiver claims now run on the league server at the set time (League › Settings › Waivers), even when nobody has the app open. A run that a phone started but couldn't finish, for example after losing signal, gets finished too. The app still runs claims as a backup if the server ever can't."],
+    ["169","Change","Trades under review settle on the league server the moment the vote or the 48 hours are done, even when nobody has the app open. Players still move the next day."],
+    ["170","Fix","A player whose waiver claims haven't run yet stays on waivers, so nobody can add him in the moments after the run time before the claims go through."]]},
   {v:"2.11",date:"2026-10-29",title:"Display settings stick",notes:[
     ["167","Fix","Display settings (theme, team colors, layout) no longer flip back to the old look when you open the app in another tab or on another device right after changing them. Your newest pick now always wins, even while the save is still on its way to the league server."]]},
   {v:"2.10",date:"2026-10-29",title:"Week standings and sortable columns",notes:[
