@@ -32,7 +32,7 @@ const prefsLocalAt=k=>{try{const x=JSON.parse(localStorage.getItem("dfPrefsAt")|
 let PREFS_Q=null,PREFS_AGAIN=false;
 function pushPrefs(){if(PREFS_Q){PREFS_AGAIN=true;return PREFS_Q;}
   PREFS_Q=(async()=>{try{do{PREFS_AGAIN=false;const k=prefKey();if(!k||WRITE_BLOCKED)break;
-    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
+    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",nbas:typeof NBASTR==="string"?NBASTR:"bold",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
     catch(e){}finally{PREFS_Q=null;}})();return PREFS_Q;}
 async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{localStorage.setItem("dfPrefsAt",JSON.stringify({k,at:Date.now()}));}catch(e){}return pushPrefs();}
 async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);
@@ -43,6 +43,7 @@ async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.ge
   if(p.layout&&p.layout!==LAYOUT){LAYOUT=p.layout;try{localStorage.setItem("dfLayout",LAYOUT);}catch(e){}applyLayout();}
   if(p.rstyle&&typeof RSTYLE==="string"&&p.rstyle!==RSTYLE){RSTYLE=p.rstyle;try{localStorage.setItem("dfRStyle",RSTYLE);}catch(e){}if(L)try{render();}catch(e){}}
   if(p.mlay&&p.mlay!==MLAY&&MLAYS.some(([k])=>k===p.mlay)){MLAY=p.mlay;try{localStorage.setItem("dfMLay",MLAY);}catch(e){}if(L)try{render();}catch(e){}}
+  if(p.nbas&&typeof setNbaStr==="function"&&p.nbas!==NBASTR)setNbaStr(p.nbas);
   if(p.nba!=null&&typeof setNbaTheme==="function"&&p.nba!==NBATHEME)setNbaTheme(p.nba);}
 {const _ss=saveSession;saveSession=function(s){const before=prefKey();_ss(s);if(s&&prefKey()!==before)loadPrefs();};}
 addEventListener("load",()=>setTimeout(loadPrefs,600));
@@ -63,6 +64,7 @@ $("#themeBtn").onclick=displaySheet;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ds]");if(!b)return;const [k,v]=b.dataset.ds.split(":");
   if(k==="theme"){THEME=v;try{localStorage.setItem("dfTheme",v);}catch(x){}applyTheme();}
   else if(k==="rstyle"){RSTYLE=v;try{localStorage.setItem("dfRStyle",v);}catch(x){}if(L)render();}
+  else if(k==="nbastr"){setNbaStr(v);}
   else if(k==="mlay"){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(L)render();}
   else{LAYOUT=v;try{localStorage.setItem("dfLayout",v);}catch(x){}applyLayout();}
   b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected",x===b));savePrefs();});

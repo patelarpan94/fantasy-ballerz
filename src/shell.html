@@ -931,34 +931,52 @@ body.navin .cbrow:nth-child(2){animation-delay:.03s}body.navin .cbrow:nth-child(
 @media (min-width:641px){body.fold #rosters .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
 body.fold #rosters .cards .card-grp{grid-column:1/-1}
 body.fold dialog.help{max-width:680px;margin-inline:auto}}
-.nbagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin:4px 0 12px}
-.nbasw{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:9px;border:1.5px solid var(--line);font-size:.7rem;font-weight:700;letter-spacing:.03em;color:var(--ink)}
-.nbasw i{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%);box-shadow:0 0 0 1px var(--line)}
-.nbasw.none{justify-content:center;font-weight:600;color:var(--muted)}
-.nbasw[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash)}
+.nbagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px;margin:4px 0 10px}
+.nbasw{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:4px;border-radius:10px;border:1.5px solid var(--line);font-size:.6rem;color:var(--muted);text-align:center;min-width:0}
+.nbasw i{display:grid;place-items:center;height:26px;border-radius:6px;background:var(--c1);box-shadow:inset 0 -5px 0 var(--c2);color:#fff;font-style:normal;font-weight:800;font-size:.72rem;letter-spacing:.04em;padding-bottom:4px}
+.nbasw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbasw.none{justify-content:center;align-items:center;font-size:.72rem;font-weight:600;color:var(--muted);min-height:44px}
+.nbasw[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash);color:var(--ink)}
 .nbasw:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-html.nbat{--s-me:var(--nba1);--nbag:linear-gradient(115deg,var(--nba1) 0%,color-mix(in srgb,var(--nba1) 80%,var(--nba2)) 60%,color-mix(in srgb,var(--nba1) 58%,var(--nba2)) 100%)}
-html.nbat body{background:linear-gradient(180deg,color-mix(in srgb,var(--nba1) 14%,var(--bg)) 0,color-mix(in srgb,var(--nba1) 6%,var(--bg)) 420px,color-mix(in srgb,var(--nba2) 7%,var(--bg)) 100%) fixed}
-html.nbat .bar{background:var(--nbag);border-top:0;border-bottom:0;color:#fff;box-shadow:0 10px 24px -14px color-mix(in srgb,var(--nba1) 70%,transparent)}
-html.nbat .bar::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:linear-gradient(180deg,color-mix(in srgb,var(--nba2) 45%,transparent),transparent);pointer-events:none}
+.nbastr[hidden]{display:none}
+/* team colors (2.16): solid primary header with a crisp secondary stripe, neutral cards, accent shades from n_colors.js */
+html.nbat{--s-me:var(--accent);--nbag:linear-gradient(115deg in oklab,var(--nba1) 0%,var(--nba1) 45%,var(--nba1d) 100%)}
+html.nbat body{background:linear-gradient(180deg,color-mix(in oklab,var(--nba1) var(--nbatint),var(--bg)) 0,var(--bg) 420px) fixed var(--bg)}
+html.nbat .bar{background:var(--nbag);border-top:0;border-bottom:4px solid var(--nba2);color:#fff;box-shadow:0 8px 20px -14px var(--nba1)}
 html.nbat .navwrap,html.nbat .mainnav{background:transparent;border-color:transparent}
 html.nbat .bar .eyebrow,html.nbat .bar .upd{color:rgba(255,255,255,.85)}
 html.nbat .bar .rbtn{background:#fff;color:var(--nba1);font-weight:700}
-html.nbat .bar .arrow,html.nbat .bar .todayb{background:rgba(255,255,255,.92);color:var(--nba1);border-color:transparent}
+html.nbat .bar .arrow,html.nbat .bar .todayb{background:rgba(255,255,255,.94);color:var(--nba1);border-color:transparent}
 html.nbat .bar .arrow:disabled,html.nbat .bar .todayb:disabled{background:rgba(255,255,255,.16);color:rgba(255,255,255,.6)}
-html.nbat .mainnav button{color:rgba(255,255,255,.72)}
+html.nbat .mainnav button{color:rgba(255,255,255,.78)}
 html.nbat .mainnav button:hover{color:#fff}
-html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:transparent;background:linear-gradient(0deg,color-mix(in srgb,var(--nba2) 55%,transparent) 0,transparent 70%)}
+html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
-html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--nba1),var(--nba2));z-index:1}
-html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in srgb,var(--nba1) 16%,var(--surface)) 0%,color-mix(in srgb,var(--nba2) 8%,var(--surface)) 60%,var(--surface) 100%)}
+html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent) 0 72%,var(--nbaline) 72% 100%);z-index:1}
+html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in oklab,var(--accent) 13%,var(--surface)) 0%,var(--surface) 70%)}
 html.nbat .teamhead .tn{color:var(--accent)}
 html.nbat .grid thead th,html.nbat .lg thead th{color:var(--accent)}
-html.nbat .tabs button[aria-selected="true"]{background:var(--nbag);color:#fff}
-html.nbat .btn:not(.ghost):not(.danger):not(.good){background-image:linear-gradient(115deg,var(--nba1),color-mix(in srgb,var(--nba1) 60%,var(--nba2)));border-color:transparent;color:#fff}
-html.nbat .chatfab{background:linear-gradient(135deg,var(--nba1),color-mix(in srgb,var(--nba1) 40%,var(--nba2)));box-shadow:0 6px 18px color-mix(in srgb,var(--nba1) 45%,transparent)}
-@media (max-width:640px){html.nbat .navwrap{background:var(--nbag);border-top:0;box-shadow:0 -10px 24px -14px color-mix(in srgb,var(--nba1) 70%,transparent)}
-  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;background:linear-gradient(180deg,color-mix(in srgb,var(--nba2) 50%,transparent) 0,transparent 75%)}}
+html.nbat .tabs button[aria-selected="true"]{background:var(--nba1);color:#fff;box-shadow:inset 0 -3px 0 var(--nba2)}
+html.nbat .btn:not(.ghost):not(.danger):not(.good){background:var(--nba1);border-color:transparent;color:#fff}
+html.nbat .stseg button.on,html.nbat .ptd.on,html.nbat .ptd.on b,html.nbat .ptd.on i,html.nbat .whoav{color:var(--on-accent)}
+html.nbat .chatfab{background:var(--nba1);box-shadow:0 0 0 3px var(--nba2),0 6px 18px color-mix(in oklab,var(--nba1) 45%,transparent)}
+html.nbat body.fold.duow .mainnav button{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff}
+html.nbat body.fold.duow .mainnav button[aria-selected="true"]{background:#fff;border-color:#fff;color:var(--nba1);box-shadow:inset 0 -3px 0 var(--nba2)}
+@media (max-width:640px){html.nbat .navwrap{background:var(--nbag);border-top:4px solid var(--nba2);box-shadow:0 -8px 20px -14px var(--nba1)}
+  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;border-bottom-color:transparent;background:rgba(255,255,255,.16);box-shadow:inset 0 3px 0 var(--nba2)}}
+/* Subtle: header and tab bar stay plain; the team shows in a top stripe, buttons and highlights */
+html.nbat.nbasub body{background:var(--bg)}
+html.nbat.nbasub .bar{background:linear-gradient(180deg,var(--nba1) 0 4px,var(--nba2) 4px 7px,var(--surface) 7px);color:var(--ink);border-bottom:1px solid var(--line);box-shadow:none}
+html.nbat.nbasub .bar .eyebrow,html.nbat.nbasub .bar .upd{color:var(--muted)}
+html.nbat.nbasub .bar .rbtn{background:var(--nba1);color:#fff}
+html.nbat.nbasub .bar .arrow,html.nbat.nbasub .bar .todayb{background:var(--surface);color:var(--accent);border-color:var(--line)}
+html.nbat.nbasub .bar .arrow:disabled,html.nbat.nbasub .bar .todayb:disabled{background:transparent;color:var(--faint)}
+html.nbat.nbasub .mainnav button{color:var(--muted)}html.nbat.nbasub .mainnav button:hover{color:var(--ink)}
+html.nbat.nbasub .mainnav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
+html.nbat.nbasub body.fold.duow .mainnav button{border-color:var(--line);background:transparent;color:var(--ink)}
+html.nbat.nbasub body.fold.duow .mainnav button[aria-selected="true"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent);box-shadow:none}
+@media (max-width:640px){html.nbat.nbasub .navwrap{background:var(--surface);border-top:1px solid var(--line);box-shadow:none}
+  html.nbat.nbasub .mainnav button[aria-selected="true"]{background:transparent;box-shadow:inset 0 3px 0 var(--accent);color:var(--accent)}}
 .dsrow{margin:4px 0 10px;flex-wrap:wrap}.dsnote{font-size:.82rem;margin:6px 0}
 /* My Team: pick the day from the table's day columns */
 .grid col,.grid col.slot{display:table-column}
