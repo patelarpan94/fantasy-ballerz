@@ -14,6 +14,10 @@
    before the first tip to 1 hour after the last final) and does a full pull
    (injuries, news, ESPN ownership, settings) once an hour. It tracks its own
    daily runtime and slows to every 2 minutes near Google's free limit.
+
+   League jobs: the same timer runs waiver claims at their run time and
+   settles trades whose vote or review hours are done, so nothing waits for
+   someone to open the app (the app still does both as a backup).
    ============================================================================ */
 
 var SEASON = '2026-27', SEASON_END = 160;
@@ -24,6 +28,7 @@ var ADMIN_COLS = {league: 1, badges: 1, secret: 1};   // commissioner-only write
 var FEED_COLS = {stats: 1, nba: 1, espn: 1, hist: 1, shots: 1, refresh: 1};   // ESPN data: any open app may write it, logged in or not
 var TZ = 'America/New_York';
 var DAILY_CAP = 85 * 60e3, SLOW_AT = 70 * 60e3;       // Google allows ~90 trigger-minutes a day
+var JOB_COLS = {claims: 1, tx: 1, votes: 1, league: 1, waivers: 1};   // writes that can change when waivers or trades are due
 
 /* ---------------------------------------------------------------- storage */
 function sheet_() {
@@ -291,16 +296,19 @@ function own_(who, c, id, v, old, op) {
       if (op === 'del') return false;
       if (!old) {
         if (!v) return false;
-        if (v.type === 'trade') return mine(v.from) && v.status === 'proposed' && !v.reverses;
+        if (v.type === 'trade') { var dl = tradeCfg_(league_()).deadline; return mine(v.from) && v.status === 'proposed' && !v.reverses && !(dl && Date.now() >= dl); }
         if (v.role === 'waiver') { var cl = v.claim ? getDoc_('claims', v.claim) : null; return !!cl && cl.team === v.team && cl.add === v.add; }
+        if (v.add && pendingClaim_(v.add)) return false;            // still on waivers: his claims run first
         return mine(v.team) && v.role !== 'commish' && !v.forced;
       }
       if (old.type !== 'trade') return false;
       var st = v && v.status;
       if (v && v.resolved === 'commish') return false;
+      if (old.status === 'proposed' && (st === 'review' || st === 'accepted')) { var d2 = tradeCfg_(league_()).deadline; if (d2 && Date.now() >= d2) return false; }   // past the trade deadline
+      if (st === 'accepted' && v.resolved === 'none') return old.status === 'proposed' && mine(old.to) && tradeCfg_(league_()).review === 'none';
       if (st === 'review' || st === 'rejected' || st === 'countered') return old.status === 'proposed' && mine(old.to);
       if (st === 'cancelled') return old.status === 'proposed' && mine(old.from);
-      // the vote or the 48-hour clock settles a trade under review, from any open app
+      // the vote or the review clock settles a trade under review, from any open app
       return old.status === 'review';
   }
   return true;   // automation: stats, nba, espn, hist, shots, refresh, waivers, trivia
@@ -378,6 +386,7 @@ function mutate_(b, who) {
     }
     var r = write_(sh, idx, c, id, b.op === 'del' ? null : v, {ifRev: b.ifRev});
     commit_(r);
+    if (JOB_COLS[c]) props_().setProperty('JOBS_DIRTY', '1');
     return {r: r, v: b.op === 'update' ? v : undefined, i: c === 'badges' ? bid_(id) : id};
   });
   if (c === 'badges') CacheService.getScriptCache().remove('badges');
@@ -406,6 +415,7 @@ function import_(docs, who) {
       sh.getRange(start, 1, fresh.length, width).setValues(fresh);
     }
     commit_(rev);
+    props_().setProperty('JOBS_DIRTY', '1');
     return docs.length;
   });
   CacheService.getScriptCache().remove('badges');
@@ -447,7 +457,13 @@ function stopTimers() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'tick') ScriptApp.deleteTrigger(t); });
 }
 function tick() {
-  var P = props_(), now = Date.now(), dk = 'RT_' + etDate_(now), used = +P.getProperty(dk) || 0;
+  var P = props_(), now = Date.now(), dk = 'RT_' + etDate_(now);
+  if (jobsDue_(now)) {                                               // waivers and trades first: they never wait for a game window
+    var j0 = Date.now();
+    try { leagueJobs_(now); } catch (e) { Logger.log('league jobs failed: ' + e); }
+    finally { P.setProperty(dk, String((+P.getProperty(dk) || 0) + Date.now() - j0)); }
+  }
+  var used = +P.getProperty(dk) || 0;
   if (used > DAILY_CAP) return;                                     // out of free runtime: wait for tomorrow
   if (used > SLOW_AT && Math.floor(now / 60e3) % 2) return;          // close to it: every 2 minutes
   var full = now - (+P.getProperty('LAST_FULL') || 0) >= 59.5 * 60e3;
@@ -497,6 +513,237 @@ function saveMeta_(m) {
   var T = todaySp_();
   for (var k in m.tips) if (+k < T - 3) delete m.tips[k];
   props_().setProperty('META', JSON.stringify(m));
+}
+
+/* ------------------------------------------------------ waivers and trades */
+// The 1-minute timer runs waiver claims at their run time and settles trades
+// whose vote or review hours are done, so nobody has to open the app for them.
+// Same rules as the app (src/k_waivers.js runWaivers, src/c_views.js
+// settleTrades), which still does both as a backup if the timer is off.
+// Off while the league mirrors ESPN.
+var CAL = [[1,1,6],[2,7,13],[3,14,20],[4,21,27],[5,28,34],[6,35,41],[7,42,48],[8,49,55],[9,56,62],[10,63,69],[11,70,76],[12,77,83],[13,84,90],[14,91,97],[15,98,104],[16,105,111],[17,112,118],[18,119,132],[19,133,139],[20,140,146],[21,147,153],[22,154,160]];
+var WAIVER_STALE = 5 * 60e3;
+var WAIVER_DEFAULT = {type: 'rolling', hours: 24, days: [0], hour: 8, budget: 100, minBid: 1};
+var DOW_ = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON_ = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function tnum_(id) { return +String(id).replace(/\D/g, ''); }
+function weekOf_(sp) { for (var k = 0; k < CAL.length; k++) if (sp >= CAL[k][1] && sp <= CAL[k][2]) return CAL[k][0]; return sp < 1 ? 1 : CAL[CAL.length - 1][0]; }
+// the pickup limit counts per matchup (default), per day or per season
+function addPeriod_(L, d) { return L.addMode === 'day' ? 'd' + d : L.addMode === 'season' ? 's' : 'w' + weekOf_(d); }
+function fmtET_(ms) {     // "Sun, Nov 1, 8:00 AM ET", like the app
+  var d = etDate_(ms).split('-'), hm = Utilities.formatDate(new Date(ms), TZ, 'H:m').split(':');
+  var w = new Date(Date.UTC(+d[0], +d[1] - 1, +d[2])).getUTCDay();
+  return DOW_[w] + ', ' + MON_[+d[1] - 1] + ' ' + (+d[2]) + ', ' + fmtTime_(+hm[0] * 60 + +hm[1]) + ' ET';
+}
+function teamName_(L, id) { var t = (L.teams || []).filter(function (x) { return x.id === id || tnum_(x.id) === tnum_(id); })[0]; return t ? t.name : String(id); }
+
+function jobsDue_(now) { var P = props_(); return !!P.getProperty('JOBS_DIRTY') || now >= (+P.getProperty('JOBS_DUE') || 0); }
+function pendingClaim_(n) {
+  var C = getCol_('claims');
+  for (var id in C) if (C[id].season === SEASON && C[id].status === 'pending' && C[id].add === n) return true;
+  return false;
+}
+
+// everything the jobs read, from one look at the Sheet
+function jobDocs_(sh, idx) {
+  var want = {league: 1, picks: 1, tx: 1, lineups: 1, claims: 1, waivers: 1, votes: 1, nba: 1, chat: 1};
+  var rows = idx.filter(function (x) { return want[x.c] && !x.del && (x.c !== 'chat' || x.i.indexOf('sys_') === 0); });
+  var js = readJson_(sh, rows), D = {picks: [], tx: [], claims: [], votes: [], lineups: {}, waivers: {}, chat: {}, league: null, nba: null};
+  rows.forEach(function (x) {
+    var v = parse_(js[x.row]);
+    if (!v) return;
+    if (x.c === 'league') { if (x.i === SEASON) D.league = v; return; }
+    if (x.c === 'chat') { D.chat[x.i] = v; return; }
+    if (v.season !== SEASON) return;
+    v.id = x.i;
+    if (x.c === 'nba') D.nba = v;
+    else if (x.c === 'lineups') D.lineups[tnum_(x.i.split('_').pop())] = v;
+    else if (x.c === 'waivers') D.waivers[x.i] = v;
+    else D[x.c].push(v);
+  });
+  return D;
+}
+
+// who owns whom: draft picks, then adds, drops and accepted trades in order (the app's buildOwnership)
+function leagueOwn_(L, D, TODAY) {
+  var OWN = {}, TXLOG = [], MAX = SLOT_KEYS.reduce(function (s, k) { return s + (+(L.slots || {})[k] || 0); }, 0);
+  var ownerNow = function (n) { var iv = (OWN[n] || []).filter(function (i) { return i.to === Infinity; })[0]; return iv ? iv.team : 0; };
+  var rosterNow = function (T) { return Object.keys(OWN).filter(function (n) { return ownerNow(n) === T; }); };
+  var add = function (n, T, from) { (OWN[n] = OWN[n] || []).push({team: T, from: from, to: Infinity}); };
+  var end = function (n, T, day) { var iv = (OWN[n] || []).filter(function (i) { return i.team === T && i.to === Infinity; })[0]; if (iv) iv.to = day; };
+  D.picks.slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { if (!ownerNow(p.player)) add(p.player, tnum_(p.team), 0); });
+  var lim = +L.addLimit || 0, used = {}, wk = function (T, d) { return T + '_' + addPeriod_(L, d); };
+  D.tx.filter(function (t) { return t.type !== 'trade' || t.status === 'accepted'; })
+    .sort(function (a, b) { return (a.eff || a.at) - (b.eff || b.at); }).forEach(function (t) {
+      var day = t.day || TODAY, ok = true;
+      if (t.type === 'add' || t.type === 'drop') {
+        var T = tnum_(t.team);
+        if (t.add && ownerNow(t.add)) ok = false;
+        else if (t.drop && ownerNow(t.drop) !== T) ok = false;
+        else if (t.add && rosterNow(T).length - (t.drop ? 1 : 0) + 1 > MAX) ok = false;
+        else if (t.add && lim && t.role !== 'commish' && (used[wk(T, day)] || 0) >= lim) ok = false;
+        if (ok && t.add && t.role !== 'commish') used[wk(T, day)] = (used[wk(T, day)] || 0) + 1;
+        if (ok) { if (t.drop) end(t.drop, T, t.dropDay != null ? t.dropDay : day); if (t.add) add(t.add, T, t.addDay != null ? t.addDay : day); }
+      } else if (t.type === 'trade') {
+        var A = tnum_(t.from), B = tnum_(t.to);
+        if (t.give.some(function (n) { return ownerNow(n) !== A; }) || t.get.some(function (n) { return ownerNow(n) !== B; })) ok = false;
+        else if (rosterNow(A).length - t.give.length + t.get.length > MAX || rosterNow(B).length - t.get.length + t.give.length > MAX) ok = false;
+        if (ok) { t.give.forEach(function (n) { end(n, A, day); add(n, B, day); }); t.get.forEach(function (n) { end(n, B, day); add(n, A, day); }); }
+      }
+      TXLOG.push({t: t, ok: ok});
+    });
+  return {OWN: OWN, TXLOG: TXLOG, MAX: MAX, ownerNow: ownerNow, rosterNow: rosterNow,
+    rosterOn: function (T, sp) { return Object.keys(OWN).filter(function (n) { return OWN[n].some(function (i) { return i.team === T && i.from <= sp && sp < i.to; }); }); }};
+}
+// players on IR once today's moves land: the latest saved lineup on or before tomorrow, up to the IR slots (the app's legalSlots)
+function irSet_(L, D, S, T, TODAY) {
+  var E = Math.max(0, Math.min(TODAY + 1, SEASON_END)), snaps = (D.lineups[T] || {}).snaps || {}, base = null, bd = -1, cap = +(L.slots || {}).IR || 0, out = {}, n = 0;
+  for (var k in snaps) if (+k <= E && +k > bd) { bd = +k; base = snaps[k]; }
+  if (base) S.rosterOn(T, E).forEach(function (p) { if (base[p] === 13 && n < cap) { out[p] = 1; n++; } });
+  return out;
+}
+
+function leagueJobs_(now) {
+  var P = props_();
+  P.deleteProperty('JOBS_DIRTY');
+  var next = locked_(function () {
+    var sh = sheet_(), idx = index_(sh), D = jobDocs_(sh, idx), L = D.league;
+    if (!L || L.source === 'espn' || !L.teams) return now + 60 * 60e3;
+    var rev = rev_(), wrote = false, TODAY = Math.max(1, Math.min(SEASON_END + 1, todaySp_()));
+    var put = function (c, id, v) { if (c !== 'chat') v.season = v.season || SEASON; write_(sh, idx, c, id, v, {rev: ++rev}); wrote = true; };
+    var due = [];
+    try {
+      runWaivers_(L, D, now, TODAY, put);
+      settleTrades_(L, D, now, TODAY, put);
+    } finally { if (wrote) commit_(rev); }
+    // the next time anything comes due: a claim's run time, or a trade's 48 hours
+    D.claims.forEach(function (c) { if (c.status === 'pending' && c.clearAt) due.push(c.clearAt > now ? c.clearAt : now + 60e3); });
+    D.tx.forEach(function (t) { if (t.type === 'trade' && t.status === 'review') due.push(Math.max(now + 60e3, t.reviewEnds || 0)); });
+    return Math.min.apply(null, due.concat([now + 60 * 60e3]));
+  });
+  P.setProperty('JOBS_DUE', String(next));
+}
+
+// one waiver run per run time; an app that started the same run less than 5 minutes ago is left to finish it
+function runWaivers_(L, D, now, TODAY, put) {
+  var c = {}, k;
+  for (k in WAIVER_DEFAULT) c[k] = WAIVER_DEFAULT[k];
+  for (k in (L.waivers || {})) c[k] = L.waivers[k];
+  var times = [];
+  D.claims.forEach(function (x) { if (x.status === 'pending' && x.clearAt && x.clearAt <= now && times.indexOf(x.clearAt) < 0) times.push(x.clearAt); });
+  times.sort(function (a, b) { return a - b; });
+  var ids = L.teams.map(function (t) { return tnum_(t.id); }), log = [];
+  times.forEach(function (T0) {
+    var lid = SEASON + '_r' + T0, lk = D.waivers[lid];
+    if (lk && lk.by !== 'server' && now - (lk.ranAt || 0) < WAIVER_STALE) return;
+    put('waivers', lid, {season: SEASON, kind: 'run', at: T0, by: 'server', ranAt: now});
+    var S = leagueOwn_(L, D, TODAY), own = {}, room = {}, aroom = {}, bad = {}, used = {}, spent = {}, ir = {};
+    Object.keys(S.OWN).forEach(function (n) { var o = S.ownerNow(n); if (o) own[n] = o; });
+    var INJ = (D.nba && D.nba.inj) || {}, amax = S.MAX - (+(L.slots || {}).IR || 0);
+    ids.forEach(function (T) {
+      var ros = S.rosterNow(T), irs = irSet_(L, D, S, T, TODAY), nir = ros.filter(function (n) { return irs[n]; });
+      ir[T] = irs; room[T] = S.MAX - ros.length; aroom[T] = amax - (ros.length - nir.length);
+      bad[T] = TODAY <= SEASON_END && (ros.length > S.MAX || ros.length - nir.length > amax || nir.some(function (n) { return INJ[n] !== 'OUT'; }));
+      used[T] = S.TXLOG.filter(function (e) { var t = e.t; return e.ok && t.type === 'add' && t.add && t.role !== 'commish' && tnum_(t.team) === T && addPeriod_(L, t.day || TODAY) === addPeriod_(L, TODAY); }).length;
+    });
+    var faabLeft = function (T) { return Math.max(0, (+c.budget || 0) + (+(c.adj || {})['t' + T] || 0) - D.claims.filter(function (x) { return x.status === 'won' && tnum_(x.team) === T; }).reduce(function (s, x) { return s + (+x.bid || 0); }, 0)); };
+    var wd = D.waivers[SEASON] || {}, order;
+    var saved = ((c.type === 'standings' && wd.sorder) || wd.order || []).map(tnum_).filter(function (t) { return ids.indexOf(t) >= 0; });
+    var base = saved.length ? saved : (L.draft && L.draft.order || []).map(tnum_).reverse();
+    order = base.filter(function (t) { return ids.indexOf(t) >= 0; }).concat(ids.filter(function (t) { return base.indexOf(t) < 0; }));
+    var pend = D.claims.filter(function (x) { return x.status === 'pending' && x.clearAt === T0; }), left = {}, res = [], won = {}, lim = +L.addLimit || 0;
+    pend.forEach(function (x) { left[x.id] = 1; });
+    var valid = function (x) {
+      var T = tnum_(x.team);
+      if (own[x.add]) return won[x.add] ? (c.type === 'faab' ? 'Outbid' : 'A team higher in priority got him') : x.add + ' was already taken';
+      if (x.drop && own[x.drop] !== T) return x.drop + ' was no longer on the roster';
+      if (bad[T]) return "The roster wasn't legal";
+      if (room[T] + (x.drop ? 1 : 0) < 1) return 'The roster was full';
+      if (aroom[T] + (x.drop && !ir[T][x.drop] ? 1 : 0) < 1) return 'No room off IR';
+      if (lim && used[T] >= lim) return 'No pickups left ' + ({day: 'today', season: 'this season'}[L.addMode] || 'this matchup');
+      if (c.type === 'faab' && (+x.bid || 0) > faabLeft(T) - (spent[T] || 0)) return 'Not enough budget left';
+      return '';
+    };
+    var rk = function (x) { return x.rank != null ? x.rank : x.at; };
+    while (Object.keys(left).length) {
+      var open = pend.filter(function (x) { return left[x.id]; }), pick;
+      if (c.type === 'faab') pick = open.slice().sort(function (a, b) { return (+b.bid || 0) - (+a.bid || 0) || (c.tie === 'earliest' ? (a.at || 0) - (b.at || 0) : 0) || order.indexOf(tnum_(a.team)) - order.indexOf(tnum_(b.team)) || rk(a) - rk(b); })[0];
+      else {
+        var TT = order.filter(function (t) { return open.some(function (x) { return tnum_(x.team) === t; }); })[0];
+        pick = open.filter(function (x) { return tnum_(x.team) === TT; }).sort(function (a, b) { return rk(a) - rk(b); })[0];
+        if (!pick) pick = open[0];          // a claim from a team no longer in the league
+      }
+      delete left[pick.id];
+      var why = valid(pick);
+      if (why) { res.push([pick, 'lost', why]); continue; }
+      var T = tnum_(pick.team);
+      own[pick.add] = T; won[pick.add] = 1; if (pick.drop) delete own[pick.drop];
+      room[T] += pick.drop ? 0 : -1; aroom[T] += pick.drop && !ir[T][pick.drop] ? 0 : -1; used[T]++; spent[T] = (spent[T] || 0) + (+pick.bid || 0);
+      res.push([pick, 'won', '']);
+      if (c.type === 'rolling') { order.splice(order.indexOf(T), 1); order.push(T); }
+    }
+    var sp = Math.max(TODAY, spOf_(etDate_(T0)));
+    res.forEach(function (r, i) {
+      var x = r[0];
+      if (r[1] === 'won') {
+        var tx = {season: SEASON, type: 'add', team: x.team, add: x.add, drop: x.drop || null, addDay: sp, dropDay: x.drop ? sp : null, day: sp, at: T0 + i, by: 'Waivers', role: 'waiver', claim: x.id, bid: +x.bid || 0};
+        put('tx', SEASON + '_w' + T0 + '_' + i, tx); tx.id = SEASON + '_w' + T0 + '_' + i; D.tx.push(tx);
+      }
+      x.status = r[1]; x.why = r[2]; x.ranAt = T0;
+      var cv = {}; for (var f in x) if (f !== 'id') cv[f] = x[f];
+      put('claims', x.id, cv);
+    });
+    if (c.type === 'rolling') { var nw = {}; for (k in wd) if (k !== 'id') nw[k] = wd[k]; nw.season = SEASON; nw.order = order.map(function (t) { return 't' + t; }); nw.at = now; put('waivers', SEASON, nw); nw.id = SEASON; D.waivers[SEASON] = nw; }
+    var wins = res.filter(function (r) { return r[1] === 'won'; }), cid = 'sys_waivers_' + SEASON + '_' + T0;
+    if (wins.length && !(D.chat[cid] && D.chat[cid].text)) {
+      put('chat', cid, {ch: 'league', members: ['all'], from: 'sys', kind: 'waivers', at: now,
+        text: 'Waivers ran ' + fmtET_(T0) + '\n' + wins.map(function (r) { var x = r[0]; return '✅ ' + teamName_(L, x.team) + ' claimed ' + x.add + (c.type === 'faab' ? ' ($' + (+x.bid || 0) + ')' : '') + (x.drop ? ', dropped ' + x.drop : ''); }).join('\n')});
+    }
+    log.push(fmtET_(T0) + ': ' + wins.length + ' of ' + res.length + ' claims won');
+  });
+  return log.join('; ');
+}
+
+// trade rules from League › Settings › Trades; until they're saved, the ESPN league's (24h review, 3 vetoes, Feb 19 deadline)
+function tradeCfg_(L) {
+  var t = {review: 'veto', hours: 24, vetoes: 3, deadline: L.trades ? null : (SEASON === '2026-27' ? 1803056400000 : null)}, k;
+  for (k in (L.trades || {})) t[k] = L.trades[k];
+  return t;
+}
+// trades under review: enough vetoes end them, a majority pass (league-vote mode) or the review hours put them through (the app's settleTrades).
+// After the deadline, offers nobody accepted expire.
+function settleTrades_(L, D, now, TODAY, put) {
+  var tc = tradeCfg_(L), votes = tc.review === 'veto' || tc.review === 'majority';
+  var need = tc.review === 'veto' ? Math.max(1, Math.min(+tc.vetoes || 1, L.teams.length - 2)) : Math.floor(L.teams.length / 2) + 1, line = function (t) { return teamName_(L, t.from) + ' sends ' + (t.give.join(', ') || 'nothing') + '\n' + teamName_(L, t.to) + ' sends ' + (t.get.join(', ') || 'nothing'); };
+  var HEADS = {passed: 'Trade passed by league vote. Players move tomorrow', time: 'The review ended with no veto, so the trade went through. Players move tomorrow',
+    vetoed: 'Trade vetoed by league vote', failed: "Trade didn't go through: a player had already moved", expired: 'Offer expired at the trade deadline'};
+  if (tc.deadline && now >= tc.deadline) D.tx.filter(function (t) { return t.type === 'trade' && t.status === 'proposed'; }).forEach(function (t) {
+    var v = {}, k; for (k in t) if (k !== 'id') v[k] = t[k];
+    v.status = 'expired'; v.closedAt = now; put('tx', t.id, v); t.status = 'expired';
+    put('chat', 'sys_' + t.id + '_expired', {ch: 'dm:' + [t.from, t.to].sort().join(':'), members: [t.from, t.to], from: 'sys', kind: 'trade', tx: t.id, text: HEADS.expired + '\n' + line(t), at: now});
+  });
+  D.tx.filter(function (t) { return t.type === 'trade' && t.status === 'review'; }).forEach(function (t) {
+    var parties = [tnum_(t.from), tnum_(t.to)], vs = {};
+    D.votes.forEach(function (v) { if (v.tx === t.id && parties.indexOf(tnum_(v.team)) < 0 && L.teams.some(function (x) { return x.id === v.team; })) vs[tnum_(v.team)] = v.v; });
+    var veto = 0, pass = 2, k;
+    for (k in vs) { if (vs[k] === 'veto') veto++; else if (vs[k] === 'pass') pass++; }
+    var patch = null, ev;
+    if (votes && veto >= need) { patch = {status: 'vetoed', resolved: 'vote', closedAt: now}; ev = 'vetoed'; }
+    else if ((tc.review === 'majority' && pass >= need) || now >= (t.reviewEnds || Infinity)) {
+      var S = leagueOwn_(L, D, TODAY), byVote = tc.review === 'majority' && pass >= need;
+      var ok = t.give.every(function (n) { return S.ownerNow(n) === tnum_(t.from); }) && t.get.every(function (n) { return S.ownerNow(n) === tnum_(t.to); });
+      // the day after the vote ended; the server can't see game locks, so never today
+      patch = ok ? {status: 'accepted', eff: now, day: byVote ? TODAY + 1 : Math.max(TODAY + 1, spOf_(etDate_(t.reviewEnds)) + 1), resolved: byVote ? 'vote' : 'time'}
+        : {status: 'failed', why: 'A player had already moved', closedAt: now};
+      ev = !ok ? 'failed' : byVote ? 'passed' : 'time';
+    }
+    if (!patch) return;
+    for (k in patch) t[k] = patch[k];
+    var v = {}; for (k in t) if (k !== 'id') v[k] = t[k];
+    v.settledBy = 'server';
+    put('tx', t.id, v);
+    put('chat', 'sys_' + t.id + '_' + ev, {ch: 'league', members: ['all'], from: 'sys', kind: 'trade', tx: t.id, text: HEADS[ev] + '\n' + line(t), at: now});
+  });
 }
 
 /* -------------------------------------------------------------- ESPN pull */
