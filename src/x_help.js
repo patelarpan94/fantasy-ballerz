@@ -17,7 +17,7 @@ function helpRulesHtml(){
     <dt>Legal rosters</dt><dd>A team over a limit, or with a player on IR who isn't OUT anymore, gets ⚠. Until it's fixed, it can only drop players or move them off IR. Its stats still count.</dd>
     <dt>Pickups</dt><dd>${lim?`${lim} per matchup.`:"No limit."}</dd>
     <dt>Waivers</dt><dd>A dropped player stays on waivers for at least ${+w.hours} hours. Claims run ${days.length===7?"every day":"on "+days.map(d=>DOW_FULL[d]).join(", ")} at ${hh}. Order: ${esc(wtype)}${w.type==="faab"?`, $${+w.budget} budget`:""}.</dd>
-    <dt>Trades</dt><dd>48-hour league vote after both teams accept. A majority settles it early. The commissioner can approve, veto or reverse any move.</dd>
+    <dt>Trades</dt><dd>${esc(tradeRuleTxt())}${tcfg().deadline?` Trade deadline: ${esc(fmtDeadline(tcfg().deadline))}.`:""} The commissioner can approve, veto or reverse any move.</dd>
     <dt>Season</dt><dd>${reg} regular-season weeks. The top <b>${P}</b> make the playoffs, seeded by record, ${R} round${R>1?"s":""} of one week each (weeks ${reg+1}–${reg+R}).</dd>
   </dl>`;
 }

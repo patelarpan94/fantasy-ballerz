@@ -16,7 +16,7 @@
    daily runtime and slows to every 2 minutes near Google's free limit.
 
    League jobs: the same timer runs waiver claims at their run time and
-   settles trades whose vote or 48 hours are done, so nothing waits for
+   settles trades whose vote or review hours are done, so nothing waits for
    someone to open the app (the app still does both as a backup).
    ============================================================================ */
 
@@ -296,7 +296,7 @@ function own_(who, c, id, v, old, op) {
       if (op === 'del') return false;
       if (!old) {
         if (!v) return false;
-        if (v.type === 'trade') return mine(v.from) && v.status === 'proposed' && !v.reverses;
+        if (v.type === 'trade') { var dl = tradeCfg_(league_()).deadline; return mine(v.from) && v.status === 'proposed' && !v.reverses && !(dl && Date.now() >= dl); }
         if (v.role === 'waiver') { var cl = v.claim ? getDoc_('claims', v.claim) : null; return !!cl && cl.team === v.team && cl.add === v.add; }
         if (v.add && pendingClaim_(v.add)) return false;            // still on waivers: his claims run first
         return mine(v.team) && v.role !== 'commish' && !v.forced;
@@ -304,9 +304,11 @@ function own_(who, c, id, v, old, op) {
       if (old.type !== 'trade') return false;
       var st = v && v.status;
       if (v && v.resolved === 'commish') return false;
+      if (old.status === 'proposed' && (st === 'review' || st === 'accepted')) { var d2 = tradeCfg_(league_()).deadline; if (d2 && Date.now() >= d2) return false; }   // past the trade deadline
+      if (st === 'accepted' && v.resolved === 'none') return old.status === 'proposed' && mine(old.to) && tradeCfg_(league_()).review === 'none';
       if (st === 'review' || st === 'rejected' || st === 'countered') return old.status === 'proposed' && mine(old.to);
       if (st === 'cancelled') return old.status === 'proposed' && mine(old.from);
-      // the vote or the 48-hour clock settles a trade under review, from any open app
+      // the vote or the review clock settles a trade under review, from any open app
       return old.status === 'review';
   }
   return true;   // automation: stats, nba, espn, hist, shots, refresh, waivers, trivia
@@ -515,7 +517,7 @@ function saveMeta_(m) {
 
 /* ------------------------------------------------------ waivers and trades */
 // The 1-minute timer runs waiver claims at their run time and settles trades
-// whose vote or 48 hours are done, so nobody has to open the app for them.
+// whose vote or review hours are done, so nobody has to open the app for them.
 // Same rules as the app (src/k_waivers.js runWaivers, src/c_views.js
 // settleTrades), which still does both as a backup if the timer is off.
 // Off while the league mirrors ESPN.
@@ -700,20 +702,33 @@ function runWaivers_(L, D, now, TODAY, put) {
   return log.join('; ');
 }
 
-// trades under review: a veto majority ends them, a pass majority or the 48 hours puts them through (the app's settleTrades)
+// trade rules from League › Settings › Trades; until they're saved, the ESPN league's (24h review, 3 vetoes, Feb 19 deadline)
+function tradeCfg_(L) {
+  var t = {review: 'veto', hours: 24, vetoes: 3, deadline: L.trades ? null : (SEASON === '2026-27' ? 1803056400000 : null)}, k;
+  for (k in (L.trades || {})) t[k] = L.trades[k];
+  return t;
+}
+// trades under review: enough vetoes end them, a majority pass (league-vote mode) or the review hours put them through (the app's settleTrades).
+// After the deadline, offers nobody accepted expire.
 function settleTrades_(L, D, now, TODAY, put) {
-  var need = Math.floor(L.teams.length / 2) + 1, line = function (t) { return teamName_(L, t.from) + ' sends ' + (t.give.join(', ') || 'nothing') + '\n' + teamName_(L, t.to) + ' sends ' + (t.get.join(', ') || 'nothing'); };
-  var HEADS = {passed: 'Trade passed by league vote. Players move tomorrow', time: 'No veto majority in 48 hours, so the trade went through. Players move tomorrow',
-    vetoed: 'Trade vetoed by league vote', failed: "Trade didn't go through: a player had already moved"};
+  var tc = tradeCfg_(L), votes = tc.review === 'veto' || tc.review === 'majority';
+  var need = tc.review === 'veto' ? Math.max(1, Math.min(+tc.vetoes || 1, L.teams.length - 2)) : Math.floor(L.teams.length / 2) + 1, line = function (t) { return teamName_(L, t.from) + ' sends ' + (t.give.join(', ') || 'nothing') + '\n' + teamName_(L, t.to) + ' sends ' + (t.get.join(', ') || 'nothing'); };
+  var HEADS = {passed: 'Trade passed by league vote. Players move tomorrow', time: 'The review ended with no veto, so the trade went through. Players move tomorrow',
+    vetoed: 'Trade vetoed by league vote', failed: "Trade didn't go through: a player had already moved", expired: 'Offer expired at the trade deadline'};
+  if (tc.deadline && now >= tc.deadline) D.tx.filter(function (t) { return t.type === 'trade' && t.status === 'proposed'; }).forEach(function (t) {
+    var v = {}, k; for (k in t) if (k !== 'id') v[k] = t[k];
+    v.status = 'expired'; v.closedAt = now; put('tx', t.id, v); t.status = 'expired';
+    put('chat', 'sys_' + t.id + '_expired', {ch: 'dm:' + [t.from, t.to].sort().join(':'), members: [t.from, t.to], from: 'sys', kind: 'trade', tx: t.id, text: HEADS.expired + '\n' + line(t), at: now});
+  });
   D.tx.filter(function (t) { return t.type === 'trade' && t.status === 'review'; }).forEach(function (t) {
     var parties = [tnum_(t.from), tnum_(t.to)], vs = {};
     D.votes.forEach(function (v) { if (v.tx === t.id && parties.indexOf(tnum_(v.team)) < 0 && L.teams.some(function (x) { return x.id === v.team; })) vs[tnum_(v.team)] = v.v; });
     var veto = 0, pass = 2, k;
     for (k in vs) { if (vs[k] === 'veto') veto++; else if (vs[k] === 'pass') pass++; }
     var patch = null, ev;
-    if (veto >= need) { patch = {status: 'vetoed', resolved: 'vote', closedAt: now}; ev = 'vetoed'; }
-    else if (pass >= need || now >= (t.reviewEnds || Infinity)) {
-      var S = leagueOwn_(L, D, TODAY), byVote = pass >= need;
+    if (votes && veto >= need) { patch = {status: 'vetoed', resolved: 'vote', closedAt: now}; ev = 'vetoed'; }
+    else if ((tc.review === 'majority' && pass >= need) || now >= (t.reviewEnds || Infinity)) {
+      var S = leagueOwn_(L, D, TODAY), byVote = tc.review === 'majority' && pass >= need;
       var ok = t.give.every(function (n) { return S.ownerNow(n) === tnum_(t.from); }) && t.get.every(function (n) { return S.ownerNow(n) === tnum_(t.to); });
       // the day after the vote ended; the server can't see game locks, so never today
       patch = ok ? {status: 'accepted', eff: now, day: byVote ? TODAY + 1 : Math.max(TODAY + 1, spOf_(etDate_(t.reviewEnds)) + 1), resolved: byVote ? 'vote' : 'time'}

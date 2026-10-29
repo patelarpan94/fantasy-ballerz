@@ -775,22 +775,36 @@ async function chatSend(){
 function chatGrow(){const i=$("#chatInput");if(!i)return;i.style.height="auto";i.style.height=Math.min(120,i.scrollHeight)+"px";}
 
 /* ============================================================================
-   TRADES: offer → the other team accepts → 48-hour league vote → done.
-   Every team votes Pass or Veto (the two teams in the trade count as Pass).
-   A majority of the league either way settles it early; with no veto
-   majority it goes through when the 48 hours are up. The commissioner can
-   approve or veto at any stage and reverse a finished trade.
+   TRADES: offer → the other team accepts → review → done.
+   The review follows League › Settings › Trades (2.13, defaults copy the
+   ESPN league): "veto" = enough veto votes stop it, else it goes through
+   when the review hours are up; "majority" = a majority of the league either
+   way settles it early (the two teams in the trade count as Pass);
+   "commish" = only the commissioner can veto; "none" = no review. After the
+   trade deadline no new offers. The commissioner can approve or veto at any
+   stage and reverse a finished trade. The league server settles on time.
    votes/<tradeId>_t<N> {season, tx, team, v:"pass"|"veto", at}
    ============================================================================ */
-const REVIEW_MS=48*3600e3;
+const TRADE_DEFAULT={review:"veto",hours:24,vetoes:3,deadline:null};
+// the ESPN league's deadline, until the commissioner saves trade settings
+const tcfg=()=>{const t={...TRADE_DEFAULT,...(L?.trades||{})};if(!L?.trades&&SEASON==="2026-27")t.deadline=1803056400000;return t;};
+const reviewMs=()=>Math.max(0,+tcfg().hours||0)*3600e3;
+const pastDeadline=()=>{const d=tcfg().deadline;return !!d&&Date.now()>=d;};
+const fmtDeadline=ms=>new Date(ms).toLocaleString("en-US",{timeZone:"America/New_York",month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})+" ET";
+const DEADLINE_MSG=()=>`The trade deadline (${fmtDeadline(tcfg().deadline)}) has passed. No new trades this season.`;
+function tradeRuleTxt(){const c=tcfg(),h=+c.hours||0;
+  return c.review==="none"?"No review: a trade goes through as soon as the other team accepts.":c.review==="commish"?`${h}-hour review. It goes through unless the commissioner vetoes it.`:
+    c.review==="majority"?`${h}-hour league vote. A majority of ${L.teams.length} teams (${voteMajority()}) either way settles it early; otherwise it goes through.`:`${h}-hour review. ${vetoNeed()} veto votes stop it; otherwise it goes through.`;}
 let VOTES=[];
 const isTrade=t=>t.type==="trade";
 const voteMajority=()=>Math.floor(L.teams.length/2)+1;
+const vetoNeed=()=>{const c=tcfg();return c.review==="veto"?Math.max(1,Math.min(+c.vetoes||1,L.teams.length-2)):voteMajority();};
+const canVote=()=>["veto","majority"].includes(tcfg().review);
 function tally(t){
   const parties=[tnum(t.from),tnum(t.to)],vs={};
   VOTES.filter(v=>v.tx===t.id&&!parties.includes(tnum(v.team))&&L.teams.some(x=>x.id===v.team)).forEach(v=>vs[tnum(v.team)]=v.v);
   const veto=Object.values(vs).filter(v=>v==="veto").length,pass=Object.values(vs).filter(v=>v==="pass").length+2;
-  return {pass,veto,need:voteMajority(),left:L.teams.length-pass-veto,mine:vs[myTeamNum()]||null,parties};
+  return {pass,veto,need:vetoNeed(),left:L.teams.length-pass-veto,mine:vs[myTeamNum()]||null,parties,mode:tcfg().review};
 }
 function tradesNeedingMe(){
   if(!L||!SESSION)return 0;const me=myTeamNum();
@@ -807,38 +821,39 @@ function tradesView(){
   const offerCard=(t,acts,note)=>`<div class="offer">${tradeSides(t)}<div class="tacts">${note?`<span class="muted">${note}</span>`:""}${cmpB(t)}${acts}</div></div>`;
   const cmActs=t=>cm?btn("good","approve",t,"Approve now")+btn("danger","veto",t,"Veto"):"";
   let h="";
-  if(incoming.length)h+=sec("Offers to you",`${incoming.length} waiting · accepting sends it to a 48-hour league vote`,incoming.map(t=>offerCard(t,btn("good","accept",t,"Accept")+`<button class="btn sm" data-tcounter="${esc(t.id)}">Counter</button>`+btn("danger","reject",t,"Reject")+(cm?btn("ghost","approve",t,"Approve now"):""))).join(""));
+  if(incoming.length)h+=sec("Offers to you",`${incoming.length} waiting · ${tcfg().review==="none"?"accepting puts it through":"accepting sends it to review"}${pastDeadline()?" · the deadline has passed, so these can't be accepted":""}`,incoming.map(t=>offerCard(t,btn("good","accept",t,"Accept")+`<button class="btn sm" data-tcounter="${esc(t.id)}">Counter</button>`+btn("danger","reject",t,"Reject")+(cm?btn("ghost","approve",t,"Approve now"):""))).join(""));
   // league vote
   const rev=tr.filter(t=>t.status==="review").sort((a,b)=>a.reviewEnds-b.reviewEnds);
-  h+=sec("League vote",rev.length?`Majority of ${L.teams.length} teams (${voteMajority()}) passes or vetoes early · otherwise it goes through after 48 hours`:"Trades both teams agreed to wait here for 48 hours",
+  h+=sec(canVote()?"League vote":"Under review",tradeRuleTxt(),
     rev.length?rev.map(t=>{const y=tally(t),pct=k=>Math.round(y[k]/L.teams.length*100),party=y.parties.includes(me);
-      const vote=me&&!party?`<span class="vote" role="group" aria-label="Your vote"><button class="vbtn pass${y.mine==="pass"?" on":""}" data-trv="pass:${esc(t.id)}" aria-pressed="${y.mine==="pass"}">Pass</button><button class="vbtn veto${y.mine==="veto"?" on":""}" data-trv="vote-veto:${esc(t.id)}" aria-pressed="${y.mine==="veto"}">Veto</button></span>`:party?`<span class="muted">Your trade · you count as Pass</span>`:"";
+      const vote=!canVote()?"":me&&!party?y.mode==="veto"?`<span class="vote" role="group" aria-label="Your vote"><button class="vbtn veto${y.mine==="veto"?" on":""}" data-trv="vote-veto:${esc(t.id)}" aria-pressed="${y.mine==="veto"}">${y.mine==="veto"?"Vetoed":"Veto"}</button></span>`:`<span class="vote" role="group" aria-label="Your vote"><button class="vbtn pass${y.mine==="pass"?" on":""}" data-trv="pass:${esc(t.id)}" aria-pressed="${y.mine==="pass"}">Pass</button><button class="vbtn veto${y.mine==="veto"?" on":""}" data-trv="vote-veto:${esc(t.id)}" aria-pressed="${y.mine==="veto"}">Veto</button></span>`:party?`<span class="muted">Your trade · you count as Pass</span>`:"";
       return `<div class="offer review">${tradeSides(t)}
-        <div class="tally"><div class="tbar" aria-hidden="true"><i class="p" style="width:${pct("pass")}%"></i><i class="v" style="width:${pct("veto")}%"></i></div>
-        <div class="tnums"><span><b class="okc">${y.pass}</b> pass</span><span><b class="badc">${y.veto}</b> veto</span><span>${y.left} not voted</span><span class="muted">${y.need} needed</span></div>
-        <div class="tdead">Goes through in <b>${untilTxt(t.reviewEnds)}</b> unless ${y.need} teams veto</div></div>
+        <div class="tally">${canVote()?`<div class="tbar" aria-hidden="true"><i class="p" style="width:${y.mode==="veto"?0:pct("pass")}%"></i><i class="v" style="width:${pct("veto")}%"></i></div>
+        <div class="tnums">${y.mode==="veto"?"":`<span><b class="okc">${y.pass}</b> pass</span>`}<span><b class="badc">${y.veto}</b> veto</span>${y.mode==="veto"?"":`<span>${y.left} not voted</span>`}<span class="muted">${y.need} needed</span></div>`:""}
+        <div class="tdead">Goes through in <b>${untilTxt(t.reviewEnds)}</b> unless ${canVote()?`${y.need} teams veto`:"the commissioner vetoes"}</div></div>
         <div class="tacts">${cmpB(t)}${vote}${cmActs(t)}</div></div>`;}).join(""):`<p class="empty">No trades up for a vote.</p>`);
   if(sent.length)h+=sec("Your offers",`${sent.length} waiting on the other team`,sent.map(t=>offerCard(t,btn("ghost","cancel",t,"Cancel offer")+(cm?btn("good","approve",t,"Approve now"):""),"Waiting on "+esc(teamName(t.to)))).join(""));
   if(others.length&&(cm||!me))h+=sec("Other open offers",`${others.length} between other teams`,others.map(t=>offerCard(t,cmActs(t),"Waiting on "+esc(teamName(t.to)))).join(""));
   // history
   const fmtD=ms=>new Date(ms).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-  const lab=t=>t.reverses?"Reversed by the commissioner":t.status==="accepted"?(t.resolved==="commish"||t.decidedRole==="commish"?"Approved by the commissioner":t.resolved==="vote"?"Passed by league vote":"Went through after 48 hours"):
-    t.status==="vetoed"?(t.resolved==="commish"?"Vetoed by the commissioner":"Vetoed by league vote"):t.status==="rejected"?"Rejected":t.status==="countered"?"Countered":t.status==="cancelled"?"Cancelled":t.status==="failed"?"Didn't go through":t.status;
+  const lab=t=>t.reverses?"Reversed by the commissioner":t.status==="accepted"?(t.resolved==="commish"||t.decidedRole==="commish"?"Approved by the commissioner":t.resolved==="vote"?"Passed by league vote":"Went through after the review"):
+    t.status==="vetoed"?(t.resolved==="commish"?"Vetoed by the commissioner":"Vetoed by league vote"):t.status==="rejected"?"Rejected":t.status==="countered"?"Countered":t.status==="cancelled"?"Cancelled":t.status==="failed"?"Didn't go through":t.status==="expired"?"Expired at the trade deadline":t.status;
   const hist=tr.filter(t=>!["proposed","review"].includes(t.status)).sort((a,b)=>(b.eff||b.at)-(a.eff||a.at)).slice(0,25).map(t=>{
     const canRev=cm&&t.status==="accepted"&&!t.reverses&&!TXS.some(x=>x.reverses===t.id);
     const r=canRev?(CONFIRM==="rev:"+t.id?`<span class="confirm">Send the players back, starting tomorrow? ${btn("danger","reverse",t,"Reverse trade")}<button class="btn ghost sm" data-trv="keep:">Keep</button></span>`:btn("ghost","confirmrev",t,"Reverse")):"";
     return `<tr><td class="num muted">${fmtD(t.eff||t.at)}</td><td><span class="tstat ${t.status}">${esc(lab(t))}</span>${t.why?`<br><span class="muted">${esc(t.why)}</span>`:""}</td><td>${esc(teamName(t.from))} sends ${t.give.map(esc).join(", ")||"nothing"}<br>${esc(teamName(t.to))} sends ${t.get.map(esc).join(", ")||"nothing"} <button class="mini-b" data-tcmp="${esc(t.id)}">Compare</button>${r?`<div style="margin-top:6px">${r}</div>`:""}</td></tr>`;}).join("");
-  const propose=(me||cm)&&!WRITE_BLOCKED?`<div class="row" style="justify-content:space-between;margin-bottom:2px"><span class="hint">${me?`Trading as <b>${esc(teamName(me))}</b>.`:"As commissioner you trade for the team picked at the top."} Players move the day after a trade goes through.</span><button class="btn" data-tradewith="0">Propose a trade</button></div>`:"";
+  const propose=pastDeadline()&&!cm?`<p class="note">${esc(DEADLINE_MSG())}</p>`:(me||cm)&&!WRITE_BLOCKED?`<div class="row" style="justify-content:space-between;margin-bottom:2px"><span class="hint">${me?`Trading as <b>${esc(teamName(me))}</b>.`:"As commissioner you trade for the team picked at the top."} Players move the day after a trade goes through.</span><button class="btn" data-tradewith="0">Propose a trade</button></div>`:"";
   return propose+h+sec("Trade history","Last 25",hist?`<div class="scroll"><table class="txt"><tbody>${hist}</tbody></table></div>`:`<p class="empty">No finished trades yet.</p>`);
 }
 function sheetTradeWith(O,n){
   const T=actTeam();if(!T)return toast("Log in with your team code to trade.");
+  if(pastDeadline()&&!isCommish())return toast(DEADLINE_MSG());
   if(O===T)O=0;
   const teams=L.teams.map(t=>tnum(t.id)).filter(x=>x!==T&&TEAMS[x]);
   if(!O)O=0;
   const cols=O?`<div class="tradecols"><div><p class="flabel">${esc(TEAMS[O].name)} sends</p>${rosterPick(O,"get","checkbox",n?[n]:[])}</div><div><p class="flabel">${esc(TEAMS[T].name)} sends</p>${rosterPick(T,"give","checkbox",[])}</div></div>`:`<p class="empty">Pick a team to see its roster.</p>`;
   openSheet(`Propose a trade`,`<div class="field" style="margin-bottom:10px"><label for="trWith">Trade with</label><select id="trWith"><option value="">Choose a team</option>${teams.map(x=>`<option value="${x}"${x===O?" selected":""}>${esc(TEAMS[x].name)}</option>`).join("")}</select></div>
-    <p class="hint">Pick what each team sends. ${esc(O?TEAMS[O].name:"The other team")} accepts or rejects it, then the league has 48 hours to veto. Players move the day after it goes through.</p>${cols}
+    <p class="hint">Pick what each team sends. ${esc(O?TEAMS[O].name:"The other team")} accepts or rejects it. ${esc(tradeRuleTxt())} Players move the day after it goes through.</p>${cols}
     <div id="trImpact" class="trbox"></div><div class="sheetacts"><button class="btn ghost" data-sheet="close">Cancel</button><button class="btn" data-sheet="trade" data-o="${O}" ${O?"":"disabled"}>Send offer</button></div>`);
   tradeImpact();
 }
@@ -849,7 +864,7 @@ function tradeChat(t,ev){
   const dm=["offer","counter","rejected","cancelled"].includes(ev),members=dm?[t.from,t.to]:["all"];
   const when=t.reviewEnds?new Date(t.reviewEnds).toLocaleString("en-US",{weekday:"short",hour:"numeric",minute:"2-digit"}):"";
   const head={offer:`Trade offer from ${teamName(t.from)}`,counter:`Counter offer from ${teamName(t.from)}`,rejected:`${teamName(t.to)} rejected the trade offer`,cancelled:`${teamName(t.from)} cancelled the trade offer`,
-    vote:`Trade up for a vote. Pass or veto by ${when}`,passed:"Trade passed by league vote. Players move tomorrow",time:"No veto majority in 48 hours, so the trade went through. Players move tomorrow",
+    vote:tcfg().review==="veto"?`Trade under review. Veto by ${when} to stop it`:`Trade up for a vote. Pass or veto by ${when}`,review:`Trade under review by the commissioner until ${when}`,passed:"Trade passed by league vote. Players move tomorrow",time:"The review ended with no veto, so the trade went through. Players move tomorrow",none:"Trade accepted. Players move tomorrow",expired:"Offer expired at the trade deadline",
     vetoed:"Trade vetoed by league vote",approved:"The commissioner approved this trade. Players move tomorrow",cmveto:"The commissioner vetoed this trade",reversed:"The commissioner reversed this trade. Players go back tomorrow",failed:"Trade didn't go through: a player had already moved"}[ev];
   Store.set("chat",`sys_${t.id}_${ev}`,{ch:dm?dmKey(t.from,t.to):"league",members,from:"sys",kind:"trade",tx:t.id,text:`${head}\n${tradeLine(t)}`,at:Date.now()}).catch(()=>{});
 }
@@ -862,19 +877,22 @@ async function tradeAct(v){
   const stillOwned=()=>t.give.every(n=>ownerNow(n)===tnum(t.from))&&t.get.every(n=>ownerNow(n)===tnum(t.to));
   try{
     if(a==="accept"&&tnum(t.to)===me&&t.status==="proposed"){if(!stillOwned())return toast("A player in this offer has already moved. Reject it instead.");
-      const now=Date.now();await Store.update("tx",id,{status:"review",acceptedAt:now,reviewEnds:now+REVIEW_MS,...who});toast("Accepted. The league has 48 hours to vote.");tradeChat({...t,reviewEnds:now+REVIEW_MS},"vote");}
+      if(pastDeadline())return toast(DEADLINE_MSG());
+      const now=Date.now(),rc=tcfg();
+      if(rc.review==="none"){await Store.update("tx",id,{status:"accepted",acceptedAt:now,eff:now,day:TODAY+1,resolved:"none",...who});toast("Accepted. Players move tomorrow.");tradeChat(t,"none");}
+      else{const end=now+reviewMs();await Store.update("tx",id,{status:"review",acceptedAt:now,reviewEnds:end,...who});toast(`Accepted. It's under review for ${+rc.hours} hours.`);tradeChat({...t,reviewEnds:end},rc.review==="commish"?"review":"vote");}}
     else if(a==="reject"&&tnum(t.to)===me){await Store.update("tx",id,{status:"rejected",...who});tradeChat(t,"rejected");}
     else if(a==="cancel"&&(tnum(t.from)===me||cm)){await Store.update("tx",id,{status:"cancelled",...who});tradeChat(t,"cancelled");}
     else if(a==="approve"&&cm){if(!stillOwned())return toast("A player in this trade has already moved.");
       await Store.update("tx",id,{status:"accepted",eff:Date.now(),day:TODAY+1,resolved:"commish",...who});toast("Trade approved. Players move tomorrow.");tradeChat(t,"approved");}
     else if(a==="veto"&&cm){await Store.update("tx",id,{status:"vetoed",resolved:"commish",closedAt:Date.now(),...who});toast("Trade vetoed");tradeChat(t,"cmveto");}
-    else if((a==="pass"||a==="vote-veto")&&me&&t.status==="review"){const vv=a==="pass"?"pass":"veto",vid=`${id}_t${me}`,cur=tally(t).mine;
+    else if((a==="pass"||a==="vote-veto")&&me&&t.status==="review"&&canVote()){const vv=a==="pass"?"pass":"veto",vid=`${id}_t${me}`,cur=tally(t).mine;
       if(cur===vv)await Store.del("votes",vid);else await Store.set("votes",vid,{season:SEASON,tx:id,team:tkey(me),v:vv,at:Date.now()});}
     else if(a==="reverse"&&cm){CONFIRM=null;if(t.give.some(n=>ownerNow(n)!==tnum(t.to))||t.get.some(n=>ownerNow(n)!==tnum(t.from)))return toast("Some of these players have moved since. Use adds and drops to fix the rosters instead.");
       await Store.set("tx",newId(),{season:SEASON,type:"trade",status:"accepted",from:t.to,to:t.from,give:t.give,get:t.get,at:Date.now(),eff:Date.now(),day:TODAY+1,reverses:t.id,resolved:"commish",...actor(),...who});toast("Trade reversed. Players go back tomorrow.");tradeChat(t,"reversed");}
   }catch(e){showErr(e);}
 }
-// settle trades whose vote or 48 hours are done; any logged-in app does it, and repeats are harmless
+// settle trades whose vote or review hours are done; the server does it on time, any logged-in app too, and repeats are harmless
 let settling=false;
 // the day the players move: the day after the vote ended, even when nobody had the app open right then,
 // but never onto a day where one of them has already played
@@ -884,9 +902,10 @@ async function settleTrades(){
   if(settling||!L||!SESSION||WRITE_BLOCKED)return;settling=true;
   try{for(const t of TXS.filter(x=>isTrade(x)&&x.status==="review")){
     const y=tally(t),now=Date.now();let patch=null;
-    if(y.veto>=y.need)patch={status:"vetoed",resolved:"vote",closedAt:now};
-    else if(y.pass>=y.need||now>=t.reviewEnds){const ok=t.give.every(n=>ownerNow(n)===tnum(t.from))&&t.get.every(n=>ownerNow(n)===tnum(t.to));
-      patch=ok?{status:"accepted",eff:now,day:tradeDay(t,y.pass>=y.need),resolved:y.pass>=y.need?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
+    const early=y.mode==="majority"&&y.pass>=y.need;
+    if(canVote()&&y.veto>=y.need)patch={status:"vetoed",resolved:"vote",closedAt:now};
+    else if(early||now>=t.reviewEnds){const ok=t.give.every(n=>ownerNow(n)===tnum(t.from))&&t.get.every(n=>ownerNow(n)===tnum(t.to));
+      patch=ok?{status:"accepted",eff:now,day:tradeDay(t,early),resolved:early?"vote":"time"}:{status:"failed",why:"A player had already moved",closedAt:now};}
     if(patch){await Store.update("tx",t.id,patch);tradeChat(t,patch.status==="vetoed"?"vetoed":patch.status==="failed"?"failed":patch.resolved==="vote"?"passed":"time");}}}
   catch(e){}finally{settling=false;}
 }
