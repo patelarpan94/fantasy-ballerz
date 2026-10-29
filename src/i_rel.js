@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.8",date:"2026-10-29",title:"Install and refresh help",notes:[
+    ["161","New","Help has an Install & refresh section: how to put the app on your iPhone or Android home screen, how pull-to-refresh works, and how the app keeps ESPN data up to date on its own."]]},
   {v:"2.7",date:"2026-10-28",title:"Locked out after 10 tries",notes:[
     ["157","Change","10 wrong passwords in a row lock a team out (it shows 🔒 on the login screen and in League › Settings › Passwords). Phones already logged in stay in. The commissioner unlocks it by unticking Locked out and setting a new 6-digit code; the team logs in with that code and picks a new password. The commissioner login never locks."],
     ["158","Change","No more emails: Forgot password now tells you to ask the commissioner for a new code, and New code in League › Settings › Passwords replaces Reset. Change your own password under Account › Change password."],
