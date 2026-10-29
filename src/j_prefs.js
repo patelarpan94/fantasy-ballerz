@@ -26,8 +26,19 @@ addEventListener("DOMContentLoaded",()=>{if(typeof render==="function"){const _r
 addEventListener("resize",()=>{clearTimeout(applyLayout._t);applyLayout._t=setTimeout(applyLayout,150);});
 applyLayout();
 const prefKey=()=>SESSION?(SESSION.role==="commish"?"commish":SESSION.team||null):null;
-async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:Date.now()});}catch(e){}}
-async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);if(!p)return;
+// BUG-167 (Arp 2026-10-29): a change here is stamped on this device (dfPrefsAt) and saves go out one at a time, newest last,
+// so a slow save can't land after a newer one, and a tab opened before the save reaches the server keeps the newer local pick
+const prefsLocalAt=k=>{try{const x=JSON.parse(localStorage.getItem("dfPrefsAt")||"null");return x&&x.k===k?+x.at||0:0;}catch(e){return 0;}};
+let PREFS_Q=null,PREFS_AGAIN=false;
+function pushPrefs(){if(PREFS_Q){PREFS_AGAIN=true;return PREFS_Q;}
+  PREFS_Q=(async()=>{try{do{PREFS_AGAIN=false;const k=prefKey();if(!k||WRITE_BLOCKED)break;
+    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
+    catch(e){}finally{PREFS_Q=null;}})();return PREFS_Q;}
+async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{localStorage.setItem("dfPrefsAt",JSON.stringify({k,at:Date.now()}));}catch(e){}return pushPrefs();}
+async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);
+  // this device changed the display after the server's copy was saved: keep it and send it again
+  if(prefsLocalAt(k)>(p&&p.at||0)){pushPrefs();return;}
+  if(!p)return;
   if(p.theme&&p.theme!==THEME){THEME=p.theme;try{localStorage.setItem("dfTheme",THEME);}catch(e){}applyTheme();}
   if(p.layout&&p.layout!==LAYOUT){LAYOUT=p.layout;try{localStorage.setItem("dfLayout",LAYOUT);}catch(e){}applyLayout();}
   if(p.rstyle&&typeof RSTYLE==="string"&&p.rstyle!==RSTYLE){RSTYLE=p.rstyle;try{localStorage.setItem("dfRStyle",RSTYLE);}catch(e){}if(L)try{render();}catch(e){}}

@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029152633"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029153402"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4189,6 +4189,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.11",date:"2026-10-29",title:"Display settings stick",notes:[
+    ["167","Fix","Display settings (theme, team colors, layout) no longer flip back to the old look when you open the app in another tab or on another device right after changing them. Your newest pick now always wins, even while the save is still on its way to the league server."]]},
   {v:"2.10",date:"2026-10-29",title:"Week standings and sortable columns",notes:[
     ["164","New","League › Standings has a Season | Week switch. Week shows the week picked at the top of the app: each team's matchup score that week and its category totals, with the league rank under each number."],
     ["165","New","Tap any Standings column header to sort by it (W-L-T, Pct or a category). Tap again to flip the order, or tap # to go back to the normal standings."],
@@ -4467,8 +4469,19 @@ addEventListener("DOMContentLoaded",()=>{if(typeof render==="function"){const _r
 addEventListener("resize",()=>{clearTimeout(applyLayout._t);applyLayout._t=setTimeout(applyLayout,150);});
 applyLayout();
 const prefKey=()=>SESSION?(SESSION.role==="commish"?"commish":SESSION.team||null):null;
-async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:Date.now()});}catch(e){}}
-async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);if(!p)return;
+// BUG-167 (Arp 2026-10-29): a change here is stamped on this device (dfPrefsAt) and saves go out one at a time, newest last,
+// so a slow save can't land after a newer one, and a tab opened before the save reaches the server keeps the newer local pick
+const prefsLocalAt=k=>{try{const x=JSON.parse(localStorage.getItem("dfPrefsAt")||"null");return x&&x.k===k?+x.at||0:0;}catch(e){return 0;}};
+let PREFS_Q=null,PREFS_AGAIN=false;
+function pushPrefs(){if(PREFS_Q){PREFS_AGAIN=true;return PREFS_Q;}
+  PREFS_Q=(async()=>{try{do{PREFS_AGAIN=false;const k=prefKey();if(!k||WRITE_BLOCKED)break;
+    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
+    catch(e){}finally{PREFS_Q=null;}})();return PREFS_Q;}
+async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{localStorage.setItem("dfPrefsAt",JSON.stringify({k,at:Date.now()}));}catch(e){}return pushPrefs();}
+async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);
+  // this device changed the display after the server's copy was saved: keep it and send it again
+  if(prefsLocalAt(k)>(p&&p.at||0)){pushPrefs();return;}
+  if(!p)return;
   if(p.theme&&p.theme!==THEME){THEME=p.theme;try{localStorage.setItem("dfTheme",THEME);}catch(e){}applyTheme();}
   if(p.layout&&p.layout!==LAYOUT){LAYOUT=p.layout;try{localStorage.setItem("dfLayout",LAYOUT);}catch(e){}applyLayout();}
   if(p.rstyle&&typeof RSTYLE==="string"&&p.rstyle!==RSTYLE){RSTYLE=p.rstyle;try{localStorage.setItem("dfRStyle",RSTYLE);}catch(e){}if(L)try{render();}catch(e){}}

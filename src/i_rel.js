@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.11",date:"2026-10-29",title:"Display settings stick",notes:[
+    ["167","Fix","Display settings (theme, team colors, layout) no longer flip back to the old look when you open the app in another tab or on another device right after changing them. Your newest pick now always wins, even while the save is still on its way to the league server."]]},
   {v:"2.10",date:"2026-10-29",title:"Week standings and sortable columns",notes:[
     ["164","New","League › Standings has a Season | Week switch. Week shows the week picked at the top of the app: each team's matchup score that week and its category totals, with the league rank under each number."],
     ["165","New","Tap any Standings column header to sort by it (W-L-T, Pct or a category). Tap again to flip the order, or tap # to go back to the normal standings."],
