@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029210205"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029211434"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4279,6 +4279,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.17",date:"2026-10-29",title:"Tracker category picks",notes:[
+    ["185","Fix","Matchup › Tracker: tapping a category (FG%, REB…) now puts that category's chart right under the buttons, ahead of Win % and Games played. Before, the chart changed further down the page, so the tap looked like it did nothing."]]},
   {v:"2.16",date:"2026-10-29",title:"Better team colors",notes:[
     ["181","Change","Team colors look cleaner: the header and phone tab bar stay in the team's main color with a sharp stripe in its second color (Lakers gold, Warriors yellow), instead of blending the two into a muddy mix. The selected tab and chat button show the second color too."],
     ["182","Fix","Team colors in dark mode: each team gets a brighter shade of its own color instead of a faded pastel, and text on it turns dark where that's easier to read. The Nets and Spurs get a charcoal header with silver highlights instead of fading into the page."],
@@ -6256,10 +6258,13 @@ function anJump(){const R=$("#rosters");if(!R||R.querySelector(".anjump"))return
   if(at)at.insertAdjacentHTML("afterend",html);else R.insertAdjacentHTML("afterbegin",html);fitScrolls();}
 // I6: on a phone, the Tracker's category charts get chips so one category shows at a time
 let TRKCAT="all";
+// BUG-185 (Arp 2026-10-29): a picked category's chart comes first, right under the chips, ahead of Win % and Games played,
+// so the tap visibly changes what's on screen
+function trkShow(m){m.querySelectorAll(":scope > figure[data-tcat]").forEach(x=>{const on=TRKCAT==="all"||x.dataset.tcat===TRKCAT;x.hidden=!on;x.style.order=TRKCAT!=="all"&&on?"-1":"";});}
 function trkChips(){if(!PHONE())return;document.querySelectorAll("#rosters .minis").forEach(m=>{if(m.dataset.tc)return;
   const fs=[...m.querySelectorAll(":scope > figure.mini:not(.trkx):not(.screc)")];if(fs.length<4)return;m.dataset.tc=1;
   const cats=fs.map(f=>f.querySelector("figcaption b")?.textContent.trim()||"");if(TRKCAT!=="all"&&!cats.includes(TRKCAT))TRKCAT="all";
-  fs.forEach((f,i)=>{f.dataset.tcat=cats[i];f.hidden=TRKCAT!=="all"&&cats[i]!==TRKCAT;});
+  fs.forEach((f,i)=>{f.dataset.tcat=cats[i];});trkShow(m);
   m.insertAdjacentHTML("beforebegin",`<div class="scroll trkc"><div class="tabs sm" role="group" aria-label="Category">${["all",...cats].map(c=>`<button data-tcat="${esc(c)}" aria-pressed="${c===TRKCAT}">${c==="all"?"All":esc(c)}</button>`).join("")}</div></div>`);});}
 {const _rr=renderRosters;renderRosters=function(){_rr.apply(this,arguments);try{if(nav==="analytics"&&(SUB.analytics||"main")==="main")anJump();trkChips();}catch(e){console.warn(e);}};}
 document.addEventListener("click",e=>{const j=e.target.closest("[data-anj]"),f=e.target.closest("[data-anfold]"),c=e.target.closest(".trkc [data-tcat]");
@@ -6267,7 +6272,7 @@ document.addEventListener("click",e=>{const j=e.target.closest("[data-anj]"),f=e
     const top=s.getBoundingClientRect().top+window.scrollY-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--barh"))||0)-8;window.scrollTo({top,behavior:"smooth"});}
   else if(f){const s=$("#ans"+f.dataset.anfold);if(!s)return;const on=s.classList.toggle("ancol");f.setAttribute("aria-expanded",String(!on));if(on)ANCOL[s.dataset.ank]=1;else delete ANCOL[s.dataset.ank];try{localStorage.setItem("dfAnCol",JSON.stringify(ANCOL));}catch(x){}}
   else if(c){TRKCAT=c.dataset.tcat;const bar=c.closest(".trkc"),m=bar.nextElementSibling;bar.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b===c)));
-    m.querySelectorAll(":scope > figure[data-tcat]").forEach(x=>x.hidden=TRKCAT!=="all"&&x.dataset.tcat!==TRKCAT);}});
+    trkShow(m);}});
 // I7: Pick'em shows each team's rough chance to win next matchup, from healthy players' ESPN per-game projections x games that week
 function pkProb(n,m){try{const c=CAL[n-1];if(!c)return null;const tot=T=>{const s=new Array(11).fill(0);let any=0;
     (TEAMS[T]?.P||[]).filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;let g=0;for(let sp=c[1];sp<=c[2];sp++)if(gameOn(p.t,sp))g++;if(g){any=1;pg.forEach((v,i)=>s[i]+=v*g);}});return any?s:null;};
