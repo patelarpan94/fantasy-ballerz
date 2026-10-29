@@ -4,6 +4,11 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.16",date:"2026-10-29",title:"Better team colors",notes:[
+    ["181","Change","Team colors look cleaner: the header and phone tab bar stay in the team's main color with a sharp stripe in its second color (Lakers gold, Warriors yellow), instead of blending the two into a muddy mix. The selected tab and chat button show the second color too."],
+    ["182","Fix","Team colors in dark mode: each team gets a brighter shade of its own color instead of a faded pastel, and text on it turns dark where that's easier to read. The Nets and Spurs get a charcoal header with silver highlights instead of fading into the page."],
+    ["183","Change","Menu bar labels are easier to read on team colors: solid white, a size bigger on phones, with a brighter highlight on the tab you're on. In two-pane on the Duo, the section tiles sit as soft white tiles and the one you're on turns solid white."],
+    ["184","New","Display › Team colors shows each team as a small preview of its header with the nickname, and a new Bold / Subtle switch. Bold paints the header and tab bar in team colors; Subtle keeps them plain and shows your team in a stripe, buttons and highlights. Saved for your login like the other display settings."]]},
   {v:"2.15",date:"2026-10-29",title:"Two-pane layout uses the rail better",notes:[
     ["176","Change","Two-pane (unfolded Duo held sideways): the right rail's header is shorter. Display, Release notes and Help sit next to the league name, the update time shares a row with Refresh, the week arrows and Today share a row with the week, and the six sections are a 3 x 2 grid. The team card and mini scoreboard on My Team now show without scrolling."],
     ["177","Change","Two-pane Matchup: the score card, the Score / Players / Tracker switch and Advanced matchup move into the rail, so the whole category board fits on one screen and the Players table starts at the top."],

@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029204102"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029210205"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1297,34 +1297,55 @@ body.navin .cbrow:nth-child(2){animation-delay:.03s}body.navin .cbrow:nth-child(
 @media (min-width:641px){body.fold #rosters .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
 body.fold #rosters .cards .card-grp{grid-column:1/-1}
 body.fold dialog.help{max-width:680px;margin-inline:auto}}
-.nbagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin:4px 0 12px}
-.nbasw{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:9px;border:1.5px solid var(--line);font-size:.7rem;font-weight:700;letter-spacing:.03em;color:var(--ink)}
-.nbasw i{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%);box-shadow:0 0 0 1px var(--line)}
-.nbasw.none{justify-content:center;font-weight:600;color:var(--muted)}
-.nbasw[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash)}
+.nbagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px;margin:4px 0 10px}
+.nbasw{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:4px;border-radius:10px;border:1.5px solid var(--line);font-size:.6rem;color:var(--muted);text-align:center;min-width:0}
+.nbasw i{display:grid;place-items:center;height:26px;border-radius:6px;background:var(--c1);box-shadow:inset 0 -5px 0 var(--c2);color:#fff;font-style:normal;font-weight:800;font-size:.72rem;letter-spacing:.04em;padding-bottom:4px}
+.nbasw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbasw.none{justify-content:center;align-items:center;font-size:.72rem;font-weight:600;color:var(--muted);min-height:44px}
+.nbasw[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash);color:var(--ink)}
 .nbasw:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-html.nbat{--s-me:var(--nba1);--nbag:linear-gradient(115deg,var(--nba1) 0%,color-mix(in srgb,var(--nba1) 80%,var(--nba2)) 60%,color-mix(in srgb,var(--nba1) 58%,var(--nba2)) 100%)}
-html.nbat body{background:linear-gradient(180deg,color-mix(in srgb,var(--nba1) 14%,var(--bg)) 0,color-mix(in srgb,var(--nba1) 6%,var(--bg)) 420px,color-mix(in srgb,var(--nba2) 7%,var(--bg)) 100%) fixed}
-html.nbat .bar{background:var(--nbag);border-top:0;border-bottom:0;color:#fff;box-shadow:0 10px 24px -14px color-mix(in srgb,var(--nba1) 70%,transparent)}
-html.nbat .bar::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:linear-gradient(180deg,color-mix(in srgb,var(--nba2) 45%,transparent),transparent);pointer-events:none}
+.nbastr[hidden]{display:none}
+/* team colors (2.16): solid primary header with a crisp secondary stripe, neutral cards, accent shades from n_colors.js */
+html.nbat{--s-me:var(--accent);--nbag:linear-gradient(115deg in oklab,var(--nba1) 0%,var(--nba1) 45%,var(--nba1d) 100%)}
+html.nbat body{background:linear-gradient(180deg,color-mix(in oklab,var(--nba1) var(--nbatint),var(--bg)) 0,var(--bg) 420px) fixed var(--bg)}
+html.nbat .bar{background:var(--nbag);border-top:0;border-bottom:4px solid var(--nba2);color:#fff;box-shadow:0 8px 20px -14px var(--nba1)}
 html.nbat .navwrap,html.nbat .mainnav{background:transparent;border-color:transparent}
 html.nbat .bar .eyebrow,html.nbat .bar .upd{color:rgba(255,255,255,.85)}
 html.nbat .bar .rbtn{background:#fff;color:var(--nba1);font-weight:700}
-html.nbat .bar .arrow,html.nbat .bar .todayb{background:rgba(255,255,255,.92);color:var(--nba1);border-color:transparent}
+html.nbat .bar .arrow,html.nbat .bar .todayb{background:rgba(255,255,255,.94);color:var(--nba1);border-color:transparent}
 html.nbat .bar .arrow:disabled,html.nbat .bar .todayb:disabled{background:rgba(255,255,255,.16);color:rgba(255,255,255,.6)}
-html.nbat .mainnav button{color:rgba(255,255,255,.72)}
+html.nbat .mainnav button{color:rgba(255,255,255,.94);text-shadow:0 1px 2px rgba(0,0,0,.28)}
+html.nbat.nbasub .mainnav button{text-shadow:none}
 html.nbat .mainnav button:hover{color:#fff}
-html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:transparent;background:linear-gradient(0deg,color-mix(in srgb,var(--nba2) 55%,transparent) 0,transparent 70%)}
+html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
-html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--nba1),var(--nba2));z-index:1}
-html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in srgb,var(--nba1) 16%,var(--surface)) 0%,color-mix(in srgb,var(--nba2) 8%,var(--surface)) 60%,var(--surface) 100%)}
+html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent) 0 72%,var(--nbaline) 72% 100%);z-index:1}
+html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in oklab,var(--accent) 13%,var(--surface)) 0%,var(--surface) 70%)}
 html.nbat .teamhead .tn{color:var(--accent)}
 html.nbat .grid thead th,html.nbat .lg thead th{color:var(--accent)}
-html.nbat .tabs button[aria-selected="true"]{background:var(--nbag);color:#fff}
-html.nbat .btn:not(.ghost):not(.danger):not(.good){background-image:linear-gradient(115deg,var(--nba1),color-mix(in srgb,var(--nba1) 60%,var(--nba2)));border-color:transparent;color:#fff}
-html.nbat .chatfab{background:linear-gradient(135deg,var(--nba1),color-mix(in srgb,var(--nba1) 40%,var(--nba2)));box-shadow:0 6px 18px color-mix(in srgb,var(--nba1) 45%,transparent)}
-@media (max-width:640px){html.nbat .navwrap{background:var(--nbag);border-top:0;box-shadow:0 -10px 24px -14px color-mix(in srgb,var(--nba1) 70%,transparent)}
-  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;background:linear-gradient(180deg,color-mix(in srgb,var(--nba2) 50%,transparent) 0,transparent 75%)}}
+html.nbat .tabs button[aria-selected="true"]{background:var(--nba1);color:#fff;box-shadow:inset 0 -3px 0 var(--nba2)}
+html.nbat .btn:not(.ghost):not(.danger):not(.good){background:var(--nba1);border-color:transparent;color:#fff}
+html.nbat .stseg button.on,html.nbat .ptd.on,html.nbat .ptd.on b,html.nbat .ptd.on i,html.nbat .whoav{color:var(--on-accent)}
+html.nbat .chatfab{background:var(--nba1);box-shadow:0 0 0 3px var(--nba2),0 6px 18px color-mix(in oklab,var(--nba1) 45%,transparent)}
+html.nbat body.fold.duow .mainnav button{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff}
+html.nbat body.fold.duow .mainnav button[aria-selected="true"]{background:#fff;border-color:#fff;color:var(--nba1);box-shadow:inset 0 -3px 0 var(--nba2)}
+@media (max-width:640px){html.nbat .navwrap{background:var(--nbag);border-top:4px solid var(--nba2);box-shadow:0 -8px 20px -14px var(--nba1)}
+  html.nbat .mainnav button{font-size:.74rem;letter-spacing:.05em;padding:7px 2px 7px}
+  html.nbat .mainnav button svg{width:21px;height:21px}
+  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;border-bottom-color:transparent;background:rgba(255,255,255,.2);box-shadow:inset 0 3px 0 var(--nba2)}}
+/* Subtle: header and tab bar stay plain; the team shows in a top stripe, buttons and highlights */
+html.nbat.nbasub body{background:var(--bg)}
+html.nbat.nbasub .bar{background:linear-gradient(180deg,var(--nba1) 0 4px,var(--nba2) 4px 7px,var(--surface) 7px);color:var(--ink);border-bottom:1px solid var(--line);box-shadow:none}
+html.nbat.nbasub .bar .eyebrow,html.nbat.nbasub .bar .upd{color:var(--muted)}
+html.nbat.nbasub .bar .rbtn{background:var(--nba1);color:#fff}
+html.nbat.nbasub .bar .arrow,html.nbat.nbasub .bar .todayb{background:var(--surface);color:var(--accent);border-color:var(--line)}
+html.nbat.nbasub .bar .arrow:disabled,html.nbat.nbasub .bar .todayb:disabled{background:transparent;color:var(--faint)}
+html.nbat.nbasub .mainnav button{color:var(--muted)}html.nbat.nbasub .mainnav button:hover{color:var(--ink)}
+html.nbat.nbasub .mainnav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
+html.nbat.nbasub body.fold.duow .mainnav button{border-color:var(--line);background:transparent;color:var(--ink)}
+html.nbat.nbasub body.fold.duow .mainnav button[aria-selected="true"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent);box-shadow:none}
+@media (max-width:640px){html.nbat.nbasub .navwrap{background:var(--surface);border-top:1px solid var(--line);box-shadow:none}
+  html.nbat.nbasub .mainnav button[aria-selected="true"]{background:transparent;box-shadow:inset 0 3px 0 var(--accent);color:var(--accent)}}
 .dsrow{margin:4px 0 10px;flex-wrap:wrap}.dsnote{font-size:.82rem;margin:6px 0}
 /* My Team: pick the day from the table's day columns */
 .grid col,.grid col.slot{display:table-column}
@@ -1826,8 +1847,12 @@ body.fold .hhead{position:relative;padding-top:20px}
 body.fold .dgrab{display:block;position:absolute;top:7px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--line)}
 body.fold.pgl main{animation:pgl .28s cubic-bezier(.2,.8,.2,1)}
 body.fold.pgr main{animation:pgr .28s cubic-bezier(.2,.8,.2,1)}
-html.nbat body.fold .navwrap{background:var(--nbag);border-top:0;box-shadow:0 -10px 24px -14px color-mix(in srgb,var(--nba1) 70%,transparent)}
-html.nbat body.fold .mainnav button[aria-selected="true"]{border-top-color:transparent;background:linear-gradient(180deg,color-mix(in srgb,var(--nba2) 50%,transparent) 0,transparent 75%)}
+html.nbat body.fold .navwrap{background:var(--nbag);border-top:4px solid var(--nba2);box-shadow:0 -8px 20px -14px var(--nba1)}
+html.nbat body.fold .mainnav button{font-size:.74rem;letter-spacing:.05em;padding:7px 2px 7px}
+html.nbat body.fold .mainnav button svg{width:21px;height:21px}
+html.nbat body.fold .mainnav button[aria-selected="true"]{border-top-color:transparent;border-bottom-color:transparent;background:rgba(255,255,255,.2);box-shadow:inset 0 3px 0 var(--nba2)}
+html.nbat.nbasub body.fold .navwrap{background:var(--surface);border-top:1px solid var(--line);box-shadow:none}
+html.nbat.nbasub body.fold .mainnav button[aria-selected="true"]{background:transparent;box-shadow:inset 0 3px 0 var(--accent);color:var(--accent)}
 body.fold .dchips{display:none}
 body.fold .dband{padding:8px 12px}
 body.fold .pkgrid{grid-template-columns:1fr;padding:10px}
@@ -4254,6 +4279,11 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.16",date:"2026-10-29",title:"Better team colors",notes:[
+    ["181","Change","Team colors look cleaner: the header and phone tab bar stay in the team's main color with a sharp stripe in its second color (Lakers gold, Warriors yellow), instead of blending the two into a muddy mix. The selected tab and chat button show the second color too."],
+    ["182","Fix","Team colors in dark mode: each team gets a brighter shade of its own color instead of a faded pastel, and text on it turns dark where that's easier to read. The Nets and Spurs get a charcoal header with silver highlights instead of fading into the page."],
+    ["183","Change","Menu bar labels are easier to read on team colors: solid white, a size bigger on phones, with a brighter highlight on the tab you're on. In two-pane on the Duo, the section tiles sit as soft white tiles and the one you're on turns solid white."],
+    ["184","New","Display › Team colors shows each team as a small preview of its header with the nickname, and a new Bold / Subtle switch. Bold paints the header and tab bar in team colors; Subtle keeps them plain and shows your team in a stripe, buttons and highlights. Saved for your login like the other display settings."]]},
   {v:"2.15",date:"2026-10-29",title:"Two-pane layout uses the rail better",notes:[
     ["176","Change","Two-pane (unfolded Duo held sideways): the right rail's header is shorter. Display, Release notes and Help sit next to the league name, the update time shares a row with Refresh, the week arrows and Today share a row with the week, and the six sections are a 3 x 2 grid. The team card and mini scoreboard on My Team now show without scrolling."],
     ["177","Change","Two-pane Matchup: the score card, the Score / Players / Tracker switch and Advanced matchup move into the rail, so the whole category board fits on one screen and the Players table starts at the top."],
@@ -4557,7 +4587,7 @@ const prefsLocalAt=k=>{try{const x=JSON.parse(localStorage.getItem("dfPrefsAt")|
 let PREFS_Q=null,PREFS_AGAIN=false;
 function pushPrefs(){if(PREFS_Q){PREFS_AGAIN=true;return PREFS_Q;}
   PREFS_Q=(async()=>{try{do{PREFS_AGAIN=false;const k=prefKey();if(!k||WRITE_BLOCKED)break;
-    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
+    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",nbas:typeof NBASTR==="string"?NBASTR:"bold",at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
     catch(e){}finally{PREFS_Q=null;}})();return PREFS_Q;}
 async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{localStorage.setItem("dfPrefsAt",JSON.stringify({k,at:Date.now()}));}catch(e){}return pushPrefs();}
 async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);
@@ -4568,6 +4598,7 @@ async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.ge
   if(p.layout&&p.layout!==LAYOUT){LAYOUT=p.layout;try{localStorage.setItem("dfLayout",LAYOUT);}catch(e){}applyLayout();}
   if(p.rstyle&&typeof RSTYLE==="string"&&p.rstyle!==RSTYLE){RSTYLE=p.rstyle;try{localStorage.setItem("dfRStyle",RSTYLE);}catch(e){}if(L)try{render();}catch(e){}}
   if(p.mlay&&p.mlay!==MLAY&&MLAYS.some(([k])=>k===p.mlay)){MLAY=p.mlay;try{localStorage.setItem("dfMLay",MLAY);}catch(e){}if(L)try{render();}catch(e){}}
+  if(p.nbas&&typeof setNbaStr==="function"&&p.nbas!==NBASTR)setNbaStr(p.nbas);
   if(p.nba!=null&&typeof setNbaTheme==="function"&&p.nba!==NBATHEME)setNbaTheme(p.nba);}
 {const _ss=saveSession;saveSession=function(s){const before=prefKey();_ss(s);if(s&&prefKey()!==before)loadPrefs();};}
 addEventListener("load",()=>setTimeout(loadPrefs,600));
@@ -4588,6 +4619,7 @@ $("#themeBtn").onclick=displaySheet;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ds]");if(!b)return;const [k,v]=b.dataset.ds.split(":");
   if(k==="theme"){THEME=v;try{localStorage.setItem("dfTheme",v);}catch(x){}applyTheme();}
   else if(k==="rstyle"){RSTYLE=v;try{localStorage.setItem("dfRStyle",v);}catch(x){}if(L)render();}
+  else if(k==="nbastr"){setNbaStr(v);}
   else if(k==="mlay"){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(L)render();}
   else{LAYOUT=v;try{localStorage.setItem("dfLayout",v);}catch(x){}applyLayout();}
   b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected",x===b));savePrefs();});
@@ -4606,19 +4638,48 @@ const NBACOL=[["ATL","Hawks","#E03A3E","#C1D32F"],["BOS","Celtics","#007A33","#B
   ["OKC","Thunder","#007AC1","#EF3B24"],["ORL","Magic","#0077C0","#C4CED4"],["PHI","76ers","#006BB6","#ED174C"],["PHX","Suns","#1D1160","#E56020"],
   ["POR","Trail Blazers","#E03A3E","#000000"],["SAC","Kings","#5A2D81","#63727A"],["SAS","Spurs","#000000","#C4CED4"],["TOR","Raptors","#CE1141","#000000"],
   ["UTA","Jazz","#4B2C83","#000000"],["WAS","Wizards","#002B5C","#E31837"]];
-let NBATHEME="";try{NBATHEME=localStorage.getItem("dfNbaTheme")||"";}catch(e){}
+let NBATHEME="",NBASTR="bold";try{NBATHEME=localStorage.getItem("dfNbaTheme")||"";NBASTR=localStorage.getItem("dfNbaStr")||"bold";}catch(e){}
+/* Shades are worked out in OKLCH (even steps of lightness) so a team's colors
+   never blend into mud: header = primary, stripe = secondary, and dark mode
+   gets a brighter version of the same hue instead of a washed-out pastel. */
+const okl=hex=>{const c=[1,3,5].map(i=>{const v=parseInt(hex.slice(i,i+2),16)/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}),
+  l=Math.cbrt(.4122214708*c[0]+.5363325363*c[1]+.0514459929*c[2]),m=Math.cbrt(.2119034982*c[0]+.6806995451*c[1]+.1073969566*c[2]),s=Math.cbrt(.0883024619*c[0]+.2817188376*c[1]+.6299787005*c[2]),
+  L=.2104542553*l+.793617785*m-.0040720468*s,a=1.9779984951*l-2.428592205*m+.4505937099*s,b=.0259040371*l+.7827717662*m-.808675766*s;
+  return [L,Math.hypot(a,b),Math.atan2(b,a)];};
+const okhex=(L,C,H)=>{for(;;C*=.94){const a=C*Math.cos(H),b=C*Math.sin(H),l=(L+.3963377774*a+.2158037573*b)**3,m=(L-.1055613458*a-.0638541728*b)**3,s=(L-.0894841775*a-1.291485548*b)**3,
+  r=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
+  if(C<.002||r.every(v=>v>=-.0005&&v<=1.0005))return "#"+r.map(v=>{v=Math.min(1,Math.max(0,v));v=v<=.0031308?12.92*v:1.055*v**(1/2.4)-.055;return Math.round(v*255).toString(16).padStart(2,"0");}).join("");}};
+const lum=hex=>{const c=[1,3,5].map(i=>{const v=parseInt(hex.slice(i,i+2),16)/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return .2126*c[0]+.7152*c[1]+.0722*c[2];};
+const inkOn=hex=>lum(hex)>.36?"#111827":"#fff";
+function nbaShades(p,s){
+  const [pL,pC,pH]=okl(p),[sL,sC,sH]=okl(s),grey=pC<.03,
+    // the colorful one of the pair drives the accent when the primary is black (Nets, Spurs)
+    [hC,hH]=grey&&sC>=.03?[sC,sH]:[pC,pH],
+    lt={hdr:p,hdr2:okhex(Math.max(.12,pL-.08),pC,pH),acc:pL>.55?okhex(.52,pC,pH):grey?okhex(Math.min(pL,.3),0,0):p},
+    dk={hdr:okhex(Math.max(pL,grey?.3:.36),pC,pH),acc:okhex(.74,Math.min(Math.max(hC,grey?0:.09),.17),hH)};
+  dk.hdr2=okhex(Math.max(.2,okl(dk.hdr)[0]-.08),pC,pH);
+  // secondary must stand out against the header; black/near-header secondaries fall back to white or a lighter tint
+  const far=(x,h)=>{const [a,b,c]=okl(x),[d,e,f]=okl(h);return Math.hypot(a-d,b*Math.cos(c)-e*Math.cos(f),b*Math.sin(c)-e*Math.sin(f))>.12;};
+  const pop=h=>far(s,h)?s:"#ffffff",popD=sL<.4?(sC<.03?"#d9dde3":okhex(.72,sC,sH)):s;
+  return {lt:{...lt,pop:pop(lt.hdr),wash:okhex(.96,Math.min(pC,.035),pH)},dk:{...dk,pop:pop(dk.hdr),popD,wash:okhex(.27,Math.min(hC,.06),hH)}};}
 function applyNbaTheme(){
   let st=document.getElementById("nbaTheme");if(!st){st=document.createElement("style");st.id="nbaTheme";document.head.appendChild(st);}
-  const t=NBACOL.find(x=>x[0]===NBATHEME);document.documentElement.classList.toggle("nbat",!!t);if(!t){st.textContent="";return;}
-  const [,,p,s]=t,dk=`--accent:color-mix(in srgb,${p} 45%,#fff);--accent-wash:color-mix(in srgb,${p} 30%,#131c2e);--nba2:${s};`;
-  st.textContent=`:root{--accent:${p};--accent-wash:color-mix(in srgb,${p} 11%,#fff);--nba1:${p};--nba2:${s}}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${dk}}}
-:root[data-theme="dark"]{${dk}}`;}
+  const t=NBACOL.find(x=>x[0]===NBATHEME),de=document.documentElement;de.classList.toggle("nbat",!!t);de.classList.toggle("nbasub",!!t&&NBASTR==="subtle");if(!t){st.textContent="";return;}
+  const {lt,dk}=nbaShades(t[2],t[3]),v=(o,dark)=>`--accent:${o.acc};--accent-wash:${o.wash};--on-accent:${inkOn(o.acc)};--nba1:${o.hdr};--nba1d:${o.hdr2};--nba2:${o.pop};--nba2ink:${inkOn(o.pop)};--nbaline:${dark?o.popD:t[3]};--nbatint:${dark?7:9}%;`;
+  st.textContent=`:root{${v(lt)}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${v(dk,1)}}}
+:root[data-theme="dark"]{${v(dk,1)}}`;}
 applyNbaTheme();
 function setNbaTheme(v){NBATHEME=v;try{localStorage.setItem("dfNbaTheme",v);}catch(e){}applyNbaTheme();}
-const nbaThemeHtml=()=>`<h3>Team colors</h3><div class="nbagrid" role="group" aria-label="Team colors"><button class="nbasw none" data-nbat="" aria-pressed="${!NBATHEME}">Default</button>${NBACOL.map(([k,n,p,s])=>`<button class="nbasw" data-nbat="${k}" aria-pressed="${NBATHEME===k}" title="${n}" style="--c1:${p};--c2:${s}"><i aria-hidden="true"></i>${k}</button>`).join("")}</div>`;
+function setNbaStr(v){NBASTR=v==="subtle"?"subtle":"bold";try{localStorage.setItem("dfNbaStr",NBASTR);}catch(e){}applyNbaTheme();}
+// each swatch is a tiny header: the team's primary with its secondary stripe, like the app will look
+const nbaThemeHtml=()=>`<h3>Team colors</h3><div class="nbagrid" role="group" aria-label="Team colors"><button class="nbasw none" data-nbat="" aria-pressed="${!NBATHEME}">Default</button>${NBACOL.map(([k,n,p,s])=>{const x=nbaShades(p,s).lt;
+  return `<button class="nbasw" data-nbat="${k}" aria-pressed="${NBATHEME===k}" title="${n}" style="--c1:${x.hdr};--c2:${x.pop}"><i aria-hidden="true">${k}</i><span>${n}</span></button>`;}).join("")}</div>
+  <div class="tabs sm dsrow nbastr" role="group" aria-label="Team color strength"${NBATHEME?"":" hidden"}>${[["bold","Bold"],["subtle","Subtle"]].map(([k,l])=>`<button data-ds="nbastr:${k}" aria-selected="${NBASTR===k}"${prefKey()?"":" disabled"}>${l}</button>`).join("")}</div>
+  <p class="muted dsnote nbastr"${NBATHEME?"":" hidden"}><b>Bold</b> paints the header and tab bar in the team's colors. <b>Subtle</b> keeps them plain and shows the team in a stripe, buttons and highlights.</p>`;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-nbat]");if(!b)return;setNbaTheme(b.dataset.nbat);
-  b.parentElement.querySelectorAll("[data-nbat]").forEach(x=>x.setAttribute("aria-pressed",x===b));savePrefs();});
+  b.parentElement.querySelectorAll("[data-nbat]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  b.closest(".sheet,body").querySelectorAll(".nbastr").forEach(x=>x.hidden=!NBATHEME);savePrefs();});
 
 /* ============================================================================
    WAIVERS (2026-10-22). A dropped player sits on waivers until the first
@@ -6328,8 +6389,8 @@ document.addEventListener("click",e=>{if(e.target.closest("#mLogin")){GATE.want=
 
 // Display is locked to the default look when nobody is logged in (2.6, Arp): Match device theme,
 // no team colors, Auto layout, Stats table rows. Logging in brings back that team's own settings.
-function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";applyNbaTheme();}
-function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";}catch(e){}
+function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";NBASTR="bold";applyNbaTheme();}
+function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";NBASTR=localStorage.getItem("dfNbaStr")||"bold";}catch(e){}
   applyTheme();applyLayout();applyNbaTheme();}
 {const _ss=saveSession;saveSession=function(s){const had=!!SESSION;_ss.apply(this,arguments);if(!!s===had)return;s?displayLocal():displayDefaults();if(L)try{render();}catch(e){}};}
 setTimeout(()=>{if(!SESSION){displayDefaults();if(L)try{render();}catch(e){}}},0);
