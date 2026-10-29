@@ -107,7 +107,7 @@ document.addEventListener("click",e=>{let b=e.target.closest("[data-ptv]");
   if(nav==="team"){if(duoOn())return _rh.apply(this,arguments);el.innerHTML="";el.hidden=true;return;}
   if(SUB.matchup!=="track"&&SUB.matchup!=="players")SUB.matchup="stats";
   const s=SUB.matchup,has=M.opp&&TEAMS[M.opp];
-  el.innerHTML=(s==="players"&&has?`<div class="ptscorewrap">${ptScore(cur,M.opp,false)}</div>`:matchupHero())+(has?`<div class="ptviews ptmv" role="group" aria-label="Matchup view"><button data-ptmv="stats" aria-pressed="${s==="stats"}">Score</button><button data-ptmv="players" aria-pressed="${s==="players"}">Players</button><button data-ptmv="track" aria-pressed="${s==="track"}">Tracker</button></div>`:"")+(s==="stats"?catBoard():"");
+  el.innerHTML=(s==="players"&&has&&!duoOn()?`<div class="ptscorewrap">${ptScore(cur,M.opp,false)}</div>`:matchupHero())+(has?`<div class="ptviews ptmv" role="group" aria-label="Matchup view"><button data-ptmv="stats" aria-pressed="${s==="stats"}">Score</button><button data-ptmv="players" aria-pressed="${s==="players"}">Players</button><button data-ptmv="track" aria-pressed="${s==="track"}">Tracker</button></div>`:"")+(s==="stats"?catBoard():"");
   el.hidden=false;$("#boxWrap").hidden=true;};}
 // header chat button (the chat bar above the tabs is hidden in table mode)
 {const bar=document.querySelector(".bar .teamnav");if(bar&&!$("#ptChat"))bar.insertAdjacentHTML("beforeend",`<button class="arrow ptchat" id="ptChat" aria-label="League chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="chatcount" id="ptChatN" hidden></span></button>`);

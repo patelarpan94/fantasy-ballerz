@@ -43,3 +43,37 @@ function addImpact(n){
     <div class="scroll"><table class="lg imtab"><thead><tr><th class="nm">Cat</th><th class="num">Now</th><th class="num">With him</th><th class="num">±</th>${op?`<th class="num">${esc(tmInit(M.opp))}</th>`:""}</tr></thead><tbody>${rows}</tbody></table></div>`;}
 {const _pc=playerCard;playerCard=function(n){DOCK=duoOn();try{_pc(n);}finally{DOCK=false;}
   if(!sheet().classList.contains("dock"))return;const ov=$("#sheetBody [data-pane=\"ov\"]");const h=addImpact(n);if(ov&&h)ov.insertAdjacentHTML("afterbegin",h);};}
+// ---- 5. (2.15, Arp 2026-10-29) the rail carries each page's controls: a slimmer header (league name with the
+// Display, Release notes and Help icons), Matchup's score card, view switch and Advanced toggle, Players' filters,
+// and My Team's starters line. Moved pieces are tagged .railx and swapped for the fresh ones on every render.
+function duoTidy(){
+  const wrap=document.querySelector("body>.bar>.wrap"),lg=$("#lgName"),ref=document.querySelector("body>.bar .refresh"),rail=$("#rail");if(!wrap||!lg||!ref)return;
+  let top=wrap.querySelector(".rtop");const icons=["#themeBtn","#relBtn","#helpBtn"].map(s=>$(s)).filter(Boolean);
+  if(!duoOn()){if(top){top.before(lg);icons.forEach(b=>ref.appendChild(b));top.remove();}
+    document.querySelectorAll(".railx").forEach(e=>e.remove());return;}
+  if(!top){top=document.createElement("div");top.className="rtop";wrap.insertBefore(top,wrap.firstChild);}
+  if(lg.parentNode!==top)top.appendChild(lg);icons.forEach(b=>{if(b.parentNode!==top)top.appendChild(b);});
+  if(!rail)return;
+  // kind: m = Matchup (from #heroWrap), p = Players (from #rosters), t = My Team (from #rosters)
+  const plan={m:nav==="matchup"?[["#heroWrap",[".hero",".ptscorewrap",".ptmv",".advt"]]]:[],p:nav==="players"?[["#rosters",[".apv",".wpanel",".apctl"]]]:[],t:nav==="team"?[["#rosters",[".ptline"]]]:[]};
+  for(const [k,src] of Object.entries(plan)){
+    const fresh=src.flatMap(([w,sels])=>{const box=$(w);return box?sels.map(s=>box.querySelector(":scope "+s)).filter(e=>e&&!e.closest("#rail")):[];});
+    const old=[...rail.querySelectorAll(".railx.rx"+k)];
+    if(!src.length){old.forEach(e=>e.remove());continue;}
+    if(!fresh.length)continue;
+    old.forEach(e=>e.remove());
+    // Matchup and Players go under the page buttons (sub-tabs, search); My Team's line sits above the team card
+    let at=k==="t"?null:$("#subbar");
+    fresh.forEach(e=>{e.classList.add("railx","rx"+k);if(k==="t"){const h=$("#heroWrap");h&&h.parentNode===rail?rail.insertBefore(e,h):rail.appendChild(e);}else if(at&&at.parentNode===rail){at.after(e);at=e;}else rail.insertBefore(e,rail.firstChild);});}
+  duoFades();}
+// a table that runs past the left pane fades at the right edge until it's scrolled to the end
+function duoFades(){document.querySelectorAll("main .scroll").forEach(s=>s.classList.toggle("more",duoOn()&&s.scrollWidth-s.clientWidth-s.scrollLeft>4));}
+document.addEventListener("scroll",e=>{const s=e.target;if(s?.classList?.contains("scroll"))s.classList.toggle("more",duoOn()&&s.scrollWidth-s.clientWidth-s.scrollLeft>4);},true);
+{const _pr=placeRail;placeRail=function(){_pr.apply(this,arguments);try{duoTidy();}catch(e){}};}
+// wrapped once every file has loaded, so the tidy runs after all the other render add-ons
+addEventListener("DOMContentLoaded",()=>{const _rr=renderRosters;renderRosters=function(){_rr.apply(this,arguments);if(duoOn())try{duoTidy();}catch(e){}};
+  const _rh=renderHero;renderHero=function(){_rh.apply(this,arguments);if(duoOn())try{duoTidy();}catch(e){}};});
+// docked player card: the per-game table turns sideways (one row per category) so all of it fits the rail
+{const _pc=playerCard;playerCard=function(n){_pc.apply(this,arguments);if(!sheet().classList.contains("dock"))return;
+  const t=$("#sheetBody table.pcstats");if(!t)return;const head=[...t.tHead.rows[0].cells].map(c=>c.innerHTML),rows=[...t.tBodies[0].rows].map(r=>[...r.cells].map(c=>c.innerHTML));
+  t.outerHTML=`<table class="lg pcstats pcv"><thead><tr><th class="nm">${head[0]}</th>${rows.map(r=>`<th class="num">${r[0]}</th>`).join("")}</tr></thead><tbody>${head.slice(1).map((h,i)=>`<tr><td class="nm">${h}</td>${rows.map(r=>`<td class="num">${r[i+1]}</td>`).join("")}</tr>`).join("")}</tbody></table>`;};}
