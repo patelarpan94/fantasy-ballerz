@@ -93,6 +93,14 @@ dialog.sheet{width:min(560px,calc(100vw - 24px))}
 .bm .w{font-weight:700;background:var(--win-wash)}
 .bm .sd{color:var(--muted);font-family:var(--f-mono);font-size:.7rem;margin-right:6px}
 .cut td{border-top:2px dashed var(--accent)!important}
+.stseg{display:inline-flex;gap:2px;margin:10px 14px 4px;padding:3px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.stseg button{border:0;background:none;color:var(--muted);font:inherit;font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer}
+.stseg button.on{background:var(--accent);color:#fff}
+table.stand th .stsort{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:3px;font:inherit;color:inherit;white-space:nowrap}
+table.stand th .stsort.on{color:var(--accent)}
+table.stand td.srt{background:var(--accent-wash)}
+table.stand th .stsort i{font-style:normal;font-size:.6rem}
+table.stand th .stsort:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 
 /* season schedule */
 .weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
@@ -513,6 +521,8 @@ button.cbrow.s:focus-visible{outline:2px solid var(--accent);outline-offset:-2px
 .catboard.hershy .hbrow .hbd{background:var(--bg);color:var(--muted)}.catboard.hershy .hbrow .hbd b{font-size:1rem}
 .catboard.hershy .hbrow .hbw b{font-family:var(--f-display);font-size:1.35rem;font-weight:500;color:var(--muted)}
 .catboard.hershy .hbrow b.ld{color:var(--ink);font-weight:700}
+.catboard.hershy .hbrow .hbw.win.op{background:color-mix(in srgb,var(--opp) 24%,transparent);box-shadow:inset 3px 0 0 var(--opp)}
+.catboard.hershy .hbrow .hbw.win.me{background:color-mix(in srgb,var(--accent) 24%,transparent);box-shadow:inset -3px 0 0 var(--accent)}
 .catboard.hershy .hbrow .hbc{font-family:var(--f-display);font-weight:700;font-size:.88rem;color:var(--muted);border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .catboard.hershy .hbrow.hbh>div{padding:5px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .catboard.hershy .cbhead .op{text-align:left;color:var(--opp)}.catboard.hershy .cbhead .me{text-align:right;color:var(--accent)}

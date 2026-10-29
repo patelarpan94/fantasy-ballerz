@@ -136,14 +136,32 @@ function scoreView(){
   return (awE?"":aw)+sec(`${weekLabel(wk)} · all matchups`,"Tap a team to open its matchup",pairs.length?`<div class="scroll"><table class="box lg num" style="min-width:${200+CATS.length*70}px">${colsCats('<col class="rec">')}<thead><tr><th>Team</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th class="rec">W-L-T</th></tr></thead><tbody>${rows}</tbody></table></div>${bye}`:`<p class="empty">${esc(noOppText())}</p>`)
    +sec("This week's category ranks","1 = best in the league this week · last column is the average rank",`<div class="scroll"><table class="box lg rkt num" style="min-width:${200+CATS.length*60}px">${colsCats('<col class="rec">')}<thead><tr><th>Team</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th class="rec">Avg</th></tr></thead><tbody>${ranks}</tbody></table></div>`)+(awE?aw:"");
 }
+// Standings: Season | Week switch (Week follows the header week picker) and tap-a-header sorting
+let STV={mode:"season",sort:"rank",dir:1};try{STV.mode=localStorage.getItem("dfStandMode")==="week"?"week":"season";}catch(x){}
 function standView(){
-  const order=standOrder(),P=Math.min(+L.playoffTeams||4,order.length),sRank=CATS.map(c=>rankList(order.map(id=>val(STAND[id].vbs,c))));
-  const stand=order.map((id,i)=>`<tr class="${id===cur?"mine":""}${i===P?" cut":""}"><td class="c num">${i+1}</td><td class="nm">${tlink(id)}${taco(id)}</td><td class="rec">${STAND[id].rec.join("-")}</td><td class="num">${pctW(STAND[id].rec).toFixed(3).replace(/^0/,"")}</td>${CATS.map((c,ci)=>`<td>${show(val(STAND[id].vbs,c),c)}<small>${ord(sRank[ci][i])}</small></td>`).join("")}</tr>`).join("");
+  const order=standOrder(),P=Math.min(+L.playoffTeams||4,order.length),wkM=STV.mode==="week",live=wkM?started():true;
+  const wrec=id=>{const p=(W[wk[0]]||[]).find(x=>x.includes(id));if(!p||!live)return null;const r=h2h(score(p[0]),score(p[1]));return p[0]===id?r:[r[1],r[0],r[2]];};
+  const rows=order.map((id,i)=>{const rec=wkM?wrec(id):STAND[id].rec,vs=wkM?score(id):STAND[id].vbs;return {id,seed:i+1,rec,pct:rec?pctW(rec):-1,v:CATS.map(c=>val(vs,c))};});
+  if(wkM)rows.sort((x,y)=>y.pct-x.pct||x.seed-y.seed);
+  rows.forEach((r,i)=>r.pos=i+1);
+  const rk=CATS.map((c,ci)=>rankList(rows.map(r=>r.v[ci])));rows.forEach((r,i)=>r.rk=rk.map(x=>x[i]));
+  const k=STV.sort,d=STV.dir;
+  if(k!=="rank")rows.sort((x,y)=>{const ci=+k;const pk=k==="pct"||k==="rec",a=pk?x.pct:x.v[ci],b=pk?y.pct:y.v[ci];return d*(b-a)||x.pos-y.pos;});
+  else if(d<0)rows.reverse();
+  const normal=k==="rank"&&d>0&&!wkM;
+  const th=(key,label,cls)=>`<th${cls?` class="${cls}"`:""} aria-sort="${k===key?(d>0?"descending":"ascending"):"none"}"><button class="stsort${k===key?" on":""}" data-stsort="${key}">${label}${k===key?`<i>${d>0?"▼":"▲"}</i>`:""}</button></th>`;
+  const stand=rows.map((r,i)=>`<tr class="${r.id===cur?"mine":""}${normal&&i===P?" cut":""}"><td class="c num">${r.pos}</td><td class="nm">${tlink(r.id)}${taco(r.id)}</td><td class="rec">${r.rec?r.rec.join("-"):wkM&&live?"Bye":"–"}</td><td class="num">${r.rec?pctW(r.rec).toFixed(3).replace(/^0/,""):"–"}</td>${CATS.map((c,ci)=>`<td${k===String(ci)?' class="srt"':""}>${live?`${show(r.v[ci],c)}<small>${ord(r.rk[ci])}</small>`:"–"}</td>`).join("")}</tr>`).join("");
   const done=[];for(let n=1;n<=regWeeks();n++)if(weekDone(n))done.push(n);
   let br="";
   if(PO){br=sec(PO.champ?`Champion: ${esc(TEAMS[PO.champ].name)}`:"Playoff bracket",`Top ${P} · each round is one matchup week · ties go to the higher seed`,`<div class="bracket">${PO.rounds.map((r,ri)=>`<div class="bround"><h3>${weekName(r.n)} · ${md(CAL[r.n-1][1])}</h3>${r.pairs.map(p=>{const seed=id=>PO.seeds.indexOf(id)+1;const line=id=>id?`<div class="${p.win===id?"w":""}"><span><span class="sd">${seed(id)}</span>${esc(TEAMS[id].name)}</span></div>`:id===null?`<div><span class="muted">Bye</span></div>`:`<div><span class="muted">TBD</span></div>`;return `<div class="bm">${line(p.a)}${line(p.b)}</div>`;}).join("")}</div>`).join("")}</div>`);}
-  return sec("Standings",`${done.length?`Through week ${done[done.length-1]}`:"No completed weeks yet"} · ${L.format==="most"?"one W per week for winning more categories":"every category counts as a W, L or T"} · dashed line = playoff cut (top ${P})`,`<div class="scroll"><table class="box lg num" style="min-width:${330+CATS.length*70}px"><colgroup><col style="width:44px"><col class="name"><col style="width:86px"><col style="width:64px">${"<col>".repeat(CATS.length)}</colgroup><thead><tr><th class="c">#</th><th class="nm">Team</th><th>W-L-T</th><th>Pct</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead><tbody>${stand}</tbody></table></div><p class="foot-note">Category columns are season totals from starting lineups (small number = league rank).</p>`)+br+powerView()+rivalView();
+  const seg=`<div class="stseg" role="group" aria-label="Standings for">${[["season","Season"],["week",weekName(wk[0])]].map(([m,l])=>`<button data-stmode="${m}" class="${STV.mode===m?"on":""}" aria-pressed="${STV.mode===m}">${esc(l)}</button>`).join("")}</div>`;
+  const sum=wkM?`${weekLabel(wk)} · W-L-T is that week's matchup score · pick another week at the top · tap a header to sort`:`${done.length?`Through week ${done[done.length-1]}`:"No completed weeks yet"} · ${L.format==="most"?"one W per week for winning more categories":"every category counts as a W, L or T"} · dashed line = playoff cut (top ${P}) · tap a header to sort`;
+  const note=wkM?"Category columns are this week's totals from starting lineups (small number = league rank that week).":"Category columns are season totals from starting lineups (small number = league rank).";
+  return sec("Standings",sum,`${seg}<div class="scroll"><table class="box lg num stand" style="min-width:${330+CATS.length*70}px"><colgroup><col style="width:44px"><col class="name"><col style="width:86px"><col style="width:64px">${"<col>".repeat(CATS.length)}</colgroup><thead><tr>${th("rank","#","c")}<th class="nm">Team</th>${th("rec","W-L-T")}${th("pct","Pct")}${CATS.map((c,ci)=>th(String(ci),c[0])).join("")}</tr></thead><tbody>${stand}</tbody></table></div><p class="foot-note">${note}</p>`)+(wkM?"":br)+powerView()+rivalView();
 }
+document.addEventListener("click",e=>{let b=e.target.closest("[data-stmode]");
+  if(b){STV.mode=b.dataset.stmode;STV.sort="rank";STV.dir=1;try{localStorage.setItem("dfStandMode",STV.mode);}catch(x){}render();return;}
+  b=e.target.closest("[data-stsort]");if(b){const k=b.dataset.stsort;if(STV.sort===k)STV.dir=-STV.dir;else{STV.sort=k;STV.dir=1;}render();}});
 function seasonView(){
   const now=weekOf(Math.min(TODAY,SEASON_END))[0],start=+L.startWeek||1;
   const cards=CAL.map(w=>{const n=w[0];if(n<start)return "";const pairs=W[n]||[],po=isPlayoff(n);

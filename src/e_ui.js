@@ -77,9 +77,9 @@ function simpleBoard(me,opp,sd,A,B,a,b,live,f){
 function hershyBoard(me,opp){
   const vd=viewDay(),dl=vd===TODAY?"Today":`${dow(vd)} ${dateOf(vd).getDate()}`,wkL=fcProj(me).now,wkO=fcProj(opp).now,dyL=dayProj(me,vd),dyO=dayProj(opp,vd);
   const wkLive=started(),dyLive=vd<TODAY||(vd===TODAY&&dyL.gp+dyO.gp>0);
-  const rows=CATS.map(c=>{const pair=(o,m,live)=>{const x=val(o,c),y=val(m,c),ld=live&&Math.abs(x-y)>1e-9?(x>y?"o":"m"):"";return [`<b class="num${ld==="o"?" ld":""}">${live?show(x,c):"–"}</b>`,`<b class="num${ld==="m"?" ld":""}">${live?show(y,c):"–"}</b>`];};
-    const [od,md2]=pair(dyO.now,dyL.now,dyLive),[ow,mw]=pair(wkO,wkL,wkLive);
-    return `<div class="hbrow"><div class="hbd">${od}</div><div class="hbw">${ow}</div><div class="hbc">${c[0]}</div><div class="hbw">${mw}</div><div class="hbd">${md2}</div></div>`;}).join("");
+  const rows=CATS.map(c=>{const pair=(o,m,live)=>{const x=val(o,c),y=val(m,c),ld=live&&Math.abs(x-y)>1e-9?(x>y?"o":"m"):"";return [`<b class="num${ld==="o"?" ld":""}">${live?show(x,c):"–"}</b>`,`<b class="num${ld==="m"?" ld":""}">${live?show(y,c):"–"}</b>`,ld];};
+    const [od,md2]=pair(dyO.now,dyL.now,dyLive),[ow,mw,wl]=pair(wkO,wkL,wkLive);
+    return `<div class="hbrow"><div class="hbd">${od}</div><div class="hbw${wl==="o"?" win op":""}">${ow}</div><div class="hbc">${c[0]}</div><div class="hbw${wl==="m"?" win me":""}">${mw}</div><div class="hbd">${md2}</div></div>`;}).join("");
   const ga=counts(me),gb=counts(opp),g=x=>`<b class="num">${x[0]}</b> played · <b class="num">${x[1]}</b> left${x[2]?` · <span class="bx">+${x[2]} bench</span>`:""}`;
   return `<section class="panel catboard hershy" aria-label="Category scoreboard"><div class="cbhead"><span class="op">${esc(TEAMS[opp].name)}</span><span class="eyebrow">${esc(weekName(wk[0]))}</span><span class="me">${esc(TEAMS[me].name)}</span></div>${cbDays(false,true)}
     <div class="hbrow hbh"><div class="hbd">${esc(dl)}</div><div class="hbw">Week</div><div class="hbc"></div><div class="hbw">Week</div><div class="hbd">${esc(dl)}</div></div>${rows}
