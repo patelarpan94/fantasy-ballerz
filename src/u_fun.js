@@ -77,20 +77,16 @@ function seasonCharts(){const T=cur;if(!TEAMS[T])return "";const curW=weekOf(Mat
   for(let n=start;n<=curW;n++)if(WEEKS[n-1][1]<TODAY)ns.push(n);const me=TEAMS[T].name;
   if(!ns.length)return sec("Season charts",esc(me),`<p class="empty">Charts fill in once the first matchup starts.</p>`);
   const ids=Object.keys(TEAMS).map(Number);
-  // record each matchup: stacked W/L/T bars
+  // category record each matchup, totalled for the heading
   const recs=ns.map(n=>{const o=opponentIn(T,n),r=o?h2h(wt(T,n),wt(o,n)):[0,0,0];return {n,o,r};}),N=CATS.length;
-  const W=300,H=150,Lm=26,Rm=10,Tm=10,Bm=24,bw=Math.min(34,(W-Lm-Rm)/ns.length*.6),x=i=>Lm+(i+.5)*(W-Lm-Rm)/ns.length,y=v=>Tm+(H-Tm-Bm)*(1-v/N);
-  const bars=recs.map((r,i)=>{let y0=y(0);const seg=(v,cls,lab)=>{if(!v)return "";const h=y0-y(v)+Tm-Tm;const yy=y0-(y(0)-y(v));const s=`<rect class="rb ${cls}" x="${x(i)-bw/2}" y="${yy}" width="${bw}" height="${y(0)-y(v)}"><title>${weekName(r.n)}: ${v} ${lab}</title></rect>`;y0=yy;return s;};
-    return seg(r.r[0],"w","won")+seg(r.r[2],"t","tied")+seg(r.r[1],"l","lost")+`<text class="ax" x="${x(i)}" y="${H-8}" text-anchor="middle">W${r.n}</text>`;}).join("");
-  const grid=[0,N/2,N].map(v=>`<line class="gridl" x1="${Lm}" x2="${W-Rm}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${Lm-5}" y="${y(v)+3}" text-anchor="end">${v}</text>`).join("");
   const tot=recs.reduce((s,r)=>s.map((v,i)=>v+r.r[i]),[0,0,0]);
-  const recFig=`<figure class="mini screc"><figcaption><b>Categories won each matchup</b><span class="vals num">${tot.join("-")}</span></figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Category record by matchup">${grid}${bars}</svg><p class="trkn"><span class="sk w"></span>won <span class="sk t"></span>tied <span class="sk l"></span>lost</p></figure>`;
   // league rank in each category each matchup (1 = best)
   const rk=ns.map(n=>{const tt=Object.fromEntries(ids.map(id=>[id,wt(id,n)]));return CATS.map(c=>1+ids.filter(id=>val(tt[id],c)>val(tt[T],c)+1e-9).length);});
   const rkTbl=`<div class="scroll"><table class="lg antable heat"><thead><tr><th class="nm">Cat</th>${ns.map(n=>`<th>W${n}</th>`).join("")}</tr></thead><tbody>${CATS.map((c,ci)=>`<tr><td class="nm">${c[0]}</td>${rk.map(r=>`<td class="num" style="${heat(r[ci],ids.length)}">${r[ci]}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const labels=ns.map(n=>[`W${n}`,`Week ${n}${WEEKS[n-1][2]>=TODAY?" (in progress)":""}`]),A=ns.map(n=>weekTotals(T,n)),B=ns.map(n=>leagueAvg(id=>weekTotals(id,n)));
-  return sec(`Season charts · ${esc(me)}`,`${ns.length} ${ns.length===1?"matchup":"matchups"} so far · pick another team at the top`,
-    `<div class="minis">${recFig}</div><p class="flabel" style="margin:12px 14px 4px">League rank in each category, by matchup (1 = best)</p>${rkTbl}
+  // BUG-186 (Arp 2026-10-29): the categories-won bar chart is gone; its season total sits in the heading line (each matchup's record is in Matchup history)
+  return sec(`Season charts · ${esc(me)}`,`${ns.length} ${ns.length===1?"matchup":"matchups"} so far · ${tot.join("-")} in categories · pick another team at the top`,
+    `<p class="flabel" style="margin:12px 14px 4px">League rank in each category, by matchup (1 = best)</p>${rkTbl}
     <p class="flabel" style="margin:12px 14px 4px">Each category vs the league average, by matchup</p><div class="minis">${miniCharts(labels,A,B,me,"League average",false)}</div>
     <p class="foot-note">From starting-lineup box scores. ${ns.length<3?"Charts get more interesting as the season goes.":""}</p>`);}
 function ptChartsTop(){const vd=viewDay(),opp=M.opp&&TEAMS[M.opp]?M.opp:null;

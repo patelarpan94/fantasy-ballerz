@@ -4,8 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
-  {v:"2.17",date:"2026-10-29",title:"Tracker category picks",notes:[
-    ["185","Fix","Matchup › Tracker: tapping a category (FG%, REB…) now puts that category's chart right under the buttons, ahead of Win % and Games played. Before, the chart changed further down the page, so the tap looked like it did nothing."]]},
+  {v:"2.17",date:"2026-10-29",title:"Tracker picks and simpler Season charts",notes:[
+    ["185","Fix","Matchup › Tracker: tapping a category (FG%, REB…) now puts that category's chart right under the buttons, ahead of Win % and Games played. Before, the chart changed further down the page, so the tap looked like it did nothing."],
+    ["186","Change","My Team › Season charts: the Categories won each matchup bar chart is gone. Your season category record now sits in the heading, and each matchup's record is still in Matchup history."]]},
   {v:"2.16",date:"2026-10-29",title:"Better team colors",notes:[
     ["181","Change","Team colors look cleaner: the header and phone tab bar stay in the team's main color with a sharp stripe in its second color (Lakers gold, Warriors yellow), instead of blending the two into a muddy mix. The selected tab and chat button show the second color too."],
     ["182","Fix","Team colors in dark mode: each team gets a brighter shade of its own color instead of a faded pastel, and text on it turns dark where that's easier to read. The Nets and Spurs get a charcoal header with silver highlights instead of fading into the page."],
