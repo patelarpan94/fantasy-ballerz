@@ -61,10 +61,13 @@ function anJump(){const R=$("#rosters");if(!R||R.querySelector(".anjump"))return
   if(at)at.insertAdjacentHTML("afterend",html);else R.insertAdjacentHTML("afterbegin",html);fitScrolls();}
 // I6: on a phone, the Tracker's category charts get chips so one category shows at a time
 let TRKCAT="all";
+// BUG-185 (Arp 2026-10-29): a picked category's chart comes first, right under the chips, ahead of Win % and Games played,
+// so the tap visibly changes what's on screen
+function trkShow(m){m.querySelectorAll(":scope > figure[data-tcat]").forEach(x=>{const on=TRKCAT==="all"||x.dataset.tcat===TRKCAT;x.hidden=!on;x.style.order=TRKCAT!=="all"&&on?"-1":"";});}
 function trkChips(){if(!PHONE())return;document.querySelectorAll("#rosters .minis").forEach(m=>{if(m.dataset.tc)return;
   const fs=[...m.querySelectorAll(":scope > figure.mini:not(.trkx):not(.screc)")];if(fs.length<4)return;m.dataset.tc=1;
   const cats=fs.map(f=>f.querySelector("figcaption b")?.textContent.trim()||"");if(TRKCAT!=="all"&&!cats.includes(TRKCAT))TRKCAT="all";
-  fs.forEach((f,i)=>{f.dataset.tcat=cats[i];f.hidden=TRKCAT!=="all"&&cats[i]!==TRKCAT;});
+  fs.forEach((f,i)=>{f.dataset.tcat=cats[i];});trkShow(m);
   m.insertAdjacentHTML("beforebegin",`<div class="scroll trkc"><div class="tabs sm" role="group" aria-label="Category">${["all",...cats].map(c=>`<button data-tcat="${esc(c)}" aria-pressed="${c===TRKCAT}">${c==="all"?"All":esc(c)}</button>`).join("")}</div></div>`);});}
 {const _rr=renderRosters;renderRosters=function(){_rr.apply(this,arguments);try{if(nav==="analytics"&&(SUB.analytics||"main")==="main")anJump();trkChips();}catch(e){console.warn(e);}};}
 document.addEventListener("click",e=>{const j=e.target.closest("[data-anj]"),f=e.target.closest("[data-anfold]"),c=e.target.closest(".trkc [data-tcat]");
@@ -72,7 +75,7 @@ document.addEventListener("click",e=>{const j=e.target.closest("[data-anj]"),f=e
     const top=s.getBoundingClientRect().top+window.scrollY-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--barh"))||0)-8;window.scrollTo({top,behavior:"smooth"});}
   else if(f){const s=$("#ans"+f.dataset.anfold);if(!s)return;const on=s.classList.toggle("ancol");f.setAttribute("aria-expanded",String(!on));if(on)ANCOL[s.dataset.ank]=1;else delete ANCOL[s.dataset.ank];try{localStorage.setItem("dfAnCol",JSON.stringify(ANCOL));}catch(x){}}
   else if(c){TRKCAT=c.dataset.tcat;const bar=c.closest(".trkc"),m=bar.nextElementSibling;bar.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b===c)));
-    m.querySelectorAll(":scope > figure[data-tcat]").forEach(x=>x.hidden=TRKCAT!=="all"&&x.dataset.tcat!==TRKCAT);}});
+    trkShow(m);}});
 // I7: Pick'em shows each team's rough chance to win next matchup, from healthy players' ESPN per-game projections x games that week
 function pkProb(n,m){try{const c=CAL[n-1];if(!c)return null;const tot=T=>{const s=new Array(11).fill(0);let any=0;
     (TEAMS[T]?.P||[]).filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;let g=0;for(let sp=c[1];sp<=c[2];sp++)if(gameOn(p.t,sp))g++;if(g){any=1;pg.forEach((v,i)=>s[i]+=v*g);}});return any?s:null;};
