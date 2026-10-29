@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029152100"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261029152633"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -887,8 +887,10 @@ button.cbrow.s:focus-visible{outline:2px solid var(--accent);outline-offset:-2px
 .catboard.hershy .hbrow .hbd{background:var(--bg);color:var(--muted)}.catboard.hershy .hbrow .hbd b{font-size:1rem}
 .catboard.hershy .hbrow .hbw b{font-family:var(--f-display);font-size:1.35rem;font-weight:500;color:var(--muted)}
 .catboard.hershy .hbrow b.ld{color:var(--ink);font-weight:700}
-.catboard.hershy .hbrow .hbw.win.op{background:color-mix(in srgb,var(--opp) 24%,transparent);box-shadow:inset 3px 0 0 var(--opp)}
-.catboard.hershy .hbrow .hbw.win.me{background:color-mix(in srgb,var(--accent) 24%,transparent);box-shadow:inset -3px 0 0 var(--accent)}
+.catboard.hershy .hbrow .hbw.win{background:var(--win-wash)}
+.catboard.hershy .hbrow .hbw.win b.ld{color:var(--win)}
+.catboard.hershy .hbrow .hbw.win.op{box-shadow:inset 3px 0 0 var(--win)}
+.catboard.hershy .hbrow .hbw.win.me{box-shadow:inset -3px 0 0 var(--win)}
 .catboard.hershy .hbrow .hbc{font-family:var(--f-display);font-weight:700;font-size:.88rem;color:var(--muted);border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .catboard.hershy .hbrow.hbh>div{padding:5px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .catboard.hershy .cbhead .op{text-align:left;color:var(--opp)}.catboard.hershy .cbhead .me{text-align:right;color:var(--accent)}
@@ -4190,7 +4192,7 @@ const RELEASES=[
   {v:"2.10",date:"2026-10-29",title:"Week standings and sortable columns",notes:[
     ["164","New","League › Standings has a Season | Week switch. Week shows the week picked at the top of the app: each team's matchup score that week and its category totals, with the league rank under each number."],
     ["165","New","Tap any Standings column header to sort by it (W-L-T, Pct or a category). Tap again to flip the order, or tap # to go back to the normal standings."],
-    ["166","Change","Advanced matchup: the team leading a category for the week now has its WEEK number shaded in its team color, so you can see who's winning each category at a glance."]]},
+    ["166","Change","Advanced matchup: the team leading a category for the week now has its WEEK number shaded green, the same as the regular matchup board, so you can see who's winning each category at a glance."]]},
   {v:"2.9",date:"2026-10-29",title:"Compare and final win %",notes:[
     ["162","Fix","Analytics › Compare: picking League average after comparing a team with itself no longer shows the same numbers on both sides. The Against list now falls back to League average whenever the saved pick is the team you're looking at."],
     ["163","Change","Once a matchup week is over, the win chance shows 100% for the winner and 0% for the loser (50% for a tie) instead of 99%."]]},

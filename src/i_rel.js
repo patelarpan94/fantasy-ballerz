@@ -7,7 +7,7 @@ const RELEASES=[
   {v:"2.10",date:"2026-10-29",title:"Week standings and sortable columns",notes:[
     ["164","New","League › Standings has a Season | Week switch. Week shows the week picked at the top of the app: each team's matchup score that week and its category totals, with the league rank under each number."],
     ["165","New","Tap any Standings column header to sort by it (W-L-T, Pct or a category). Tap again to flip the order, or tap # to go back to the normal standings."],
-    ["166","Change","Advanced matchup: the team leading a category for the week now has its WEEK number shaded in its team color, so you can see who's winning each category at a glance."]]},
+    ["166","Change","Advanced matchup: the team leading a category for the week now has its WEEK number shaded green, the same as the regular matchup board, so you can see who's winning each category at a glance."]]},
   {v:"2.9",date:"2026-10-29",title:"Compare and final win %",notes:[
     ["162","Fix","Analytics › Compare: picking League average after comparing a team with itself no longer shows the same numbers on both sides. The Against list now falls back to League average whenever the saved pick is the team you're looking at."],
     ["163","Change","Once a matchup week is over, the win chance shows 100% for the winner and 0% for the loser (50% for a tie) instead of 99%."]]},
