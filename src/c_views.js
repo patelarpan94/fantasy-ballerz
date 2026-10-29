@@ -282,15 +282,15 @@ function openSheet(title,html){$("#sheetTitle").textContent=title;$("#sheetBody"
 function rosterPick(T,name,type,checked,disableLocked){
   return `<div class="picklist">${rosterNow(T).map(n=>{const p=TEAMS[T].P.find(q=>q.n===n)||mkP(n);const lk=disableLocked&&lockedName(n,TODAY);return `<label><input type="${type}" name="${name}" value="${esc(n)}" ${checked.includes(n)?"checked":""}>${playerCell(p,false)}${lk?'<span class="lock">plays today · leaves tomorrow</span>':""}</label>`;}).join("")}</div>`;
 }
-const pickupsUsed=(T,sp)=>TXLOG.filter(t=>t.type==="add"&&t.add&&t.ok&&t.role!=="commish"&&tnum(t.team)===T&&weekOf(t.day||TODAY)[0]===weekOf(sp)[0]).length;
+const pickupsUsed=(T,sp)=>TXLOG.filter(t=>t.type==="add"&&t.add&&t.ok&&t.role!=="commish"&&tnum(t.team)===T&&addPeriod(t.day||TODAY)===addPeriod(sp)).length;
 const pickupsLeft=T=>{const lim=+L.addLimit||0;return lim?Math.max(0,lim-pickupsUsed(T,TODAY)):Infinity;};
-const pickupTxt=T=>{const lim=+L.addLimit||0;return lim?`${pickupsUsed(T,TODAY)} of ${lim} pickups used this matchup`:"";};
+const pickupTxt=T=>{const lim=+L.addLimit||0;return lim?`${pickupsUsed(T,TODAY)} of ${lim} pickups used ${addWhen()}`:"";};
 function sheetAdd(n){
-  const T0=actTeam();if(T0&&!isCommish()&&pickupsLeft(T0)<=0){const nw=WEEKS[weekOf(TODAY)[0]];
-    return openSheet(`Add ${n}`,`<p>You've used all ${L.addLimit} pickups for this matchup.${nw?` You can add players again on ${dow(nw[1])} ${md(nw[1])}.`:""}</p><div class="sheetacts"><button class="btn" data-sheet="close">OK</button></div>`);}
+  const T0=actTeam();if(T0&&!isCommish()&&pickupsLeft(T0)<=0){const m=L.addMode||"matchup",nw=m==="matchup"?WEEKS[weekOf(TODAY)[0]]:null;
+    return openSheet(`Add ${n}`,`<p>You've used all ${L.addLimit} pickups ${m==="day"?"for today. You can add players again tomorrow.":m==="season"?"for the season.":`for this matchup.${nw?` You can add players again on ${dow(nw[1])} ${md(nw[1])}.`:""}`}</p><div class="sheetacts"><button class="btn" data-sheet="close">OK</button></div>`);}
   const T=actTeam(),full=rosterNow(T).length>=ROSTER_MAX,lk=lockedName(n,TODAY);
   openSheet(`Add ${n}`,`<div class="picklist"><label style="cursor:default">${playerCell(mkP(n))}</label></div>
-    <p>To <b>${esc(TEAMS[T].name)}</b>.${+L.addLimit&&!isCommish()?` This uses 1 of your ${pickupsLeft(T)} pickups left this matchup.`:""} ${lk?"His game today has started, so he joins tomorrow.":"He can play today if his game hasn't started."} New players fill an open starting slot if there is one, otherwise the bench.</p>
+    <p>To <b>${esc(TEAMS[T].name)}</b>.${+L.addLimit&&!isCommish()?` This uses 1 of your ${pickupsLeft(T)} pickups left ${addWhen()}.`:""} ${lk?"His game today has started, so he joins tomorrow.":"He can play today if his game hasn't started."} New players fill an open starting slot if there is one, otherwise the bench.</p>
     <p class="flabel">${full?"Your roster is full. Drop one player:":"Drop a player (optional)"}</p>
     ${full?"":`<div class="picklist"><label><input type="radio" name="drop" value="" checked><span>Don't drop anyone</span></label></div>`}${rosterPick(T,"drop","radio",[],true)}
     <div class="sheetacts"><button class="btn ghost" data-sheet="close">Cancel</button><button class="btn good" data-sheet="add" data-n="${esc(n)}">Add player</button></div>`);
@@ -308,7 +308,7 @@ async function sheetAct(b){
     if(a==="add"){const n=b.dataset.n,drop=(body.querySelector('input[name="drop"]:checked')||{}).value||null;
       if(rosterNow(T).length>=ROSTER_MAX&&!drop)return toast("Pick a player to drop first.");
       if(ownerNow(n))return toast(n+" is already on a roster.");
-      if(!isCommish()&&pickupsLeft(T)<=0)return toast("No pickups left this matchup.");
+      if(!isCommish()&&pickupsLeft(T)<=0)return toast(`No pickups left ${addWhen()}.`);
       await Store.set("tx",newId(),{season:SEASON,type:"add",team:tkey(T),add:n,drop,addDay:day(n),dropDay:drop?day(drop):null,day:TODAY,at:Date.now(),...actor()});
       toast(`${n} added${drop?`, ${drop} dropped`:""}`);}
     else if(a==="drop"){const n=b.dataset.n;await Store.set("tx",newId(),{season:SEASON,type:"drop",team:tkey(T),add:null,drop:n,dropDay:day(n),day:TODAY,at:Date.now(),...actor()});toast(n+" dropped");}
@@ -528,7 +528,7 @@ function nextSeason(s){const m=/^(\d{4})-(\d{2})$/.exec(s||"");if(!m)return seas
 function newLeague(season,prev){
   const teams=prev?prev.teams.map(t=>({id:t.id,name:t.name})):Array.from({length:10},(_,i)=>({id:"t"+(i+1),name:"Team "+(i+1)}));
   return {name:prev?prev.name:"Our League",season,teams,cats:prev?prev.cats.slice():DEFAULT_CATS.slice(),slots:prev?{...prev.slots}:{...DEFAULT_SLOTS},maxRoster:prev?rosterCap(prev):14,
-    playoffTeams:prev?prev.playoffTeams:4,addLimit:prev?.addLimit||0,startWeek:1,format:prev?.format||"each",
+    playoffTeams:prev?prev.playoffTeams:4,addLimit:prev?.addLimit||0,addMode:prev?.addMode||"matchup",startWeek:1,format:prev?.format||"each",
     draft:{type:prev?prev.draft.type:"snake",clock:prev?prev.draft.clock:90,autoOnExpire:prev?prev.draft.autoOnExpire:true,order:teams.map(t=>t.id),status:"setup",resumedAt:0},createdAt:Date.now()};
 }
 function setupView(){
@@ -542,7 +542,8 @@ function setupView(){
   <section class="panel"><div class="phead"><h2>League</h2></div><div class="pbody fgrid">
     <div class="field" style="grid-column:1/-1"><label for="fName">League name</label><input type="text" id="fName" value="${esc(F.name)}" ${dis}></div>
     <div class="field"><label for="fStart">Season starts in week</label><select id="fStart" ${dis}>${CAL.slice(0,CAL.length-3).map(w=>`<option value="${w[0]}"${(+F.startWeek||1)===w[0]?" selected":""}>Week ${w[0]} · ${md(w[1])}</option>`).join("")}</select></div>
-    <div class="field"><label for="fAdds">Pickups per matchup</label><input type="number" id="fAdds" min="0" max="30" value="${+F.addLimit||0}" ${dis}><span class="hint">0 = no limit. You can change it any time.</span></div>
+    <div class="field"><label for="fAdds">Pickup limit</label><input type="number" id="fAdds" min="0" max="99" value="${+F.addLimit||0}" ${dis}><span class="hint">0 = no limit. Waiver claims count; commissioner moves don't.</span></div>
+    <div class="field"><label for="fAddMode">Pickup limit counts</label><select id="fAddMode" ${dis}>${[["matchup","Per matchup"],["day","Per day"],["season","Per season"]].map(([k,l])=>`<option value="${k}"${(F.addMode||"matchup")===k?" selected":""}>${l}</option>`).join("")}</select></div>
     <div class="field"><label for="fPlayoff">Playoff teams</label><input type="number" id="fPlayoff" min="2" max="${F.teams.length}" value="${F.playoffTeams}" ${dis}></div>
     <div class="field" style="grid-column:1/-1"><label for="fFormat">Scoring</label><select id="fFormat" ${dis}><option value="each"${F.format!=="most"?" selected":""}>Each category counts (W-L-T per category)</option><option value="most"${F.format==="most"?" selected":""}>Most categories wins the week (one W, L or T)</option></select></div>
   </div></section>
@@ -588,7 +589,8 @@ function setupInput(t){
   else if(t.id==="fStart")F.startWeek=+t.value;
   else if(t.id==="fPlayoff")F.playoffTeams=Math.max(2,+t.value||2);
   else if(t.id==="fFormat")F.format=t.value;
-  else if(t.id==="fAdds")F.addLimit=Math.max(0,Math.min(30,Math.round(+t.value||0)));
+  else if(t.id==="fAdds")F.addLimit=Math.max(0,Math.min(99,Math.round(+t.value||0)));
+  else if(t.id==="fAddMode")F.addMode=t.value;
   else if(t.id==="fClock")F.draft.clock=Math.max(0,+t.value||0);
   else if(t.id==="fType")F.draft.type=t.value;
   else if(t.id==="fAuto")F.draft.autoOnExpire=t.checked;

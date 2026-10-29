@@ -528,6 +528,8 @@ var DOW_ = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON_ = ['Jan', 'Fe
 
 function tnum_(id) { return +String(id).replace(/\D/g, ''); }
 function weekOf_(sp) { for (var k = 0; k < CAL.length; k++) if (sp >= CAL[k][1] && sp <= CAL[k][2]) return CAL[k][0]; return sp < 1 ? 1 : CAL[CAL.length - 1][0]; }
+// the pickup limit counts per matchup (default), per day or per season
+function addPeriod_(L, d) { return L.addMode === 'day' ? 'd' + d : L.addMode === 'season' ? 's' : 'w' + weekOf_(d); }
 function fmtET_(ms) {     // "Sun, Nov 1, 8:00 AM ET", like the app
   var d = etDate_(ms).split('-'), hm = Utilities.formatDate(new Date(ms), TZ, 'H:m').split(':');
   var w = new Date(Date.UTC(+d[0], +d[1] - 1, +d[2])).getUTCDay();
@@ -570,7 +572,7 @@ function leagueOwn_(L, D, TODAY) {
   var add = function (n, T, from) { (OWN[n] = OWN[n] || []).push({team: T, from: from, to: Infinity}); };
   var end = function (n, T, day) { var iv = (OWN[n] || []).filter(function (i) { return i.team === T && i.to === Infinity; })[0]; if (iv) iv.to = day; };
   D.picks.slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { if (!ownerNow(p.player)) add(p.player, tnum_(p.team), 0); });
-  var lim = +L.addLimit || 0, used = {}, wk = function (T, d) { return T + '_' + weekOf_(d); };
+  var lim = +L.addLimit || 0, used = {}, wk = function (T, d) { return T + '_' + addPeriod_(L, d); };
   D.tx.filter(function (t) { return t.type !== 'trade' || t.status === 'accepted'; })
     .sort(function (a, b) { return (a.eff || a.at) - (b.eff || b.at); }).forEach(function (t) {
       var day = t.day || TODAY, ok = true;
@@ -642,9 +644,9 @@ function runWaivers_(L, D, now, TODAY, put) {
       var ros = S.rosterNow(T), irs = irSet_(L, D, S, T, TODAY), nir = ros.filter(function (n) { return irs[n]; });
       ir[T] = irs; room[T] = S.MAX - ros.length; aroom[T] = amax - (ros.length - nir.length);
       bad[T] = TODAY <= SEASON_END && (ros.length > S.MAX || ros.length - nir.length > amax || nir.some(function (n) { return INJ[n] !== 'OUT'; }));
-      used[T] = S.TXLOG.filter(function (e) { var t = e.t; return e.ok && t.type === 'add' && t.add && t.role !== 'commish' && tnum_(t.team) === T && weekOf_(t.day || TODAY) === weekOf_(TODAY); }).length;
+      used[T] = S.TXLOG.filter(function (e) { var t = e.t; return e.ok && t.type === 'add' && t.add && t.role !== 'commish' && tnum_(t.team) === T && addPeriod_(L, t.day || TODAY) === addPeriod_(L, TODAY); }).length;
     });
-    var faabLeft = function (T) { return Math.max(0, (+c.budget || 0) - D.claims.filter(function (x) { return x.status === 'won' && tnum_(x.team) === T; }).reduce(function (s, x) { return s + (+x.bid || 0); }, 0)); };
+    var faabLeft = function (T) { return Math.max(0, (+c.budget || 0) + (+(c.adj || {})['t' + T] || 0) - D.claims.filter(function (x) { return x.status === 'won' && tnum_(x.team) === T; }).reduce(function (s, x) { return s + (+x.bid || 0); }, 0)); };
     var wd = D.waivers[SEASON] || {}, order;
     var saved = ((c.type === 'standings' && wd.sorder) || wd.order || []).map(tnum_).filter(function (t) { return ids.indexOf(t) >= 0; });
     var base = saved.length ? saved : (L.draft && L.draft.order || []).map(tnum_).reverse();
@@ -658,14 +660,14 @@ function runWaivers_(L, D, now, TODAY, put) {
       if (bad[T]) return "The roster wasn't legal";
       if (room[T] + (x.drop ? 1 : 0) < 1) return 'The roster was full';
       if (aroom[T] + (x.drop && !ir[T][x.drop] ? 1 : 0) < 1) return 'No room off IR';
-      if (lim && used[T] >= lim) return 'No pickups left this matchup';
+      if (lim && used[T] >= lim) return 'No pickups left ' + ({day: 'today', season: 'this season'}[L.addMode] || 'this matchup');
       if (c.type === 'faab' && (+x.bid || 0) > faabLeft(T) - (spent[T] || 0)) return 'Not enough budget left';
       return '';
     };
     var rk = function (x) { return x.rank != null ? x.rank : x.at; };
     while (Object.keys(left).length) {
       var open = pend.filter(function (x) { return left[x.id]; }), pick;
-      if (c.type === 'faab') pick = open.slice().sort(function (a, b) { return (+b.bid || 0) - (+a.bid || 0) || order.indexOf(tnum_(a.team)) - order.indexOf(tnum_(b.team)) || rk(a) - rk(b); })[0];
+      if (c.type === 'faab') pick = open.slice().sort(function (a, b) { return (+b.bid || 0) - (+a.bid || 0) || (c.tie === 'earliest' ? (a.at || 0) - (b.at || 0) : 0) || order.indexOf(tnum_(a.team)) - order.indexOf(tnum_(b.team)) || rk(a) - rk(b); })[0];
       else {
         var TT = order.filter(function (t) { return open.some(function (x) { return tnum_(x.team) === t; }); })[0];
         pick = open.filter(function (x) { return tnum_(x.team) === TT; }).sort(function (a, b) { return rk(a) - rk(b); })[0];

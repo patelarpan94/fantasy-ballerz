@@ -42,6 +42,9 @@ const anyGame=sp=>Object.values(SCHED).some(t=>t[sp]);
 // Player pool: ESPN 2026-27 preseason projections. [name, NBA team, eligible slots, preseason rank, season totals]
 const POOL_RAW=/*POOL*/;
 
+// the pickup limit counts per matchup (default), per day or per season (League › Settings, 2.14)
+const addPeriod=d=>{const m=L?.addMode||"matchup";return m==="day"?"d"+d:m==="season"?"s":"w"+weekOf(d)[0];};
+const addWhen=()=>({day:"today",season:"this season"}[L?.addMode]||"this matchup");
 const tnum=id=>+String(id).replace(/\D/g,"");
 const tkey=n=>"t"+n;
 
@@ -106,8 +109,8 @@ function buildOwnership(){
   const add=(n,T,from)=>(OWN[n]=OWN[n]||[]).push({team:T,from,to:Infinity});
   const end=(n,T,day)=>{const iv=(OWN[n]||[]).find(i=>i.team===T&&i.to===Infinity);if(iv)iv.to=day;};
   PICKS.slice().sort((a,b)=>a.n-b.n).forEach(p=>{if(!ownerNow(p.player))add(p.player,tnum(p.team),0);});
-  // pickup limit per matchup week (commissioner adds don't count)
-  const lim=+L.addLimit||0,used={},wkKey=(T,d)=>T+"_"+weekOf(d)[0];
+  // pickup limit per matchup, day or season (commissioner adds don't count)
+  const lim=+L.addLimit||0,used={},wkKey=(T,d)=>T+"_"+addPeriod(d);
   TXS.filter(t=>t.type!=="trade"||t.status==="accepted").sort((a,b)=>(a.eff||a.at)-(b.eff||b.at)).forEach(t=>{
     const day=t.day||TODAY;let ok=true,why="";
     if(t.type==="add"||t.type==="drop"){const T=tnum(t.team);

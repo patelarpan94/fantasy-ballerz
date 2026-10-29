@@ -35,7 +35,9 @@ function priorityOrder(){const c=wcfg(),ids=L.teams.map(t=>tnum(t.id));
   const o=(wdoc()?.order||[]).map(tnum).filter(t=>ids.includes(t));const base=o.length?o:(L.draft?.order||[]).map(tnum).slice().reverse();
   return [...base.filter(t=>ids.includes(t)),...ids.filter(t=>!base.includes(t))];}
 const faabSpent=T=>CLAIMS.filter(c=>c.status==="won"&&tnum(c.team)===T).reduce((s,c)=>s+(+c.bid||0),0);
-const faabLeft=T=>Math.max(0,(+wcfg().budget||0)-faabSpent(T));
+const faabLeftF=(w,T)=>Math.max(0,(+w.budget||0)+(+(w.adj||{})["t"+T]||0)-faabSpent(T));
+// the commissioner can add to or take from a team's budget (waivers.adj {t1:+5})
+const faabLeft=T=>Math.max(0,(+wcfg().budget||0)+(+(wcfg().adj||{})["t"+T]||0)-faabSpent(T));
 const myClaims=T=>CLAIMS.filter(c=>c.status==="pending"&&tnum(c.team)===T).sort((a,b)=>(a.rank??a.at)-(b.rank??b.at));
 // ---- claim sheet
 function sheetClaim(n){const T=actTeam();if(!T)return;const c=wcfg(),full=rosterNow(T).length>=ROSTER_MAX,pos=priorityOrder().indexOf(T)+1,dup=myClaims(T).find(x=>x.add===n);
@@ -69,9 +71,9 @@ async function runWaivers(){
     Object.keys(OWN).forEach(n=>{const o=ownerNow(n);if(o)own[n]=o;});L.teams.forEach(t=>{const id=tnum(t.id);room[id]=ROSTER_MAX-rosterNow(id).length;aroom[id]=activeMax()-Object.values(legalSlots(id)).filter(v=>v!==13).length;bad[id]=!!legalIssues(id);used[id]=pickupsUsed(id,TODAY);});
     const left=new Set(pend.map(x=>x.id)),spent={},wonNow=new Set();
     const valid=x=>{const T=tnum(x.team);if(own[x.add])return wonNow.has(x.add)?(c.type==="faab"?"Outbid":"A team higher in priority got him"):`${x.add} was already taken`;if(x.drop&&own[x.drop]!==T)return `${x.drop} was no longer on the roster`;
-      if(bad[T])return "The roster wasn't legal";if(room[T]+(x.drop?1:0)<1)return "The roster was full";if(aroom[T]+(x.drop&&!onIR(T,x.drop)?1:0)<1)return "No room off IR";if(lim&&used[T]>=lim)return "No pickups left this matchup";if(c.type==="faab"&&(+x.bid||0)>faabLeft(T)-(spent[T]||0))return "Not enough budget left";return "";};
+      if(bad[T])return "The roster wasn't legal";if(room[T]+(x.drop?1:0)<1)return "The roster was full";if(aroom[T]+(x.drop&&!onIR(T,x.drop)?1:0)<1)return "No room off IR";if(lim&&used[T]>=lim)return `No pickups left ${addWhen()}`;if(c.type==="faab"&&(+x.bid||0)>faabLeft(T)-(spent[T]||0))return "Not enough budget left";return "";};
     while(left.size){const open=pend.filter(x=>left.has(x.id));let pick;
-      if(c.type==="faab")pick=open.slice().sort((a,b)=>(+b.bid||0)-(+a.bid||0)||order.indexOf(tnum(a.team))-order.indexOf(tnum(b.team))||(a.rank??a.at)-(b.rank??b.at))[0];
+      if(c.type==="faab")pick=open.slice().sort((a,b)=>(+b.bid||0)-(+a.bid||0)||(c.tie==="earliest"?(a.at||0)-(b.at||0):0)||order.indexOf(tnum(a.team))-order.indexOf(tnum(b.team))||(a.rank??a.at)-(b.rank??b.at))[0];
       else{const T=order.find(t=>open.some(x=>tnum(x.team)===t));pick=open.filter(x=>tnum(x.team)===T).sort((a,b)=>(a.rank??a.at)-(b.rank??b.at))[0];}
       left.delete(pick.id);const why=valid(pick);if(why){res.push([pick,"lost",why]);continue;}
       const T=tnum(pick.team);own[pick.add]=T;wonNow.add(pick.add);if(pick.drop)delete own[pick.drop];room[T]+=pick.drop?0:-1;aroom[T]+=pick.drop&&!onIR(T,pick.drop)?0:-1;used[T]++;spent[T]=(spent[T]||0)+(+pick.bid||0);res.push([pick,"won",""]);
@@ -117,16 +119,19 @@ document.addEventListener("click",async e=>{const t=e.target.closest("[data-wcla
     <div class="field"><label for="fWHours">Hours a dropped player stays on waivers</label><input type="number" id="fWHours" min="0" max="168" value="${+w.hours||0}" ${dis}><span class="hint">0 = straight to free agency at the next run.</span></div>
     <div class="field"><label for="fWHour">Claims run at (ET)</label><select id="fWHour" ${dis}>${Array.from({length:24},(_,h)=>`<option value="${h}"${+w.hour===h?" selected":""}>${fmtHour(h)}</option>`).join("")}</select></div>
     <div class="field" style="grid-column:1/-1"><label>Days claims run</label><div class="catpick">${DOW_FULL.map((d,i)=>`<label><input type="checkbox" data-wday="${i}" ${w.days.includes(i)?"checked":""} ${dis}>${d.slice(0,3)}</label>`).join("")}</div></div>
-    ${w.type==="faab"?`<div class="field"><label for="fWBudget">Season budget per team ($)</label><input type="number" id="fWBudget" min="1" max="1000" value="${+w.budget||100}" ${dis}></div><div class="field"><label for="fWMin">Minimum bid ($)</label><input type="number" id="fWMin" min="0" max="100" value="${+w.minBid||0}" ${dis}></div>`:""}
+    ${w.type==="faab"?`<div class="field"><label for="fWBudget">Season budget per team ($)</label><input type="number" id="fWBudget" min="1" max="1000" value="${+w.budget||100}" ${dis}></div><div class="field"><label for="fWMin">Minimum bid ($)</label><input type="number" id="fWMin" min="0" max="100" value="${+w.minBid||0}" ${dis}><span class="hint">0 allows $0 bids.</span></div>
+    <div class="field"><label for="fWTie">Tied bids go to</label><select id="fWTie" ${dis}><option value="priority"${w.tie!=="earliest"?" selected":""}>Waiver priority (ESPN)</option><option value="earliest"${w.tie==="earliest"?" selected":""}>The earliest bid</option></select></div>
+    <div class="field" style="grid-column:1/-1"><label>Budget adjustments ($, + or −)</label><div class="fgrid">${F.teams.map(t=>`<label class="hint" style="display:flex;gap:6px;align-items:center">${esc(t.name)} <input type="number" data-wadj="${esc(t.id)}" value="${+(w.adj||{})[t.id]||0}" style="width:70px" ${dis}></label>`).join("")}</div><span class="hint">Added to that team's budget, for example to undo a claim. Left now: ${F.teams.map(t=>`${esc(t.name)} $${L?faabLeftF(w,tnum(t.id)):0}`).join(" · ")}</span></div>`:""}
   </div></section>
   <section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Where settings come from</h2></div><div class="pbody fgrid">
     <div class="field" style="grid-column:1/-1"><label for="fSrc">League settings</label><select id="fSrc" ${dis}><option value="app"${src==="app"?" selected":""}>Set here in the app (ESPN only sends games, stats and players)</option><option value="espn"${src==="espn"?" selected":""}>Copy from ESPN on every Refresh</option></select><span class="hint">Covers the league name, team names, categories, roster slots, playoff teams and the schedule.${F.source==="espn"?" Rosters and lineups still mirror ESPN until the league switches over.":""}</span></div>
   </div></section>`;
   return h.replace('<section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Draft</h2>',sec+'<section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Draft</h2>');};
- const _si=setupInput;setupInput=function(t){const F=FORM;if(F&&(t.id?.startsWith("fW")||t.dataset?.wday!=null||t.id==="fSrc")){
+ const _si=setupInput;setupInput=function(t){const F=FORM;if(F&&(t.id?.startsWith("fW")||t.dataset?.wday!=null||t.dataset?.wadj!=null||t.id==="fSrc")){
    if(t.id==="fSrc"){F.settingsFrom=t.value;}else{const w=F.waivers={...WAIVER_DEFAULT,...(F.waivers||{})};
-   if(t.id==="fWType")w.type=t.value;else if(t.id==="fWHours")w.hours=Math.max(0,Math.min(168,Math.round(+t.value||0)));else if(t.id==="fWHour")w.hour=+t.value;
+   if(t.id==="fWType"){if(t.value==="faab"&&w.type!=="faab"&&TODAY>1)toast(`Switching to bidding mid-season gives every team the full $${+w.budget||100} budget.`);w.type=t.value;}else if(t.id==="fWHours")w.hours=Math.max(0,Math.min(168,Math.round(+t.value||0)));else if(t.id==="fWHour")w.hour=+t.value;
    else if(t.id==="fWBudget")w.budget=Math.max(1,Math.round(+t.value||100));else if(t.id==="fWMin")w.minBid=Math.max(0,Math.round(+t.value||0));
+   else if(t.id==="fWTie")w.tie=t.value;else if(t.dataset.wadj){w.adj={...(w.adj||{}),[t.dataset.wadj]:Math.round(+t.value||0)};}
    else if(t.dataset.wday!=null){const d=+t.dataset.wday;w.days=t.checked?[...new Set([...w.days,d])].sort():w.days.filter(x=>x!==d);if(!w.days.length){w.days=[d];t.checked=true;toast("Pick at least one day.");}}}
    FORM_DIRTY=true;document.querySelectorAll('[data-sact="save"],[data-sact="discard"]').forEach(b=>b.disabled=false);const sh=document.querySelector(".savebar .hint");if(sh)sh.textContent="Unsaved changes";
    if(t.tagName==="SELECT"||t.type==="checkbox")renderRosters();return true;}return _si(t);};}

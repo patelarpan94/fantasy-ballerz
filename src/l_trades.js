@@ -106,3 +106,35 @@ const etFromInput=v=>{const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(v||"")
    if(e.tagName==="SELECT")renderRosters();return true;}return _si(e);};}
 // a new season keeps the trade rules but not the old deadline
 {const _nl=newLeague;newLeague=function(s,prev){const o=_nl(s,prev);if(prev?.trades)o.trades={...prev.trades,deadline:null};return o;};}
+
+// ---- Match ESPN (2.14): the commissioner copies the ESPN league's waiver, pickup and trade rules into Settings once, after seeing what changes
+const ESPN_DOW={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
+function espnRules(st){const a=st.acquisitionSettings||{},t=st.tradeSettings||{},out={};
+  out.waivers={type:a.isUsingAcquisitionBudget?"faab":"rolling",hours:+a.waiverHours||0,days:(a.waiverProcessDays||[]).map(d=>ESPN_DOW[d]).filter(d=>d!=null).sort(),hour:+a.waiverProcessHour||0,budget:+a.acquisitionBudget||100,minBid:+a.minimumBid||0};
+  if(!out.waivers.days.length)out.waivers.days=[0,1,2,3,4,5,6];
+  const ml=+a.matchupAcquisitionLimit,sl=+a.acquisitionLimit;out.addLimit=ml>0?ml:sl>0?sl:0;out.addMode=ml>0?"matchup":sl>0?"season":"matchup";
+  const vv=+t.vetoVotesRequired,rh=+t.revisionHours;
+  out.trades={review:!(rh>0)?"none":vv>0?"veto":"commish",hours:rh>0?rh:24,vetoes:vv>0?vv:3,deadline:+t.deadlineDate||null};
+  return out;}
+const wDesc=w=>`${{rolling:"Rolling",standings:"Reverse standings",faab:"Bidding"}[w.type]||w.type}, ${w.days.length===7?"every day":w.days.map(d=>DOW_FULL[d].slice(0,3)).join("/")} ${fmtHour(w.hour)} ET, ${w.hours}h wait${w.type==="faab"?`, $${w.budget} budget, $${w.minBid} min`:""}`;
+const tDesc=t=>`${{veto:`${t.vetoes} vetoes`,majority:"league vote",commish:"commissioner",none:"no review"}[t.review]}${t.review==="none"?"":`, ${t.hours}h`}, deadline ${t.deadline?fmtDeadline(t.deadline):"none"}`;
+const aDesc=(n,m)=>n?`${n} per ${{day:"day",season:"season"}[m]||"matchup"}`:"No limit";
+let ESPN_RULES=null;
+async function matchEspn(){const F=FORM,E=(F&&F.espn)||L.espn;if(!F||!E?.league)return toast("This league isn't linked to an ESPN league.");
+  toast("Loading ESPN's rules…");
+  let st;try{const r=await fetch(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${E.season||2027}/segments/0/leagues/${E.league}?view=mSettings`);st=(await r.json()).settings;}catch(e){}
+  if(!st)return toast("Couldn't reach ESPN. Try again in a minute.");
+  const x=espnRules(st);ESPN_RULES=x;const w0={...WAIVER_DEFAULT,...(F.waivers||{})},t0={...TRADE_DEFAULT,...(F.trades||(SEASON==="2026-27"?{deadline:1803056400000}:{}))};
+  const rows=[["Waivers",wDesc(w0),wDesc({...w0,...x.waivers})],["Pickup limit",aDesc(+F.addLimit||0,F.addMode),aDesc(x.addLimit,x.addMode)],["Trades",tDesc(t0),tDesc({...t0,...x.trades})]];
+  const diff=rows.filter(r=>r[1]!==r[2]);
+  openSheet("Match ESPN",`<p>${diff.length?"These settings would change to match your ESPN league. Nothing is saved until you press Save settings.":"Your settings already match ESPN."}</p>
+    <div class="scroll"><table class="txt"><thead><tr><th></th><th>Now</th><th>ESPN</th></tr></thead><tbody>${rows.map(r=>`<tr${r[1]!==r[2]?' class="chg"':""}><td><b>${r[0]}</b></td><td>${esc(r[1])}</td><td>${r[1]!==r[2]?`<b>${esc(r[2])}</b>`:esc(r[2])}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sheetacts"><button class="btn ghost" data-sheet="close">${diff.length?"Cancel":"OK"}</button>${diff.length?`<button class="btn good" data-espnapply="1">Use ESPN's rules</button>`:""}</div>`);}
+function applyEspn(){const F=FORM,x=ESPN_RULES;if(!F||!x)return;
+  F.waivers={...WAIVER_DEFAULT,...(F.waivers||{}),...x.waivers};F.addLimit=x.addLimit;F.addMode=x.addMode;F.trades={...TRADE_DEFAULT,...(F.trades||{}),...x.trades};
+  FORM_DIRTY=true;sheet().close();renderRosters();document.querySelectorAll('[data-sact="save"],[data-sact="discard"]').forEach(b=>b.disabled=false);const sh=document.querySelector(".savebar .hint");if(sh)sh.textContent="Unsaved changes";
+  toast("ESPN's rules are filled in. Press Save settings to keep them.");}
+{const _sv=setupView;setupView=function(){const h=_sv();if(!FORM||!isCommish()||!(FORM.espn||L?.espn)?.league)return h;
+  const sec=`<section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Match ESPN</h2><span class="hint">Copy the ESPN league's waiver, pickup and trade rules here once</span></div><div class="pbody row" style="justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="hint">Shows what would change first. You can still edit anything after.</span><button class="btn" data-espnmatch="1">Match ESPN rules</button></div></section>`;
+  return h.replace('<section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Waivers</h2>',sec+'<section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Waivers</h2>');};}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-espnmatch],[data-espnapply]");if(!b)return;e.preventDefault();e.stopPropagation();if(b.dataset.espnmatch)matchEspn();else applyEspn();},true);

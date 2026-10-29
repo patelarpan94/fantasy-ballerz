@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.14",date:"2026-10-29",title:"Pickup limits, FAAB options and Match ESPN",notes:[
+    ["173","New","League › Settings › Pickup limit counts per matchup, per day or per season. Waiver claims count toward it; commissioner moves don't."],
+    ["174","New","League › Settings › Match ESPN: the commissioner pulls the ESPN league's waiver, pickup and trade rules, sees what would change, and fills them in with one tap. Nothing is saved until Save settings, and everything stays editable."],
+    ["175","New","Bidding (FAAB) waivers: $0 bids when the minimum bid is $0, a choice of who wins tied bids (waiver priority like ESPN, or the earliest bid), and commissioner budget adjustments per team. Switching to bidding mid-season warns that every team gets the full budget."]]},
   {v:"2.13",date:"2026-10-29",title:"Trade rules like ESPN",notes:[
     ["171","New","League › Settings › Trades: the commissioner picks how trades are reviewed (veto votes, league vote, commissioner only, or no review), how many hours the review lasts and how many vetoes stop a trade. It starts like our ESPN league: a 24-hour review that 3 veto votes stop. The teams in the trade can't vote, and in veto mode there's only a Veto button."],
     ["172","New","Trade deadline, set in League › Settings › Trades (starts at ESPN's Feb 19, 2027, 12 PM ET). After it, nobody can offer or accept a trade, and open offers expire. Trades already under review still finish. Help › Rules shows the deadline."]]},
