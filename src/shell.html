@@ -948,7 +948,8 @@ html.nbat .bar .eyebrow,html.nbat .bar .upd{color:rgba(255,255,255,.85)}
 html.nbat .bar .rbtn{background:#fff;color:var(--nba1);font-weight:700}
 html.nbat .bar .arrow,html.nbat .bar .todayb{background:rgba(255,255,255,.94);color:var(--nba1);border-color:transparent}
 html.nbat .bar .arrow:disabled,html.nbat .bar .todayb:disabled{background:rgba(255,255,255,.16);color:rgba(255,255,255,.6)}
-html.nbat .mainnav button{color:rgba(255,255,255,.78)}
+html.nbat .mainnav button{color:rgba(255,255,255,.94);text-shadow:0 1px 2px rgba(0,0,0,.28)}
+html.nbat.nbasub .mainnav button{text-shadow:none}
 html.nbat .mainnav button:hover{color:#fff}
 html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
@@ -963,7 +964,9 @@ html.nbat .chatfab{background:var(--nba1);box-shadow:0 0 0 3px var(--nba2),0 6px
 html.nbat body.fold.duow .mainnav button{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff}
 html.nbat body.fold.duow .mainnav button[aria-selected="true"]{background:#fff;border-color:#fff;color:var(--nba1);box-shadow:inset 0 -3px 0 var(--nba2)}
 @media (max-width:640px){html.nbat .navwrap{background:var(--nbag);border-top:4px solid var(--nba2);box-shadow:0 -8px 20px -14px var(--nba1)}
-  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;border-bottom-color:transparent;background:rgba(255,255,255,.16);box-shadow:inset 0 3px 0 var(--nba2)}}
+  html.nbat .mainnav button{font-size:.74rem;letter-spacing:.05em;padding:7px 2px 7px}
+  html.nbat .mainnav button svg{width:21px;height:21px}
+  html.nbat .mainnav button[aria-selected="true"]{border-top-color:transparent;border-bottom-color:transparent;background:rgba(255,255,255,.2);box-shadow:inset 0 3px 0 var(--nba2)}}
 /* Subtle: header and tab bar stay plain; the team shows in a top stripe, buttons and highlights */
 html.nbat.nbasub body{background:var(--bg)}
 html.nbat.nbasub .bar{background:linear-gradient(180deg,var(--nba1) 0 4px,var(--nba2) 4px 7px,var(--surface) 7px);color:var(--ink);border-bottom:1px solid var(--line);box-shadow:none}
