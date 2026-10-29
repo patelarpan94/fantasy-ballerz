@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.9",date:"2026-10-29",title:"Compare and final win %",notes:[
+    ["162","Fix","Analytics › Compare: picking League average after comparing a team with itself no longer shows the same numbers on both sides. The Against list now falls back to League average whenever the saved pick is the team you're looking at."],
+    ["163","Change","Once a matchup week is over, the win chance shows 100% for the winner and 0% for the loser (50% for a tie) instead of 99%."]]},
   {v:"2.8",date:"2026-10-29",title:"Install and refresh help",notes:[
     ["161","New","Help has an Install & refresh section: how to put the app on your iPhone or Android home screen, how pull-to-refresh works, and how the app keeps ESPN data up to date on its own."]]},
   {v:"2.7",date:"2026-10-28",title:"Locked out after 10 tries",notes:[

@@ -22,7 +22,8 @@ function teamCompareView(){
   if(!L||!Object.keys(TEAMS).length)return `<section class="panel emptyst"><h2>No data yet</h2><p>Compare fills in once rosters exist.</p></section>`;
   const ids=L.teams.map(t=>tnum(t.id)).filter(T=>TEAMS[T]);
   if(TC.a==null||!TEAMS[TC.a])TC.a=TEAMS[cur]?cur:ids[0];
-  if(TC.b!=="avg"&&TC.b!=="opp"&&!TEAMS[TC.b])TC.b="avg";
+  // the Against list leaves out the picked team, so a stale "same team" pick falls back to the league average (BUG-162)
+  if(TC.b!=="avg"&&TC.b!=="opp"&&(!TEAMS[TC.b]||+TC.b===+TC.a))TC.b="avg";
   const A0=TC.a,nameA=TEAMS[A0].name,nameB=TC.b==="avg"?"League average":TC.b==="opp"?"Their opponent each week":TEAMS[TC.b].name;
   const tsel=(k,extra)=>`<label class="hf"><span>${k==="a"?"Team":"Against"}</span><select data-tc="${k}">${extra.map(([v,l])=>`<option value="${v}"${String(TC[k])===String(v)?" selected":""}>${esc(l)}</option>`).join("")}${ids.filter(i=>k==="a"||i!==A0).map(i=>`<option value="${i}"${String(TC[k])===String(i)?" selected":""}>${esc(TEAMS[i].name)}</option>`).join("")}</select></label>`;
   const seg=(k,opts)=>`<div class="tabs sm" role="group">${opts.map(([v,l])=>`<button data-tcb="${k}:${v}" aria-selected="${String(TC[k])===String(v)}">${l}</button>`).join("")}</div>`;

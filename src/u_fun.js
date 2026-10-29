@@ -59,7 +59,7 @@ function trkExtra(){const me=cur,op=M.opp;if(!TEAMS[me]||!op||!TEAMS[op])return 
   const run={me:new Array(11).fill(0),op:new Array(11).fill(0)},lab=[["Start","Before the matchup"]],wa=[],wb=[];
   const p0=winProb({fin:rem(me,DAYS[0]-1)},{fin:rem(op,DAYS[0]-1)});wa.push(p0);wb.push(1-p0);
   DAYS.filter(sp=>sp<TODAY).forEach(sp=>{[["me",me],["op",op]].forEach(([k,T])=>{const d=dayTotals(T,[sp]);if(d)d.forEach((v,i)=>run[k][i]+=v);});
-    const p=winProb({fin:rem(me,sp).map((v,i)=>v+(run.me[i]||0))},{fin:rem(op,sp).map((v,i)=>v+(run.op[i]||0))});lab.push([`${dow(sp)[0]}${dateOf(sp).getDate()}`,`After ${dow(sp)} ${dateOf(sp).getDate()}`]);wa.push(p);wb.push(1-p);});
+    const end=sp===DAYS[DAYS.length-1],p=winProb({fin:rem(me,sp).map((v,i)=>v+(run.me[i]||0)),done:end},{fin:rem(op,sp).map((v,i)=>v+(run.op[i]||0)),done:end});lab.push([`${dow(sp)[0]}${dateOf(sp).getDate()}`,`After ${dow(sp)} ${dateOf(sp).getDate()}`]);wa.push(p);wb.push(1-p);});
   if(DAYS.some(sp=>sp>=TODAY)){const p=winProb(fcProj(me),fcProj(op));lab.push(["Now","Now (live)"]);wa.push(p);wb.push(1-p);}
   const win=trkLine("Win %",lab,wa,wb,TEAMS[me].name,TEAMS[op].name,{lo:0,hi:1,mid:.5,ticks:[0,.5,1],fmt:v=>Math.round(v*100)+"%",note:"Chance to win the matchup after each day, from the scores so far plus projections for the games left."});
   // starter games: played so far (solid), then projected for the days left (faint)

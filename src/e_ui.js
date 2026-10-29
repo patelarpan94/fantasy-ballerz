@@ -24,9 +24,11 @@ function streakOf(id){let s="",k=0;
 // box scores so far plus ESPN per-game projections for each starter's remaining games this matchup
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
   TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
-  return {now,fin:now.map((v,i)=>v+rem[i])};}
+  return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's odds from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
+  // a finished matchup is decided: 100% for the winner (BUG-163)
+  if(a.done&&b.done){const r=h2h(a.fin,b.fin);return r[0]>r[1]?1:r[0]<r[1]?0:.5;}
   const ps=CATS.map(c=>{const x=val(a.fin,c),y=val(b.fin,c),rel=(x-y)/Math.max(Math.abs(x),Math.abs(y),1e-9);return 1/(1+Math.exp(-rel*(c[1]==="pct"?60:12)));});
   let d={0:1};ps.forEach(p=>{const n={};for(const k in d){n[+k+1]=(n[+k+1]||0)+d[k]*p;n[+k-1]=(n[+k-1]||0)+d[k]*(1-p);}d=n;});
   let w=0;for(const k in d)w+=+k>0?d[k]:+k===0?d[k]/2:0;return w;}
