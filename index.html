@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261029141301"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261029144830"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -3671,9 +3671,11 @@ function streakOf(id){let s="",k=0;
 // box scores so far plus ESPN per-game projections for each starter's remaining games this matchup
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
   TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
-  return {now,fin:now.map((v,i)=>v+rem[i])};}
+  return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's odds from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
+  // a finished matchup is decided: 100% for the winner (BUG-163)
+  if(a.done&&b.done){const r=h2h(a.fin,b.fin);return r[0]>r[1]?1:r[0]<r[1]?0:.5;}
   const ps=CATS.map(c=>{const x=val(a.fin,c),y=val(b.fin,c),rel=(x-y)/Math.max(Math.abs(x),Math.abs(y),1e-9);return 1/(1+Math.exp(-rel*(c[1]==="pct"?60:12)));});
   let d={0:1};ps.forEach(p=>{const n={};for(const k in d){n[+k+1]=(n[+k+1]||0)+d[k]*p;n[+k-1]=(n[+k-1]||0)+d[k]*(1-p);}d=n;});
   let w=0;for(const k in d)w+=+k>0?d[k]:+k===0?d[k]/2:0;return w;}
@@ -4157,6 +4159,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.9",date:"2026-10-29",title:"Compare and final win %",notes:[
+    ["162","Fix","Analytics › Compare: picking League average after comparing a team with itself no longer shows the same numbers on both sides. The Against list now falls back to League average whenever the saved pick is the team you're looking at."],
+    ["163","Change","Once a matchup week is over, the win chance shows 100% for the winner and 0% for the loser (50% for a tie) instead of 99%."]]},
   {v:"2.8",date:"2026-10-29",title:"Install and refresh help",notes:[
     ["161","New","Help has an Install & refresh section: how to put the app on your iPhone or Android home screen, how pull-to-refresh works, and how the app keeps ESPN data up to date on its own."]]},
   {v:"2.7",date:"2026-10-28",title:"Locked out after 10 tries",notes:[
@@ -5103,7 +5108,8 @@ function teamCompareView(){
   if(!L||!Object.keys(TEAMS).length)return `<section class="panel emptyst"><h2>No data yet</h2><p>Compare fills in once rosters exist.</p></section>`;
   const ids=L.teams.map(t=>tnum(t.id)).filter(T=>TEAMS[T]);
   if(TC.a==null||!TEAMS[TC.a])TC.a=TEAMS[cur]?cur:ids[0];
-  if(TC.b!=="avg"&&TC.b!=="opp"&&!TEAMS[TC.b])TC.b="avg";
+  // the Against list leaves out the picked team, so a stale "same team" pick falls back to the league average (BUG-162)
+  if(TC.b!=="avg"&&TC.b!=="opp"&&(!TEAMS[TC.b]||+TC.b===+TC.a))TC.b="avg";
   const A0=TC.a,nameA=TEAMS[A0].name,nameB=TC.b==="avg"?"League average":TC.b==="opp"?"Their opponent each week":TEAMS[TC.b].name;
   const tsel=(k,extra)=>`<label class="hf"><span>${k==="a"?"Team":"Against"}</span><select data-tc="${k}">${extra.map(([v,l])=>`<option value="${v}"${String(TC[k])===String(v)?" selected":""}>${esc(l)}</option>`).join("")}${ids.filter(i=>k==="a"||i!==A0).map(i=>`<option value="${i}"${String(TC[k])===String(i)?" selected":""}>${esc(TEAMS[i].name)}</option>`).join("")}</select></label>`;
   const seg=(k,opts)=>`<div class="tabs sm" role="group">${opts.map(([v,l])=>`<button data-tcb="${k}:${v}" aria-selected="${String(TC[k])===String(v)}">${l}</button>`).join("")}</div>`;
@@ -5775,7 +5781,7 @@ function trkExtra(){const me=cur,op=M.opp;if(!TEAMS[me]||!op||!TEAMS[op])return 
   const run={me:new Array(11).fill(0),op:new Array(11).fill(0)},lab=[["Start","Before the matchup"]],wa=[],wb=[];
   const p0=winProb({fin:rem(me,DAYS[0]-1)},{fin:rem(op,DAYS[0]-1)});wa.push(p0);wb.push(1-p0);
   DAYS.filter(sp=>sp<TODAY).forEach(sp=>{[["me",me],["op",op]].forEach(([k,T])=>{const d=dayTotals(T,[sp]);if(d)d.forEach((v,i)=>run[k][i]+=v);});
-    const p=winProb({fin:rem(me,sp).map((v,i)=>v+(run.me[i]||0))},{fin:rem(op,sp).map((v,i)=>v+(run.op[i]||0))});lab.push([`${dow(sp)[0]}${dateOf(sp).getDate()}`,`After ${dow(sp)} ${dateOf(sp).getDate()}`]);wa.push(p);wb.push(1-p);});
+    const end=sp===DAYS[DAYS.length-1],p=winProb({fin:rem(me,sp).map((v,i)=>v+(run.me[i]||0)),done:end},{fin:rem(op,sp).map((v,i)=>v+(run.op[i]||0)),done:end});lab.push([`${dow(sp)[0]}${dateOf(sp).getDate()}`,`After ${dow(sp)} ${dateOf(sp).getDate()}`]);wa.push(p);wb.push(1-p);});
   if(DAYS.some(sp=>sp>=TODAY)){const p=winProb(fcProj(me),fcProj(op));lab.push(["Now","Now (live)"]);wa.push(p);wb.push(1-p);}
   const win=trkLine("Win %",lab,wa,wb,TEAMS[me].name,TEAMS[op].name,{lo:0,hi:1,mid:.5,ticks:[0,.5,1],fmt:v=>Math.round(v*100)+"%",note:"Chance to win the matchup after each day, from the scores so far plus projections for the games left."});
   // starter games: played so far (solid), then projected for the days left (faint)
