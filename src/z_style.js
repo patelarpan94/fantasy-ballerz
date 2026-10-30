@@ -1,6 +1,6 @@
 /* ============================================================================
-   NEW ARP LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP").
-   Display › Look: Classic | NEW ARP, saved per login (prefs.style, localStorage dfStyle). Works with
+   NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
+   Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with
    Light/Dark, team colors and every layout. Everything sits under html.arp (+ arpx/arpy/arpz layers),
    so Classic is untouched:
    - Glass: Archivo type, frosted header, floating phone tab bar, one pill style for every switch,
@@ -12,13 +12,13 @@
    Comparison page: https://claude.ai/artifact/EGFHZZVqnKSrE5pK2Doqfs
    ============================================================================ */
 let STYLE="classic";try{STYLE=localStorage.getItem("dfStyle")==="arp"?"arp":"classic";}catch(e){}
-const STYLES=[["classic","Classic"],["arp","NEW ARP"]];
+const STYLES=[["classic","Classic"],["arp","New Era"]];
 // ESPN player ids by name from past seasons' History files (filled in by the build), topped up by ESPN ownership (nba.own[n][3])
 const ARP_IDS=/*ARPIDS*/{};
 const ARP_NBA={ATL:37,BOS:38,CLE:39,NO:40,CHI:41,DAL:42,DEN:43,GS:44,HOU:45,LAC:46,LAL:47,MIA:48,MIL:49,MIN:50,BKN:51,NY:52,ORL:53,IND:54,PHI:55,PHX:56,POR:57,SAC:58,SA:59,OKC:60,TOR:61,UTAH:62,MEM:63,WSH:64,DET:65,CHA:66};
 const arpLogo=a=>ARP_NBA[a]?`https://cdn.nba.com/logos/nba/16106127${ARP_NBA[a]}/primary/L/logo.svg`:"";
 const arpShot=n=>{const id=(typeof NBA!=="undefined"&&NBA?.own?.[n]?.[3])||ARP_IDS[n];return id?`https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=140&h=102&scale=crop&cquality=60`:"";};
-const ARP_CSS=`/* ---- NEW ARP style (2.18): rounder, softer, glass header + floating tab bar, Archivo type,
+const ARP_CSS=`/* ---- New Era style (2.18): rounder, softer, glass header + floating tab bar, Archivo type,
    dark "scoreboard" matchup hero. Everything sits under html.arp so Classic is untouched. ---- */
 html.arp{
   --f-display:"Archivo Narrow","Archivo",system-ui,sans-serif;
@@ -116,7 +116,7 @@ html.arp dialog.sheet,html.arp .sheet{border-radius:var(--r3)}
 html.arp body.duow .mainnav button{border-color:transparent;background:var(--chip);border-radius:var(--r2)}
 html.arp body.duow .mainnav button[aria-selected="true"]{background:var(--accent-wash);color:var(--accent)}
 html.arp body.duow .hero .hrec{font-size:1.9rem}
-/* ---- Glass+ extras on top of NEW ARP (html.arp.arpx) ---- */
+/* ---- Glass+ extras on top of New Era (html.arp.arpx) ---- */
 /* 1. ambient light: your color glows at the top of the page, the opponent's faintly on the right, so the glass has something to frost */
 html.arp.arpx body{background:
   radial-gradient(70% 38% at 0% 0%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),
@@ -276,7 +276,7 @@ function setStyle(v){STYLE=v==="arp"?"arp":"classic";try{localStorage.setItem("d
 // Display sheet gets a Look row at the top
 {const _ds=displaySheet;displaySheet=function(){_ds();const b=document.getElementById("sheetBody"),h=b&&b.querySelector("h3");if(!h)return;
   const r=document.createElement("div");r.innerHTML=`<h3>Look</h3><div class="tabs sm dsrow" role="group" aria-label="Look">${STYLES.map(([k,l])=>`<button data-ds="style:${k}" aria-selected="${STYLE===k}"${prefKey()?"":" disabled"}>${l}</button>`).join("")}</div>
-    <p class="muted dsnote"><b>NEW ARP</b> is a newer look: rounder cards, player photos, a scoreboard on Matchup and smooth motion. <b>Classic</b> is the original.</p>`;
+    <p class="muted dsnote"><b>New Era</b> is a newer look: rounder cards, player photos, a scoreboard on Matchup and smooth motion. <b>Classic</b> is the original.</p>`;
   h.before(...r.childNodes);};$("#themeBtn").onclick=displaySheet;}
 
 // ---- the pieces CSS can't do alone: photos, bars, rings, titles, sliding pills ----
