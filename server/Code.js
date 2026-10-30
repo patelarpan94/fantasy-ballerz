@@ -1080,7 +1080,7 @@ function ownership_(LG) {
     (j.players || []).forEach(function (x) {
       var p = x.player || {}, ow = p.ownership || {};
       if (p.fullName && ow.percentOwned != null) {
-        o[p.fullName] = [Math.round(ow.percentOwned * 10) / 10, Math.round((ow.percentChange || 0) * 100) / 100, Math.round((ow.percentStarted || 0) * 10) / 10];
+        o[p.fullName] = [Math.round(ow.percentOwned * 10) / 10, Math.round((ow.percentChange || 0) * 100) / 100, Math.round((ow.percentStarted || 0) * 10) / 10, p.id || 0];  // [3] = ESPN id, for player photos in the NEW ARP look
         any = true;
       }
     });
