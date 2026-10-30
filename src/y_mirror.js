@@ -81,9 +81,9 @@ document.addEventListener("click",e=>{if(e.target.closest("#mLogin")){GATE.want=
 
 // Display is locked to the default look when nobody is logged in (2.6, Arp): Match device theme,
 // no team colors, Auto layout, Stats table rows. Logging in brings back that team's own settings.
-function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";NBASTR="bold";applyNbaTheme();}
-function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";NBASTR=localStorage.getItem("dfNbaStr")||"bold";}catch(e){}
-  applyTheme();applyLayout();applyNbaTheme();}
+function displayDefaults(){document.documentElement.classList.add("dslock");THEME="auto";applyTheme();LAYOUT="auto";applyLayout();RSTYLE="table";NBATHEME="";NBASTR="bold";applyNbaTheme();if(typeof applyStyle==="function"){STYLE="classic";applyStyle();}}
+function displayLocal(){document.documentElement.classList.remove("dslock");try{THEME=localStorage.getItem("dfTheme")||"auto";LAYOUT=localStorage.getItem("dfLayout")||"auto";RSTYLE=localStorage.getItem("dfRStyle")||"table";NBATHEME=localStorage.getItem("dfNbaTheme")||"";NBASTR=localStorage.getItem("dfNbaStr")||"bold";if(typeof applyStyle==="function")STYLE=localStorage.getItem("dfStyle")==="arp"?"arp":"classic";}catch(e){}
+  applyTheme();applyLayout();applyNbaTheme();if(typeof applyStyle==="function")applyStyle();}
 {const _ss=saveSession;saveSession=function(s){const had=!!SESSION;_ss.apply(this,arguments);if(!!s===had)return;s?displayLocal():displayDefaults();if(L)try{render();}catch(e){}};}
 setTimeout(()=>{if(!SESSION){displayDefaults();if(L)try{render();}catch(e){}}},0);
 document.addEventListener("click",e=>{if(!SESSION&&e.target.closest("[data-ds],[data-nbat]")){e.stopImmediatePropagation();e.preventDefault();toast("Log in to change the display settings.");}},true);
