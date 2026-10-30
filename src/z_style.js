@@ -265,12 +265,50 @@ const ARP_PHONE=`html.arp body@ .navwrap{left:12px;right:12px;bottom:calc(8px + 
 html.arp.nbat:not(.nbasub) body@ .navwrap{border-top:0;box-shadow:0 14px 34px -14px rgba(10,16,30,.45),0 0 0 2px var(--nba2)}
   html.arp.nbat:not(.nbasub) body@ .mainnav button[aria-selected="true"]{background:none;color:#fff}
   html.arpy body@ .arptitle h1{font-size:1.75rem}html.arpy body@ .arptitle{padding:2px 2px 0}`;
+const ARP_EXTRA=`/* ---- 2.18 extras (BUG-193..196): live score pill, hot/cold, W/L stamp, loading shimmer ---- */
+#arpLive{position:fixed;left:50%;top:10px;z-index:60;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 10px;border:0;border-radius:999px;
+  background:rgba(14,20,34,.88);color:#fff;-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 10px 26px -10px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.1);
+  font:700 .8rem/1 "Archivo",system-ui,sans-serif;cursor:pointer;opacity:0;pointer-events:none;transform:translate(-50%,-24px);transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
+#arpLive.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+#arpLive .lv{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.7);font-size:.66rem;letter-spacing:.06em}
+#arpLive .lv i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.45)}
+#arpLive.in .lv{color:#ff5d5d}#arpLive.in .lv i{background:#ff4d4d;animation:arplvp 1.6s infinite}
+@keyframes arplvp{0%{box-shadow:0 0 0 0 rgba(255,77,77,.7)}70%{box-shadow:0 0 0 7px rgba(255,77,77,0)}100%{box-shadow:0 0 0 0 rgba(255,77,77,0)}}
+#arpLive .tm{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.6rem;color:#fff}
+#arpLive .sc{font-stretch:125%;font-size:1.02rem;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+#arpLive .sc .w{color:#5fe39a}#arpLive .sc .l{color:#ff8a8a}
+#arpLive .go{opacity:.55;font-size:.9rem;margin-left:2px}
+@media (min-width:641px){body:not(.fold) #arpLive{top:auto!important;bottom:24px;left:auto;right:96px;transform:translateY(24px)}body:not(.fold) #arpLive.on{transform:none}}
+body.duow #arpLive{display:none}
+.arpface .arphc{position:absolute;right:-5px;top:-5px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:10px;line-height:1;z-index:2;box-shadow:0 0 0 2px var(--surface)}
+.arpface.xl .arphc{width:26px;height:26px;font-size:15px;right:-2px;top:-2px}
+.arpface .arphc.hot{background:linear-gradient(160deg,#ffb23e,#ff4d1f);animation:arpflick 1.8s ease-in-out infinite}
+.arpface .arphc.cold{background:linear-gradient(160deg,#9fe0ff,#3d8bff)}
+@keyframes arpflick{50%{transform:scale(1.12) rotate(-6deg)}}
+html.arp .arpface{overflow:visible}
+html.arp .hero>.arpstamp{position:absolute;left:50%;top:50%;z-index:3;transform:translate(-50%,-50%) rotate(-12deg);pointer-events:none;width:max-content;
+  font:900 3.4rem/1 "Archivo",sans-serif;font-stretch:125%;letter-spacing:.02em;color:#5fe39a;padding:2px 18px 4px;border:5px solid currentColor;border-radius:14px;
+  text-shadow:0 0 18px rgba(95,227,154,.45);background:rgba(10,16,30,.35)}
+html.arp .hero>.arpstamp.drop{animation:arpstamp .6s cubic-bezier(.2,1.6,.4,1) both .25s}
+html.arp .hero>.arpstamp.l{color:#ff8a8a;text-shadow:0 0 18px rgba(255,138,138,.4)}
+html.arp .hero>.arpstamp.t{color:#e8edf4;text-shadow:none}
+html.arp .hero>.arpstamp small{display:block;font-size:.72rem;letter-spacing:.14em;text-align:center;margin-top:2px;font-stretch:100%}
+@keyframes arpstamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.6)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
+html.arp .hero.arpfinal .hmid{opacity:.25}
+.arpsk{display:flex;flex-direction:column;gap:12px}
+.arpsk .b{display:block;border-radius:16px;background:linear-gradient(100deg,var(--chip) 30%,color-mix(in srgb,var(--chip) 55%,var(--surface)) 50%,var(--chip) 70%);background-size:300% 100%;animation:arpshim 1.3s linear infinite}
+@keyframes arpshim{0%{background-position:100% 0}100%{background-position:0 0}}
+.arpsk .row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.arpsk .c{width:36px;height:36px;border-radius:50%;flex:none}
+.arpsk .ln{height:11px;border-radius:6px}
+.arpsk .panel{padding:14px}
+@media (prefers-reduced-motion:reduce){#arpLive,#arpLive .lv i,html.arp .hero>.arpstamp,.arpface .arphc.hot,.arpsk .b{animation:none!important;transition:none!important}}`;
 function applyStyle(){const de=document.documentElement,on=STYLE==="arp";["arp","arpx","arpy","arpz"].forEach(c=>de.classList.toggle(c,on));
   // back to Classic: take out what arpDeco added (render() redraws the rows without photos)
-  if(!on){document.querySelectorAll("#arpTitle,.arptug,.arpsplit,.arpthumb,.arppill").forEach(x=>x.remove());document.querySelectorAll(".arpseg").forEach(x=>x.classList.remove("arpseg"));return;}
+  if(!on){document.querySelectorAll("#arpTitle,.arptug,.arpsplit,.arpthumb,.arppill,#arpLive,.arpstamp,.arphc").forEach(x=>x.remove());document.querySelectorAll(".arpseg").forEach(x=>x.classList.remove("arpseg"));return;}
   if(!document.getElementById("arpFonts")){const l=document.createElement("link");l.id="arpFonts";l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Archivo+Narrow:wght@500..700&display=swap";document.head.appendChild(l);}
   if(!document.getElementById("arpCss")){const s=document.createElement("style");s.id="arpCss";
-    s.textContent=ARP_CSS+"\n@media (max-width:640px){"+ARP_PHONE.replace(/@/g,":not(.duow)")+"}\n"+ARP_PHONE.replace(/@/g,".fold:not(.duow)");document.head.appendChild(s);}
+    s.textContent=ARP_CSS+"\n"+ARP_EXTRA+"\n@media (max-width:640px){"+ARP_PHONE.replace(/@/g,":not(.duow)")+"}\n"+ARP_PHONE.replace(/@/g,".fold:not(.duow)");document.head.appendChild(s);}
   arpDeco();}
 function setStyle(v){STYLE=v==="arp"?"arp":"classic";try{localStorage.setItem("dfStyle",STYLE);}catch(e){}applyStyle();if(L)try{render();}catch(e){}}
 // Display sheet gets a Look row at the top
@@ -285,7 +323,15 @@ const arpAbbr=t=>(String(t).trim().match(/^([A-Z]{2,4})\b/)||[])[1];
 function arpFace(name,team,cls){const s=document.createElement("span");s.className="arpface "+(cls||"");const sh=arpShot(name),lg=arpLogo(team);
   s.innerHTML=`<i>${esc(name.split(/\s+/).map(w=>w[0]).join("").slice(0,2))}</i>${sh?`<img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${sh}">`:""}${lg?`<img class="arptl" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${lg}">`:""}`;
   const im=s.querySelector("img:not(.arptl)");if(im){im.onload=()=>s.classList.add("in");im.onerror=()=>im.remove();}
-  const tl=s.querySelector(".arptl");if(tl)tl.onerror=()=>tl.remove();return s;}
+  const tl=s.querySelector(".arptl");if(tl)tl.onerror=()=>tl.remove();
+  const hc=arpHC(name);if(hc)s.insertAdjacentHTML("beforeend",`<span class="arphc ${hc}" title="${hc==="hot"?"Hot: last 5 games well above his season average":"Cold: last 5 games well below his season average"}">${hc==="hot"?"🔥":"❄"}</span>`);return s;}
+// hot / cold: his last 5 games against his whole season (points, boards, assists, steals, blocks, threes), 25% either way, 10+ games
+const arpVal=l=>l[K.PTS]+l[K.REB]+1.4*l[K.AST]+2.2*l[K.STL]+2.2*l[K.BLK]+l[K.TPM];
+let ARP_HC={},ARP_HCK="";
+function arpHC(n){const k=TODAY+":"+Object.keys(STATS).length;if(k!==ARP_HCK){ARP_HC={};ARP_HCK=k;}if(n in ARP_HC)return ARP_HC[n];
+  const ls=Object.entries(DAYLINES[n]||{}).filter(([sp,l])=>+sp<=TODAY&&l[K.MIN]>0).sort((a,b)=>a[0]-b[0]).map(([,l])=>arpVal(l));let r="";
+  if(ls.length>=10){const all=ls.reduce((a,v)=>a+v,0)/ls.length,l5=ls.slice(-5).reduce((a,v)=>a+v,0)/5;if(all>0)r=l5>=all*1.25?"hot":l5<=all*.75?"cold":"";}
+  return ARP_HC[n]=r;}
 let ARP_REC="";
 function arpDeco(){if(STYLE!=="arp")return;
   // photos: My Team / Matchup rows, player lists, player card
@@ -316,6 +362,31 @@ function arpDeco(){if(STYLE!=="arp")return;
   const nav=document.getElementById("mainnav"),on=nav?.querySelector('button[aria-selected="true"]'),sv=on?.querySelector("svg");
   if(nav&&sv){let pl=nav.querySelector(":scope>.arppill");if(!pl){pl=document.createElement("i");pl.className="arppill";nav.prepend(pl);}const r=sv.getBoundingClientRect(),n=nav.getBoundingClientRect();
     pl.style.transform=`translate(${r.left-n.left+nav.scrollLeft}px,${r.top-n.top}px)`;pl.style.width=r.width+"px";pl.style.height=r.height+"px";}}
-{let q=0;new MutationObserver(()=>{if(q||STYLE!=="arp")return;q=requestAnimationFrame(()=>{q=0;arpDeco();});}).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["aria-selected","aria-pressed"]});
-  addEventListener("resize",()=>{if(STYLE==="arp")requestAnimationFrame(arpDeco);});}
+// live score pill, W/L stamp: kept apart from arpDeco, which has its own local "nav"
+const arpRM=()=>matchMedia("(prefers-reduced-motion:reduce)").matches;
+function arpExtras(){if(STYLE!=="arp"||!L)return;const me=cur,opp=M.opp,ok=TEAMS[me]&&opp&&TEAMS[opp];
+  // 1 live score pill: this week's matchup, on every screen but Matchup once you scroll down (on My Team, past the score card)
+  let lp=document.getElementById("arpLive");const nowWk=wk&&wk[1]<=TODAY&&TODAY<=wk[2];
+  const card=nav==="team"&&document.querySelector("#heroWrap:not([hidden]) .hero,.ptscore"),past=card?card.getBoundingClientRect().bottom<60:scrollY>140;
+  const show=ok&&nowWk&&nav!=="matchup"&&nav!=="draft"&&past&&!document.body.classList.contains("duow");
+  if(show){if(!lp){lp=document.createElement("button");lp.id="arpLive";lp.type="button";lp.onclick=()=>setNav("matchup");document.body.appendChild(lp);}
+    const r=h2h(fcProj(me).now,fcProj(opp).now),inG=!!(LIVE&&LIVE.day===TODAY&&Object.values(LIVE.g||{}).some(g=>g.s==="in"));
+    const bd=id=>`<span class="tm" style="background:var(${id===me?"--s-me":"--s-op"})">${esc(TEAMS[id].name.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase())}</span>`;
+    const h=`<span class="lv"><i></i>${inG?"LIVE":"WK "+wk[0]}</span>${bd(me)}<span class="sc"><span class="${r[0]>r[1]?"w":""}">${r[0]}</span>-<span class="${r[1]>r[0]?"l":""}">${r[1]}</span>-${r[2]}</span>${bd(opp)}<span class="go">›</span>`;
+    if(lp.innerHTML!==h)lp.innerHTML=h;lp.classList.toggle("in",inG);lp.setAttribute("aria-label",`Matchup ${r.join("-")} against ${TEAMS[opp].name}. Open Matchup`);
+    if(PHONE()){const b=document.querySelector(".bar"),y=Math.max(b?b.getBoundingClientRect().bottom:0,0)+8+"px";if(lp.style.top!==y)lp.style.top=y;}
+    if(!lp.classList.contains("on"))requestAnimationFrame(()=>lp.classList.add("on"));}
+  else if(lp&&lp.classList.contains("on"))lp.classList.remove("on");
+  // 3 W/L stamp once the matchup week is done; it drops in the first time per week per login (the app's own confetti covers a win)
+  const h=nav==="matchup"&&document.querySelector(".hero");
+  if(h&&ok&&wk&&weekDone(wk[0])&&!h.querySelector(".arpstamp")){const r=h2h(wt(me,wk[0]),wt(opp,wk[0])),res=r[0]>r[1]?"W":r[0]<r[1]?"L":"T";
+    const key=`${SEASON}_${wk[0]}_${me}_${prefKey()||"view"}`;let seen=[];try{seen=JSON.parse(localStorage.getItem("dfArpStamp")||"[]");}catch(e){}
+    const first=!seen.includes(key)&&!arpRM();if(first){seen=[...seen,key].slice(-60);try{localStorage.setItem("dfArpStamp",JSON.stringify(seen));}catch(e){}}
+    h.classList.add("arpfinal");h.insertAdjacentHTML("beforeend",`<div class="arpstamp ${res==="W"?"":res.toLowerCase()}${first?" drop":""}" aria-label="Final ${res==="W"?"win":res==="L"?"loss":"tie"} ${r.join("-")}">${res}<small>FINAL ${r.join("-")}</small></div>`);}}
+// 5 loading shimmer: grey blocks shaped like the screen while the league loads
+const arpSkel=()=>{const row=`<div class="row"><span class="b c"></span><div style="flex:1;display:grid;gap:6px"><span class="b ln" style="width:55%"></span><span class="b ln" style="width:32%;height:9px"></span></div><span class="b ln" style="width:56px;height:22px;border-radius:999px"></span></div>`;
+  return `<div class="arpsk" role="status" aria-label="Loading league"><div class="b" style="height:128px;border-radius:22px"></div><div class="b" style="height:38px;border-radius:14px"></div><section class="panel">${row.repeat(7)}</section></div>`;};
+{let q=0;new MutationObserver(()=>{if(q||STYLE!=="arp")return;q=requestAnimationFrame(()=>{q=0;arpDeco();arpExtras();});}).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["aria-selected","aria-pressed"]});
+  addEventListener("resize",()=>{if(STYLE==="arp")requestAnimationFrame(arpDeco);});
+  let sq=0;addEventListener("scroll",()=>{if(sq||STYLE!=="arp")return;sq=requestAnimationFrame(()=>{sq=0;arpExtras();});},{passive:true});}
 applyStyle();

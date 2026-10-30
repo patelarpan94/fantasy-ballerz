@@ -79,6 +79,7 @@ function renderRosters(){
   fitScrolls();tick();renderMovePop();
 }
 function emptyLeague(){
+  if(!booted)try{if(STYLE==="arp")return arpSkel();}catch(e){}
   if(!booted)return `<section class="panel emptyst"><h2>Loading league</h2><p>Fetching the season, rosters and scores.</p></section>`;
   return `<section class="panel emptyst"><h2>No league yet</h2><p>${isCommish()?"Create the first season to set teams, categories and the draft.":"The commissioner hasn't created a season yet."}</p>
   ${isCommish()?`<div class="row" style="justify-content:center;margin-top:12px"><input type="text" id="newSeason" value="${seasonLabel()}" aria-label="Season name"><button class="btn" data-create="1">Create season</button></div>`:""}</section>`;
