@@ -80,13 +80,20 @@ c = sub(c, "const keep=new Set(Object.values(H));", "const keep=new Set(Object.v
 oh = sub(r("o_hist.js"), "fetch(`hist/${s}.json`)", "fetch(`${DF_ASSETS}hist/${s}.json`)", "hist path")
 ps = sub(r("p_shots.js"), "fetch(`hist/shots/${s}/${t}.json`)", "fetch(`${DF_ASSETS}hist/shots/${s}/${t}.json`)", "shots path")
 
+# NEW ARP look: ESPN player ids by name from the History files, newest season last so it wins (for player photos)
+_ids = {}
+for f in sorted(os.listdir(os.path.join(ROOT, "hist"))):
+    if f.endswith(".json"):
+        for pid, nm in json.load(open(os.path.join(ROOT, "hist", f))).get("p", []): _ids[nm] = int(pid)
+zs = sub(r("z_style.js"), "/*ARPIDS*/{}", json.dumps(_ids, separators=(",", ":"), ensure_ascii=False), "player ids")
+
 hp = r("help.html")
 hp = sub(hp, "<li id=\"hRefreshLi\"><b>Refresh</b>: for the commissioner it starts a pull in Claude's cloud. New data shows on everyone's devices a few minutes later. Everyone else gets new data on its own.</li>",
          "<li id=\"hRefreshLi\">Data updates on its own while the app is open: every minute while NBA games are on, and every hour otherwise. <b>Refresh</b> checks right away, and for the commissioner it also starts a full ESPN pull.</li>", "help refresh")
 
 body = (a + r("b_board.js") + r("b2_tracker.js") + c + r("e_ui.js") + r("f_feat.js") + r("g_anim.js") + r("h_shots.js") + r("i_rel.js")
         + r("j_prefs.js") + r("n_colors.js") + r("k_waivers.js") + r("l_trades.js") + r("m_wow.js") + oh + ps + r("q_compare.js")
-        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + r("y_mirror.js") + d)
+        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + r("y_mirror.js") + zs + d)
 
 # the touch layout for wider screens: copy every phone-width rule under body.fold (same as the artifact build)
 def fold(css):
