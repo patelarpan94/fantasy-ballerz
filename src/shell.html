@@ -1299,6 +1299,19 @@ section.ancol>:not(.teamhead){display:none!important}
 @media (max-width:640px){.wgrid{grid-template-columns:1fr;gap:12px}.wpr{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}.wpr li{font-size:.82rem}}
 .hsearch{padding:0 16px 8px}.hsearch input{width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:inherit;font:inherit}
 .help h4{margin:14px 0 6px;font-size:.9rem}
+/* 2.20 player compare (zb_pcmp.js) */
+.pcx .pcxbar{padding-top:2px}
+.pcxt tr.pcxsec th{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:12px 12px 4px;border-bottom:1px solid var(--line);background:transparent;width:auto}
+.pcxt th small{display:block;font-size:.62rem;letter-spacing:.02em;text-transform:none;font-weight:500}
+.pcxt td small.pcxma{display:block;font-size:.7rem;color:var(--muted);font-weight:500}
+.pcxt td.best small.pcxma{color:var(--win)}
+.pcxt tr.pcxoff th,.pcxt tr.pcxoff td{color:var(--muted);font-weight:400}
+.pcxtake{margin:0 14px 10px;padding:9px 12px;border-radius:10px;background:var(--past,rgba(127,127,127,.08));font-size:.86rem;line-height:1.45}
+.pcxlogs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;padding:0 14px 10px}
+.pcxlog h4{margin:6px 0;font-size:.9rem}
+.pcxlt{width:100%}.pcxlt th,.pcxlt td{padding:5px 6px;font-size:.78rem;white-space:nowrap}
+.pcxlt td.nm{text-align:left}.pcxlt tr.pcxbest td{background:var(--win-wash,rgba(34,160,90,.14));font-weight:700}
+@media (max-width:640px){.pcxlogs{grid-template-columns:1fr;padding:0 8px 10px}.pcxtake{margin:0 8px 10px}}
 </style>
 
 <div class="bar gut">
