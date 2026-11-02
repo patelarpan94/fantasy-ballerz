@@ -242,7 +242,7 @@ function allView(){
   const tot=pjMode==="tot",all=allPlayers(),sr=seasonRanked();
   let list=all.filter(r=>matches(r.n)&&(!apTop||(rankOf(r,sr)!=null&&rankOf(r,sr)<=apTop))&&(apPos==="all"||(r.el||[]).includes(SLOT_ID[apPos]))&&(apOwn==="all"||(apOwn==="fa"?r.oid===0:apOwn==="ros"?r.oid!==0:String(r.oid)===apOwn)));
   const leftOf=r=>DAYS.filter(sp=>upcoming(r.t,sp)&&gameOn(r.t,sp)).length;
-  const keyOf={rank:r=>-(rankOf(r,sr)??9999),name:r=>r.n,team:r=>r.own,left:leftOf,rost:r=>rostPct(r.n)??-1,gp:r=>statOf(apSrc(r),"gp",tot)??-1,min:r=>statOf(apSrc(r),"min",tot)??-1};
+  const keyOf={rank:r=>-(rankOf(r,sr)??9999),name:r=>r.n,team:r=>r.own,left:leftOf,rost:r=>rostPct(r.n)??-1,gp:r=>statOf(apSrc(r),"gp",tot)??-1,min:r=>statOf(apSrc(r),"min",tot)??-1,usg:r=>apMode==="proj"?-1:(pcxUsgOf(r.n)??-1)};
   CATS.forEach(c=>keyOf[c[0]]=r=>statOf(apSrc(r),c,tot)??-1);
   const desc=!apSort.startsWith("-"),k=apSort.replace(/^-/,""),f=keyOf[k]||keyOf.rank;
   list.sort((a,b)=>{const x=f(a),y=f(b);const c=typeof x==="string"?x.localeCompare(y):(y-x);return desc?c:-c;});
@@ -265,8 +265,10 @@ function allView(){
     rankC={w:54,h:()=>th("rank","Rank"),d:r=>`<td class="r num${rankOf(r,sr)?"":" zero"}">${rankOf(r,sr)??"–"}</td>`},
     rostC={w:116,h:()=>th("rost","Rost %"),d:r=>`<td class="r num rost${rostPct(r.n)==null?" zero":""}">${rostTxt(r.n)}</td>`},
     leftC={w:50,h:()=>th("left","Left","c"),d:r=>`<td class="c"><span class="left">${leftOf(r)}</span></td>`},
+    usgC={w:ph?56:64,h:()=>th("usg","USG%"),d:r=>{const v=pcxUsgOf(r.n);return `<td class="r num${v==null?" zero":""}" title="Usage rate this season">${v==null?"–":(v*100).toFixed(1)}</td>`;}},
     statC=c=>({w:ph?(c==="min"?52:50):c==="gp"?48:c==="min"?60:64,h:()=>typeof c==="string"?th(c,c.toUpperCase()):th(c[0],c[0]),d:r=>{const v=statOf(apSrc(r),c,tot);return `<td class="r num${v==null?" zero":""}">${fmtStat(v,c,tot)}</td>`;}});
-  const cols=ph?[plC,...CATS.map(statC),leftC,rankC,rostC,teamC,statC("gp"),statC("min"),cmpC]:[cmpC,plC,actC,teamC,rankC,rostC,leftC,statC("gp"),statC("min"),...CATS.map(statC)];
+  const U=apMode==="proj"?[]:[usgC];
+  const cols=ph?[plC,...CATS.map(statC),leftC,rankC,rostC,teamC,statC("gp"),statC("min"),...U,cmpC]:[cmpC,plC,actC,teamC,rankC,rostC,leftC,statC("gp"),statC("min"),...U,...CATS.map(statC)];
   const rows=shown.map(r=>`<tr${CMP.includes(r.k)?' class="cmpon"':""}>${cols.map(c=>c.d(r)).join("")}</tr>`).join("");
   const who=T?`Acting for <b>${esc(TEAMS[T]?.name||"")}</b> · ${rosterNow(T).length}/${ROSTER_MAX} on the roster${+L.addLimit?` · ${pickupTxt(T)}`:""}`:"Log in with your team code to add, drop and trade";
   if(APV==="market")return playersTop()+espnTrend()+marketHot();

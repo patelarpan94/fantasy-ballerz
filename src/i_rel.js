@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.20",date:"2026-11-02",title:"Player compare upgrade",notes:[
+    ["200","New","Players › Compare (Season so far) shows much more: usage %, shots a game (FGA, 3PA, FTA), makes and attempts under FG%, FT% and 3P%, true shooting %, and turnovers (greyed, since they aren't one of our categories). Rows are grouped into Role, Categories, Shooting and Not a category."],
+    ["201","New","Compare has time windows: Season, Last 14, Last 7 or Custom dates, plus a Game log switch that lists each player's games side by side with his best game for our categories starred."],
+    ["202","New","Compare writes a takeaway line: who wins how many categories, who has the bigger role, and when a player is well above or below his own last season (from the History database). Small samples are flagged."],
+    ["203","New","Player cards have a Compare with… button that adds the player to Players › Compare, so you can line up anyone from anywhere in the app."],
+    ["204","New","Players list (Season) has a USG% column: each player's usage rate this season, the share of his team's plays he uses while on the court. Tap the header to sort by it. Players need 10+ minutes a game (30+ total) to get a number, so garbage-time players don't top the list."]]},
   {v:"2.19",date:"2026-11-02",title:"Trade targets",notes:[
     ["197","New","Analytics › Trade targets: pick any team and see it lined up against yours, category by category: each team's per-game totals and league rank, who has the edge, your projected record if you played them, and what each side needs that the other has to spare. The team list shows how many categories match up with each team."],
     ["198","New","Trade targets suggests trades aimed at that team: 1 for 1, 2 for 2, 2 for 1 and 1 for 2, scored by how many more categories each team would expect to win in a week. Only trades that help both teams show. Sort by Fair for both or Best for you, switch between ESPN projections and Season so far, and tap Compare or Offer this trade. It also lists their players who fit you best and your players they'd want most."],
