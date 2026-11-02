@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.21",date:"2026-11-02",title:"Trash talk",notes:[
+    ["205","New","Fun › Trash talk: pick a team (this week's opponent by default) and get ammo from real league numbers: the live score and win odds, starts left, their worst category and your best one, the last time you met, standings, losing streaks, the taco, bench points, OUT players still in their lineup and a quiet waiver wire. Strongest facts come first."],
+    ["206","New","Every fact comes with ready lines. Tap 🎲 for another line, Copy it, or open league chat or a DM to them with the line filled in, so you can edit it before you send."],
+    ["207","New","Trash talk also shows Incoming (what they could say about you, so you have an answer ready) and a short playbook on how to talk trash with stats, marking the rules you have ammo for."]]},
   {v:"2.20",date:"2026-11-02",title:"Player compare upgrade",notes:[
     ["200","New","Players › Compare (Season so far) shows much more: usage %, shots a game (FGA, 3PA, FTA), makes and attempts under FG%, FT% and 3P%, true shooting %, and turnovers (greyed, since they aren't one of our categories). Rows are grouped into Role, Categories, Shooting and Not a category."],
     ["201","New","Compare has time windows: Season, Last 14, Last 7 or Custom dates, plus a Game log switch that lists each player's games side by side with his best game for our categories starred."],
