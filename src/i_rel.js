@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.19",date:"2026-11-02",title:"Trade targets",notes:[
+    ["197","New","Analytics › Trade targets: pick any team and see it lined up against yours, category by category: each team's per-game totals and league rank, who has the edge, your projected record if you played them, and what each side needs that the other has to spare. The team list shows how many categories match up with each team."],
+    ["198","New","Trade targets suggests trades aimed at that team: 1 for 1, 2 for 2, 2 for 1 and 1 for 2, scored by how many more categories each team would expect to win in a week. Only trades that help both teams show. Sort by Fair for both or Best for you, switch between ESPN projections and Season so far, and tap Compare or Offer this trade. It also lists their players who fit you best and your players they'd want most."],
+    ["199","Change","League › Trades has a Target a team button next to Find trades, and the Trade finder card links to Trade targets."]]},
   {v:"2.18",date:"2026-10-30",title:"New Era look",notes:[
     ["187","New","Display (◐) › Look has a new choice, New Era, next to Classic. It has new fonts, a frosted header, a tab bar that floats above the page on phones, rounder cards without outlines, and one pill style for every switch. Matchup's score card becomes a dark scoreboard with a big record. Works with Light, Dark, team colors and every layout, and it's saved for your login. Classic stays exactly as it was."],
     ["188","New","New Era extras: a soft glow in your color at the top of the page, My Team's score line as a mini scoreboard, bigger section titles, category leaders in a green pill, a glow on the selected day, and buttons that give a little when you tap them."],

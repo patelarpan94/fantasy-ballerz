@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261030164134"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261102172130"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1404,6 +1404,15 @@ td.rost{white-space:nowrap}
 .tfwhy .okc{font-weight:600}
 .tfdot{color:var(--faint)}
 .tfacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* trade targets (2.19) */
+.ttfit{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 10px}
+.ttfit>div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--accent-wash)}
+.ttfit .muted{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.ttab td small{display:block;color:var(--muted);font-size:.68rem;font-weight:400}
+.ttag{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.ttag.get{background:var(--win-wash,rgba(34,160,90,.14));color:var(--win)}
+.ttag.give{background:var(--accent-wash);color:var(--accent)}
+.tfdeal>span .nmb{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tfsheet{margin:0;box-shadow:none;border:0}
 /* pick'em */
 .pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:10px;padding:12px 14px}
@@ -1444,6 +1453,7 @@ td.rost{white-space:nowrap}
 .wbig{font-size:1.1rem}
 .tfdeal{gap:6px}
 .tfdeal .muted{font-size:.62rem}
+.ttfit{grid-template-columns:1fr;padding:0 10px 10px}
 }
 /* tracker legend (its .key clashed with the login keypad) */
 .teamhead .legend{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:.78rem;color:var(--muted)}
@@ -1860,6 +1870,7 @@ body.fold .wcards{grid-template-columns:1fr 1fr;padding:10px}
 body.fold .wbig{font-size:1.1rem}
 body.fold .tfdeal{gap:6px}
 body.fold .tfdeal .muted{font-size:.62rem}
+body.fold .ttfit{grid-template-columns:1fr;padding:0 10px 10px}
 body.fold .shgrid,body.fold .shgrid.two{grid-template-columns:1fr;padding:6px 10px}
 body.fold .hfilters{display:grid;grid-template-columns:1fr 1fr;padding:10px}
 body.fold .hfq{grid-column:1/-1}
@@ -4279,6 +4290,10 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.19",date:"2026-11-02",title:"Trade targets",notes:[
+    ["197","New","Analytics › Trade targets: pick any team and see it lined up against yours, category by category: each team's per-game totals and league rank, who has the edge, your projected record if you played them, and what each side needs that the other has to spare. The team list shows how many categories match up with each team."],
+    ["198","New","Trade targets suggests trades aimed at that team: 1 for 1, 2 for 2, 2 for 1 and 1 for 2, scored by how many more categories each team would expect to win in a week. Only trades that help both teams show. Sort by Fair for both or Best for you, switch between ESPN projections and Season so far, and tap Compare or Offer this trade. It also lists their players who fit you best and your players they'd want most."],
+    ["199","Change","League › Trades has a Target a team button next to Find trades, and the Trade finder card links to Trade targets."]]},
   {v:"2.18",date:"2026-10-30",title:"New Era look",notes:[
     ["187","New","Display (◐) › Look has a new choice, New Era, next to Classic. It has new fonts, a frosted header, a tab bar that floats above the page on phones, rounder cards without outlines, and one pill style for every switch. Matchup's score card becomes a dark scoreboard with a big record. Works with Light, Dark, team colors and every layout, and it's saved for your login. Classic stays exactly as it was."],
     ["188","New","New Era extras: a soft glow in your color at the top of the page, My Team's score line as a mini scoreboard, bigger section titles, category leaders in a green pill, a glow on the selected day, and buttons that give a little when you tap them."],
@@ -5012,7 +5027,7 @@ function tradeFinderView(T){
       <div class="tfwhy"><span class="okc">You gain ${x.up.join(", ")}</span><span class="tfdot">·</span><span>They gain ${x.down.join(", ")}</span></div>
       <div class="tfacts"><button class="mini-b" data-tfcmp="${i}">Compare</button>${can?`<button class="btn sm" data-tfoffer="${i}">Offer this trade</button>`:""}</div></li>`).join("")}</ol>`:`<p class="empty">No fair swaps found that help both sides right now.</p>`;
   tradeFinderView.list=list;tradeFinderView.T=T;
-  return sec("Trade finder",`Fair 1-for-1 swaps that help ${esc(teamName(T))}${weak.length?` in ${weak.join(", ")}`:""} and the other team where they're weak · ESPN projections`,body+`<p class="anote">Each team's weak categories (bottom third of the league) count more and strong ones count less, so both sides come out ahead. Swaps are kept to players of similar overall value.${mirror()?" Trades run in ESPN while the app mirrors it.":""}</p>`);
+  return sec("Trade finder",`Fair 1-for-1 swaps that help ${esc(teamName(T))}${weak.length?` in ${weak.join(", ")}`:""} and the other team where they're weak · ESPN projections`,body+`<p class="anote">Each team's weak categories (bottom third of the league) count more and strong ones count less, so both sides come out ahead. Swaps are kept to players of similar overall value. <button class="tlink inl" data-sub-go="analytics:tgt">Trade targets</button> finds trades aimed at one team, including 2-for-2 deals.${mirror()?" Trades run in ESPN while the app mirrors it.":""}</p>`);
 }
 function openCmp(A,B,give,get){openSheet("Compare trade",`<div id="tcBox">${tradeCmpHtml(A,B,give,get)}</div><p class="flabel">Trade check</p>${tradeImpactHtml(tnum(A),tnum(B),give,get)}<div class="sheetacts"><button class="btn" data-sheet="close">Done</button></div>`);openTradeCompare.id=null;openCmp.last=[A,B,give,get];}
 function offerTrade(O,give,get){sheetTradeWith(O,get[0]);const body=$("#sheetBody");
@@ -6410,6 +6425,127 @@ function displayLocal(){document.documentElement.classList.remove("dslock");try{
 {const _ss=saveSession;saveSession=function(s){const had=!!SESSION;_ss.apply(this,arguments);if(!!s===had)return;s?displayLocal():displayDefaults();if(L)try{render();}catch(e){}};}
 setTimeout(()=>{if(!SESSION){displayDefaults();if(L)try{render();}catch(e){}}},0);
 document.addEventListener("click",e=>{if(!SESSION&&e.target.closest("[data-ds],[data-nbat]")){e.stopImmediatePropagation();e.preventDefault();toast("Log in to change the display settings.");}},true);
+
+/* ============================================================================
+   TRADE TARGETS (2.19, 2026-11-02): Analytics › Trade targets. Pick one team
+   and the app lines it up against yours category by category (per-game
+   totals and league ranks), says what each side has to spare and what it
+   needs, and suggests 1-for-1, 2-for-1, 1-for-2 and 2-for-2 trades aimed at
+   that team. Every trade is scored by how many more categories each team
+   would expect to win in a week against the rest of the league, so a
+   suggestion only shows if both teams come out ahead.
+   ============================================================================ */
+const TT={o:null,mode:"proj",sort:"fair",size:"all"};
+try{Object.assign(TT,JSON.parse(localStorage.getItem("dfTgt")||"{}"));}catch(e){}
+const saveTT=()=>{try{localStorage.setItem("dfTgt",JSON.stringify(TT));}catch(e){}};
+// per-game line used everywhere in this tool: ESPN projection or season so far; OUT players count as nothing
+const ttLine=n=>{const D=DIR[n];if(!D||INJ[n]==="OUT")return null;return pgLine(TT.mode==="season"?(D.ss&&D.ss[11]?D.ss:null):D.pj);};
+// standard normal CDF (Abramowitz-Stegun), for the chance one team beats another in a category
+const ttPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p;};
+// the league picture: active (non-IR) rosters, per-game totals and the spread of each category across teams
+function ttLeague(){
+  const ids=L.teams.map(t=>tnum(t.id)).filter(x=>TEAMS[x]&&TEAMS[x].P.length),act={},S={},LN={};
+  ids.forEach(x=>{act[x]=activeNames(x);act[x].forEach(n=>{if(!(n in LN))LN[n]=ttLine(n);});S[x]=lineSum(act[x].map(n=>LN[n]));});
+  const sd={};CATS.forEach(c=>{const xs=ids.map(x=>val(S[x],c)),m=xs.reduce((a,b)=>a+b,0)/(xs.length||1);sd[c[0]]=Math.sqrt(xs.reduce((a,b)=>a+(b-m)**2,0)/(xs.length||1))||(c[1]==="pct"?.01:1);});
+  const rank=(x,c,SS=S)=>1+ids.filter(y=>val(SS[y],c)>val(SS[x],c)+1e-9).length;
+  return {ids,act,S,LN,sd,rank};
+}
+// expected categories won in one week against an average other team (out of CATS.length)
+function ttWins(G,x,SS){let s=0;const others=G.ids.filter(y=>y!==x);
+  others.forEach(y=>CATS.forEach(c=>{s+=ttPhi((val(SS[x],c)-val(SS[y],c))/G.sd[c[0]]);}));return others.length?s/others.length:0;}
+// the best healthy free agent, picked up by whichever team ends up with an open roster spot
+function ttBestFA(){let b=null,bz=-1e9;Object.values(DIR).forEach(D=>{if(ownerNow(D.n)||INJ[D.n]==="OUT")return;const l=ttLine(D.n),z=l?zOf(l):null;if(z!=null&&z>bz){bz=z;b=D.n;}});return b;}
+const ttCombos=(a,k)=>k===1?a.map(x=>[x]):a.flatMap((x,i)=>a.slice(i+1).map(y=>[x,y]));
+// every trade up to 2-for-2 between T and O, scored for both
+function ttTrades(T,O){
+  const G=ttLeague();if(!G.S[T]||!G.S[O])return {G,list:[]};
+  const fa=ttBestFA(),faL=fa?ttLine(fa):null,room=x=>ROSTER_MAX-rosterNow(x).length;
+  const baseT=ttWins(G,T,G.S),baseO=ttWins(G,O,G.S);
+  const mine=G.act[T].filter(n=>G.LN[n]),theirs=G.act[O].filter(n=>G.LN[n]),out=[];
+  const sizes=[[1,1],[2,1],[1,2],[2,2]].filter(([g,r])=>TT.size==="all"||TT.size===`${g}${r}`);
+  sizes.forEach(([ng,nr])=>{
+    // the team taking more players needs the roster spot; the team taking fewer picks up the best free agent
+    if(nr>ng&&room(T)<nr-ng)return;if(ng>nr&&room(O)<ng-nr)return;
+    const gs=ttCombos(mine,ng),rs=ttCombos(theirs,nr);
+    gs.forEach(give=>rs.forEach(get=>{
+      const gl=give.map(n=>G.LN[n]),rl=get.map(n=>G.LN[n]);
+      let nT=G.S[T].map((v,i)=>v-gl.reduce((s,l)=>s+l[i],0)+rl.reduce((s,l)=>s+l[i],0)),nO=G.S[O].map((v,i)=>v-rl.reduce((s,l)=>s+l[i],0)+gl.reduce((s,l)=>s+l[i],0));
+      if(faL&&ng>nr)nT=nT.map((v,i)=>v+faL[i]);if(faL&&nr>ng)nO=nO.map((v,i)=>v+faL[i]);
+      const SS={...G.S,[T]:nT,[O]:nO},a=ttWins(G,T,SS)-baseT,b=ttWins(G,O,SS)-baseO;
+      if(a<=.05||b<=.02)return;
+      out.push({give,get,a,b,nT,nO,fa:ng!==nr?fa:null});}));});
+  const key=TT.sort==="me"?(x=>x.a+.25*x.b):(x=>Math.min(x.a,x.b)+.2*(x.a+x.b));
+  // best first, each player in at most two ideas so the list isn't one name over and over
+  const seen={},pick=xs=>xs.filter(x=>{const ns=[...x.give,...x.get];if(ns.some(n=>(seen[n]||0)>=2))return false;ns.forEach(n=>seen[n]=(seen[n]||0)+1);return true;});
+  out.sort((x,y)=>key(y)-key(x));
+  // keep up to three straight 1-for-1 swaps in the list, so 2-player deals (which also add a free agent) don't crowd them out
+  const one=TT.size==="all"?pick(out.filter(x=>x.give.length===1&&x.get.length===1)).slice(0,3):[];
+  const list=one.concat(pick(out.filter(x=>!one.includes(x)))).sort((x,y)=>key(y)-key(x)).slice(0,10);
+  return {G,list,baseT,baseO};
+}
+let _ttc={k:"",v:null};
+function ttCached(T,O){const k=[T,O,TT.mode,TT.sort,TT.size,TODAY,ROSTER_MAX,rosterNow(T).join(),rosterNow(O).join(),Object.keys(INJ).length].join("|");if(_ttc.k!==k)_ttc={k,v:ttTrades(T,O)};return _ttc.v;}
+// what each side can give and needs: weak = bottom half of the league, and the other team is clearly better there
+function ttFit(G,T,O){const N=G.ids.length,half=N/2,need=[],give=[];
+  CATS.forEach(c=>{const rt=G.rank(T,c),ro=G.rank(O,c);if(rt>half&&ro<rt&&ro<=half)need.push([c[0],rt,ro]);if(ro>half&&rt<ro&&rt<=half)give.push([c[0],rt,ro]);});return {need,give};}
+// a player's per-category value (z), weighted toward the categories a team is weak in
+function ttWeights(G,x){const N=G.ids.length,w={};CATS.forEach(c=>{const r=G.rank(x,c);w[c[0]]=N>1?.4+1.2*(r-1)/(N-1):1;});return w;}
+function ttHelp(G,n,w){const l=G.LN[n];if(!l)return null;const zc=CATS.map(c=>({k:c[0],z:catZ(l,c)}));return {n,v:zc.reduce((s,x)=>s+x.z*w[x.k],0),helps:zc.filter(x=>x.z>.35&&w[x.k]>=1).sort((a,b)=>b.z*w[b.k]-a.z*w[a.k]).slice(0,3).map(x=>x.k)};}
+function targetView(){
+  if(!L||!Object.keys(TEAMS).length)return `<section class="panel emptyst"><h2>No data yet</h2><p>Trade targets fill in once rosters exist.</p></section>`;
+  const ids=L.teams.map(t=>tnum(t.id)).filter(x=>TEAMS[x]&&TEAMS[x].P.length),T=TEAMS[cur]?cur:ids[0];
+  if(ids.length<2)return `<section class="panel emptyst"><h2>Not enough teams</h2><p>Trade targets need at least two teams with players.</p></section>`;
+  if(TT.o==null||!TEAMS[TT.o]||+TT.o===+T)TT.o=ids.find(x=>x!==T);
+  const O=+TT.o,G0=ttLeague();
+  const opts=ids.filter(x=>x!==T).map(x=>{const f=ttFit(G0,T,x),m=Math.min(f.need.length,f.give.length);return `<option value="${x}"${x===O?" selected":""}>${esc(TEAMS[x].name)}${m?` · ${m} ${m===1?"match":"matches"}`:""}</option>`;}).join("");
+  const seg=(k,o)=>`<div class="tabs sm" role="group">${o.map(([v,l])=>`<button data-ttb="${k}:${v}" aria-selected="${TT[k]===v}">${l}</button>`).join("")}</div>`;
+  const controls=`<div class="hfilters tcf"><label class="hf"><span>Target team</span><select data-tto>${opts}</select></label></div>
+    <div class="tcbar">${seg("mode",[["proj","ESPN projections"],["season","Season so far"]])}</div>`;
+  const {G,list,baseT,baseO}=ttCached(T,O),nT=esc(TEAMS[T].name),nO=esc(TEAMS[O].name),N=G.ids.length;
+  // ---- 1. head to head, category by category
+  const fit=ttFit(G,T,O);let w=0,l=0,t=0;
+  const f=(v,c)=>c[1]==="pct"?pct(v):v.toFixed(1);
+  const rows=CATS.map(c=>{const a=val(G.S[T],c),b=val(G.S[O],c),ra=G.rank(T,c),rb=G.rank(O,c),p=ttPhi((a-b)/G.sd[c[0]]),call=p>.6?"win":p<.4?"loss":"toss";
+    if(call==="win")w++;else if(call==="loss")l++;else t++;
+    const tag=fit.need.find(x=>x[0]===c[0])?`<span class="ttag get">They can help you</span>`:fit.give.find(x=>x[0]===c[0])?`<span class="ttag give">You can help them</span>`:"";
+    return `<tr><td class="nm"><b>${c[0]}</b></td><td class="num${a>b+1e-9?" okc":""}">${f(a,c)}<small>${ord(ra)}</small></td><td class="num${b>a+1e-9?" okc":""}">${f(b,c)}<small>${ord(rb)}</small></td><td><span class="call ${call}">${call==="win"?"You":call==="loss"?"Them":"Toss-up"}</span></td><td class="nm">${tag}</td></tr>`;}).join("");
+  const list2=(xs,i)=>xs.map(x=>`${x[0]} (${ord(x[i])})`).join(", ");
+  const sum=`<div class="ttfit"><div><span class="muted">You need, they have</span><b>${fit.need.length?list2(fit.need,2):"Nothing clear"}</b></div><div><span class="muted">They need, you have</span><b>${fit.give.length?list2(fit.give,1):"Nothing clear"}</b></div></div>`;
+  const h2h=sec(`${nT} vs ${nO}`,`Per-game totals of each team's healthy, non-IR players · small number is the league rank of ${N}`,
+    `<div class="anhero"><span class="big num">${w}-${l}${t?`-${t}`:""}</span><span class="muted">your projected record if you played them${t?` (${t} too close to call)`:""}</span></div>${sum}
+    <div class="scroll"><table class="lg antable ttab"><thead><tr><th class="nm">Cat</th><th>${nT}</th><th>${nO}</th><th class="nm">Edge</th><th class="nm">Trade fit</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+  // ---- 2. trade ideas
+  const can=!mirror()&&!WRITE_BLOCKED&&actTeam()===T&&!(pastDeadline()&&!isCommish());
+  const pl=n=>`<span class="nmb" role="button" tabindex="0" data-pcard="${esc(n)}"><b>${esc(n)}</b></span>`;
+  const moves=(before,after)=>{const up=[],dn=[];CATS.forEach(c=>{const d=val(after,c)-val(before,c),s=c[1]==="pct"?.0015:.15;if(d>s)up.push(c[0]);else if(d<-s)dn.push(c[0]);});return {up,dn};};
+  const ideas=list.length?`<ol class="tflist">${list.map((x,i)=>{const mT=moves(G.S[T],x.nT),mO=moves(G.S[O],x.nO);
+    return `<li><div class="tfdeal"><span><span class="muted">You send</span>${x.give.map(pl).join("")}</span><span class="tfar" aria-hidden="true">⇄</span><span><span class="muted">${nO} sends</span>${x.get.map(pl).join("")}</span></div>
+      <div class="tfwhy"><span class="okc">You: +${x.a.toFixed(2)} cats a week${mT.up.length?` · up ${mT.up.join(", ")}`:""}${mT.dn.length?` · down ${mT.dn.join(", ")}`:""}</span><span class="tfdot">·</span><span>Them: +${x.b.toFixed(2)}${mO.up.length?` · up ${mO.up.join(", ")}`:""}</span></div>
+      ${x.fa?`<div class="tfwhy"><span>${x.give.length>x.get.length?"You":esc(TEAMS[O].name)} open a roster spot (counted as picking up ${esc(x.fa)}, the best free agent)</span></div>`:""}
+      <div class="tfacts"><button class="mini-b" data-ttcmp="${i}">Compare</button>${can?`<button class="btn sm" data-ttoffer="${i}">Offer this trade</button>`:""}</div></li>`;}).join("")}</ol>`
+    :`<p class="empty">No trade with ${nO} helps both teams right now${TT.size!=="all"?" at this size. Try All sizes":""}.</p>`;
+  const ideaSec=sec(`Trade ideas with ${nO}`,`Trades where both teams expect to win more categories a week · ${TT.mode==="season"?"season per game":"ESPN projections"}`,
+    `<div class="tcbar">${seg("sort",[["fair","Fair for both"],["me","Best for you"]])}${seg("size",[["all","All sizes"],["11","1 for 1"],["22","2 for 2"],["21","2 for 1"],["12","1 for 2"]])}</div>${ideas}
+    <p class="anote">"Cats a week" is how many more categories the team would expect to win in a week against an average team in the league, from per-game totals before and after the trade. Fair for both ranks trades where the smaller gain is biggest; Best for you puts your gain first but they still have to gain too. A team that takes more players than it sends needs an open roster spot.${mirror()?" Trades run in ESPN while the app mirrors it.":""}</p>`);
+  // ---- 3. who to ask for and who they'd want
+  const wT=ttWeights(G,T),wO=ttWeights(G,O);
+  const want=G.act[O].map(n=>ttHelp(G,n,wT)).filter(Boolean).sort((a,b)=>b.v-a.v).slice(0,5),bait=G.act[T].map(n=>ttHelp(G,n,wO)).filter(Boolean).sort((a,b)=>b.v-a.v).slice(0,5);
+  const li=x=>`<li><div><span class="pnm">${pl(x.n)}</span><span class="pmeta">${esc(DIR[x.n]?.t||"")}${x.helps.length?` · helps ${x.helps.join(", ")}`:""}</span></div><span class="spr"><span class="num">${x.v>=0?"+":""}${x.v.toFixed(1)}</span></span></li>`;
+  const ppl=`<div class="angrid">${sec(`${nO} players who fit you`,`Value per game, weighted toward your weak categories`,want.length?`<ol class="plist">${want.map(li).join("")}</ol>`:`<p class="empty">No healthy players.</p>`)}${sec(`Your players ${nO} would want`,`Weighted toward their weak categories`,bait.length?`<ol class="plist">${bait.map(li).join("")}</ol>`:`<p class="empty">No healthy players.</p>`)}</div>`;
+  targetView.list=list;targetView.T=T;targetView.O=O;
+  return `<div class="row anbar"><span class="hint">Trade targets for <b>${nT}</b> · pick another team at the top</span></div>${sec("Trade targets",`Pick a team to line it up against ${nT} and find trades aimed at it`,controls)}${h2h}${ideaSec}${ppl}
+    <p class="foot-note">Expected record now: ${nT} ${baseT.toFixed(1)} and ${nO} ${baseO.toFixed(1)} of ${CATS.length} categories a week against an average team. IR players are left out, and so are OUT players' stats.</p>`;
+}
+{const _av=analyticsView;analyticsView=function(){return SUB.analytics==="tgt"?targetView():_av();};}
+document.addEventListener("change",e=>{const s=e.target.closest("[data-tto]");if(!s)return;TT.o=+s.value;saveTT();renderRosters();});
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-ttb]");if(b){const [k,v]=b.dataset.ttb.split(":");TT[k]=v;saveTT();return renderRosters();}
+  const x=e.target.closest("[data-ttcmp],[data-ttoffer]");if(!x)return;e.preventDefault();e.stopPropagation();
+  const it=(targetView.list||[])[+(x.dataset.ttcmp??x.dataset.ttoffer)];if(!it)return;
+  if(x.dataset.ttcmp!=null){TCMODE=TT.mode==="season"?"season":"proj";return openCmp(targetView.T,targetView.O,it.give,it.get);}
+  offerTrade(targetView.O,it.give,it.get);},true);
+// League › Trades and the Trade finder card both link here
+{const _tv=tradesView;tradesView=function(){return _tv().replace('<button class="btn ghost" data-tffind>Find trades</button>','<button class="btn ghost" data-tffind>Find trades</button><button class="btn ghost" data-sub-go="analytics:tgt">Target a team</button>');};}
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
    Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with
@@ -6806,7 +6942,7 @@ applyStyle();
 /* ============================================================================
    NAVIGATION AND RENDERING
    ============================================================================ */
-const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["news","News"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"]]};
+const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["tgt","Trade targets"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["news","News"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"]]};
 const NAVS=["team","matchup","players","league","draft","analytics","pickem"];
 let navSaved=false;try{const n=localStorage.getItem("dfNav");if(NAVS.includes(n)){nav=n;navSaved=true;}Object.assign(SUB,JSON.parse(localStorage.getItem("dfSub")||"{}"));}catch(e){}
 function setNav(n,sub){nav=n;if(sub)SUB[n]=sub;MOVING=null;try{localStorage.setItem("dfNav",nav);localStorage.setItem("dfSub",JSON.stringify(SUB));}catch(e){}render();window.scrollTo({top:0});}

@@ -1038,6 +1038,15 @@ td.rost{white-space:nowrap}
 .tfwhy .okc{font-weight:600}
 .tfdot{color:var(--faint)}
 .tfacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* trade targets (2.19) */
+.ttfit{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 10px}
+.ttfit>div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--accent-wash)}
+.ttfit .muted{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.ttab td small{display:block;color:var(--muted);font-size:.68rem;font-weight:400}
+.ttag{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.ttag.get{background:var(--win-wash,rgba(34,160,90,.14));color:var(--win)}
+.ttag.give{background:var(--accent-wash);color:var(--accent)}
+.tfdeal>span .nmb{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tfsheet{margin:0;box-shadow:none;border:0}
 /* pick'em */
 .pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:10px;padding:12px 14px}
@@ -1078,6 +1087,7 @@ td.rost{white-space:nowrap}
 .wbig{font-size:1.1rem}
 .tfdeal{gap:6px}
 .tfdeal .muted{font-size:.62rem}
+.ttfit{grid-template-columns:1fr;padding:0 10px 10px}
 }
 /* tracker legend (its .key clashed with the login keypad) */
 .teamhead .legend{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:.78rem;color:var(--muted)}
