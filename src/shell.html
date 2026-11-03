@@ -1331,6 +1331,41 @@ section.ancol>:not(.teamhead){display:none!important}
 .tkbook li div span{color:var(--muted)}
 .tkbook li small{font-size:.72rem;font-weight:600}
 @media (max-width:640px){.tkcard{padding:10px 10px;grid-template-columns:28px minmax(0,1fr)}.tkinc,.tkbook{padding-left:10px;padding-right:10px}}
+/* 2.22 trade packages (zd_pkg.js) */
+.pkgrid{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);gap:10px;padding:12px 14px 6px;align-items:start}
+.pkmid{align-self:center;text-align:center;font-size:1.3rem;color:var(--muted)}
+.pkside{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:12px;background:var(--past,rgba(127,127,127,.06));border:1px solid var(--line);min-width:0}
+.pkhead{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.pkhead .hf select{max-width:190px}
+.pkchips{display:flex;flex-direction:column;gap:6px;min-height:28px}
+.pkchip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 8px;padding:6px 8px 6px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.pkchip .nmb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pkchip small{grid-column:1;color:var(--muted);font-size:.72rem}
+.pkchip .cmpx{grid-row:1/span 2;grid-column:2}
+.pkchip.off{border-style:dashed}
+.pkadd{position:relative}
+.pkq{width:100%;box-sizing:border-box;font:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.pksug{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);max-height:300px;overflow:auto}
+.pksug button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;font:inherit;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--line);padding:8px 10px;cursor:pointer}
+.pksug button:last-child{border-bottom:0}.pksug button:hover,.pksug button:focus{background:var(--accent-wash)}
+.pksug small{color:var(--muted);font-size:.72rem}.pksug p{margin:0;padding:10px}
+.pkpool{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.pkpool>.muted{width:100%;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em}
+.pkp{font:inherit;font-size:.76rem;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap}
+.pkp small{color:var(--muted);font-weight:400;margin-left:4px}
+.pkp:hover{border-color:var(--accent)}
+.pkacts{padding-top:2px}
+.pkscore{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:12px 14px 6px;text-align:center}
+.pkscore>div:not(.pkvs){display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:10px;background:var(--accent-wash)}
+.pkscore .muted{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.pkscore .big{font-size:1.8rem;font-weight:800}
+.pkscore small{font-size:.74rem;color:var(--muted)}
+.pkvs{color:var(--muted);font-weight:700}
+.pkt td.pl small{display:block}
+.pkimps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.pkimp .anhero .big.okc{color:var(--win)}.pkimp .anhero .big.badc{color:var(--loss,#c0392b)}
+.pksv td small{display:block;color:var(--muted);font-size:.7rem;font-weight:400}
+@media (max-width:640px){.pkgrid{grid-template-columns:minmax(0,1fr);padding:10px 10px 4px}.pkmid{transform:rotate(90deg);height:18px}.pkscore{padding:10px 10px 4px}.pkhead .hf select{max-width:100%}}
 </style>
 
 <div class="bar gut">
