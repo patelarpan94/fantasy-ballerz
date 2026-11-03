@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.23",date:"2026-11-03",title:"Trade packages: show the math",notes:[
+    ["211","New","Trade packages: every dotted number explains itself. Hover on a computer or tap on a phone and a popup shows how it was worked out with the real numbers: a player's value broken down category by category (his number vs the top-150 average and spread), where a per-game number comes from (season total ÷ games), and how package totals add up (makes ÷ attempts for FG% and FT%)."],
+    ["212","New","Team impact numbers explain themselves too: Now and After list every player that goes into the team total (new players and free agents marked), Rank shows the whole league's ranking after the trade, and the big +/- shows each category's chance to win before and after."],
+    ["213","New","Games left shows each player's remaining games this matchup (day and opponent) and how many he has left this season."]]},
   {v:"2.22",date:"2026-11-03",title:"Trade packages",notes:[
     ["208","New","Analytics › Trade packages: build any trade by hand. Pick a team for each side (or no team), then add any players to either side: tap + on a roster player, or search for anyone in the league, free agents too. See the two packages side by side: each player, the package's per-game totals in every category with the better package in green, how many categories each package wins, overall value and games left this matchup and this season. Switch between ESPN projections and Season so far."],
     ["209","New","Trade packages shows what the trade does to each team: per-game totals before and after, league rank changes and categories won a week before → after, with a call on whether both teams come out ahead. It warns when a team goes over the roster limit and can fill open spots with the best free agents. If it's your trade with players you both have, tap Offer this trade."],

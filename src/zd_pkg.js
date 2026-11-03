@@ -70,28 +70,28 @@ function pkTable(){
   const zs=[A.ns,B.ns].map(ns=>ns.reduce((s,n)=>{const l=pkLine(n),z=l?zOf(l):null;return s+(z||0);},0));
   const wk=[A.ns,B.ns].map(ns=>ns.reduce((s,n)=>s+pkLeftWk(n),0)),ss=[A.ns,B.ns].map(ns=>ns.reduce((s,n)=>s+pkLeft(n,Math.max(1,TODAY),SEASON_END),0));
   const hi=(i,xs)=>xs[i]>xs[1-i]+1e-9?" best":"";
-  const row=(n,i)=>{const l=pkLine(n),z=l?zOf(l):null;return `<tr><td class="pl"><span class="nmb" role="button" tabindex="0" data-pcard="${esc(n)}">${esc(n)}</span><small>${esc(DIR[n]?.t||"")}${INJ[n]?` · <span class="badc">${esc(INJ[n])}</span>`:""}</small></td><td class="num">${pkGp(n)||"–"}</td><td class="num">${z!=null?(z>=0?"+":"")+z.toFixed(1):"–"}</td><td class="num">${pkLeftWk(n)}</td>${CATS.map(c=>`<td class="num">${l?pkFmt(val(l,c),c):"–"}</td>`).join("")}</tr>`;};
+  const row=(n,i)=>{const l=pkLine(n),z=l?zOf(l):null;return `<tr><td class="pl"><span class="nmb" role="button" tabindex="0" data-pcard="${esc(n)}">${esc(n)}</span><small>${esc(DIR[n]?.t||"")}${INJ[n]?` · <span class="badc">${esc(INJ[n])}</span>`:""}</small></td><td class="num">${pkGp(n)||"–"}</td><td class="num pkx" data-pkx="z:${esc(n)}">${z!=null?(z>=0?"+":"")+z.toFixed(1):"–"}</td><td class="num pkx" data-pkx="g:${esc(n)}">${pkLeftWk(n)}</td>${CATS.map((c,ci)=>`<td class="num${l?" pkx":""}"${l?` data-pkx="pc:${ci}:${esc(n)}"`:""}>${l?pkFmt(val(l,c),c):"–"}</td>`).join("")}</tr>`;};
   const body=[A.ns,B.ns].map((ns,i)=>`<tr class="tcside"><th colspan="${CATS.length+4}">${lab[i]} sends</th></tr>${ns.length?ns.map(n=>row(n,i)).join(""):`<tr><td class="pl muted" colspan="${CATS.length+4}">Nothing</td></tr>`}
-    <tr class="tot"><td class="pl">Package per game</td><td></td><td class="num${hi(i,zs)}">${(zs[i]>=0?"+":"")+zs[i].toFixed(1)}</td><td class="num${hi(i,wk)}">${wk[i]}</td>${CATS.map(c=>`<td class="num${better(c)===i?" best":""}">${tot[i]?pkFmt(val(tot[i],c),c):"–"}</td>`).join("")}</tr>`).join("");
+    <tr class="tot"><td class="pl">Package per game</td><td></td><td class="num pkx${hi(i,zs)}" data-pkx="pz:${i}">${(zs[i]>=0?"+":"")+zs[i].toFixed(1)}</td><td class="num pkx${hi(i,wk)}" data-pkx="pg:${i}">${wk[i]}</td>${CATS.map((c,ci)=>`<td class="num${tot[i]?" pkx":""}${better(c)===i?" best":""}"${tot[i]?` data-pkx="pt:${i}:${ci}"`:""}>${tot[i]?pkFmt(val(tot[i],c),c):"–"}</td>`).join("")}</tr>`).join("");
   const wins=[0,1].map(i=>CATS.filter(c=>better(c)===i));
   const head=tot[0]&&tot[1]?`<div class="pkscore"><div><span class="muted">${lab[0]}'s package</span><span class="big num">${wins[0].length}</span><small>${wins[0].map(c=>c[0]).join(", ")||"no categories"}</small></div><div class="pkvs">vs</div><div><span class="muted">${lab[1]}'s package</span><span class="big num">${wins[1].length}</span><small>${wins[1].map(c=>c[0]).join(", ")||"no categories"}</small></div></div>`:"";
   const facts=`<div class="ttfit"><div><span class="muted">Value per game</span><b>${lab[0]} ${(zs[0]>=0?"+":"")+zs[0].toFixed(1)} · ${lab[1]} ${(zs[1]>=0?"+":"")+zs[1].toFixed(1)}</b></div><div><span class="muted">Games left · this matchup / season</span><b>${lab[0]} ${wk[0]} / ${ss[0]} · ${lab[1]} ${wk[1]} / ${ss[1]}</b></div></div>`;
   return sec("Package vs package",`${PK.mode==="season"?"Season per game":"ESPN projections"} · better package in each category in green`,
     `${head}${facts}<div class="scroll"><table class="tcmpt pkt"><thead><tr><th class="pl">Player</th><th class="num">GP</th><th class="num" title="Overall value per game: z-scores across our categories vs the top 150 players">Value</th><th class="num" title="Games left this matchup">Wk</th>${CATS.map(c=>`<th class="num">${c[0]}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
-    <p class="anote">Value adds up each player's z-scores across our categories (0 is about the 150th best player), so it rewards raw production; the category table shows where it comes from. Percentages are combined from makes and attempts, so a high-volume shooter moves them more.</p>`);
+    <p class="anote"><b>Tap or hover any dotted number to see how it's worked out.</b> Value adds up each player's z-scores across our categories (0 is about the 150th best player), so it rewards raw production; the category table shows where it comes from. Percentages are combined from makes and attempts, so a high-volume shooter moves them more.</p>`);
 }
 // ---- what it does to each team that's part of the trade
 function pkTeamsSec(R){
   const {G,SS,imp}=R;if(!imp.length)return sec("Team impact","Pick a team for a side to see what the trade does to it",`<p class="empty">Pick a team at the top of a side to see its categories, ranks and expected wins before and after.</p>`);
   const N=G.ids.length;
-  const col=I=>{const rows=CATS.map(c=>{const b=val(G.S[I.T],c),a=val(SS[I.T],c),rb=G.rank(I.T,c,G.S),ra=G.rank(I.T,c,SS),d=a-b,good=c[1]==="pct"?d>1e-4:d>.05,bad=c[1]==="pct"?d<-1e-4:d<-.05;
-      return `<tr><td class="nm"><b>${c[0]}</b></td><td class="num">${pkFmt(b,c)}</td><td class="num ${good?"okc":bad?"badc":""}">${pkFmt(a,c)}<small>${c[1]==="pct"?(d<0?"−":"+")+pct(Math.abs(d)||0).replace("–",".000"):fmtD(d)}</small></td><td class="num ${ra<rb?"okc":ra>rb?"badc":""}">${ord(rb)}${ra!==rb?` → ${ord(ra)}`:""}</td></tr>`;}).join("");
+  const col=I=>{const rows=CATS.map((c,ci)=>{const b=val(G.S[I.T],c),a=val(SS[I.T],c),rb=G.rank(I.T,c,G.S),ra=G.rank(I.T,c,SS),d=a-b,good=c[1]==="pct"?d>1e-4:d>.05,bad=c[1]==="pct"?d<-1e-4:d<-.05;
+      return `<tr><td class="nm"><b>${c[0]}</b></td><td class="num pkx" data-pkx="tn:${I.T}:${ci}">${pkFmt(b,c)}</td><td class="num pkx ${good?"okc":bad?"badc":""}" data-pkx="ta:${I.T}:${ci}">${pkFmt(a,c)}<small>${c[1]==="pct"?(d<0?"−":"+")+pct(Math.abs(d)||0).replace("–",".000"):fmtD(d)}</small></td><td class="num pkx ${ra<rb?"okc":ra>rb?"badc":""}" data-pkx="tr:${I.T}:${ci}">${ord(rb)}${ra!==rb?` → ${ord(ra)}`:""}</td></tr>`;}).join("");
     const up=CATS.filter(c=>G.rank(I.T,c,SS)<G.rank(I.T,c,G.S)).map(c=>c[0]),dn=CATS.filter(c=>G.rank(I.T,c,SS)>G.rank(I.T,c,G.S)).map(c=>c[0]);
     const verdict=I.d>.05?"okc":I.d<-.05?"badc":"";
     const notes=[I.over?`<span class="badc">Over the roster limit by ${I.over}: they'd have to drop ${I.over===1?"a player":I.over+" players"}.</span>`:"",
       I.fa.length?`Open ${I.fa.length===1?"spot":"spots"} counted as picking up ${I.fa.map(esc).join(", ")} (best free ${I.fa.length===1?"agent":"agents"}).`:"",
       I.notOwned.length?`<span class="muted">${I.notOwned.map(esc).join(", ")} ${I.notOwned.length===1?"isn't":"aren't"} on this team, so ${I.notOwned.length===1?"he's":"they're"} left out of its totals.</span>`:""].filter(Boolean);
-    return `<div class="pkimp"><div class="anhero"><span class="big num ${verdict}">${I.d>=0?"+":""}${I.d.toFixed(2)}</span><span class="muted">${esc(TEAMS[I.T].name)}: categories won a week, ${I.base.toFixed(1)} → ${I.now.toFixed(1)} of ${CATS.length}${up.length?` · rank up in ${up.join(", ")}`:""}${dn.length?` · down in ${dn.join(", ")}`:""}</span></div>
+    return `<div class="pkimp"><div class="anhero"><span class="big num pkx ${verdict}" data-pkx="tw:${I.T}">${I.d>=0?"+":""}${I.d.toFixed(2)}</span><span class="muted">${esc(TEAMS[I.T].name)}: categories won a week, ${I.base.toFixed(1)} → ${I.now.toFixed(1)} of ${CATS.length}${up.length?` · rank up in ${up.join(", ")}`:""}${dn.length?` · down in ${dn.join(", ")}`:""}</span></div>
       <div class="scroll"><table class="lg antable ttab"><thead><tr><th class="nm">Cat</th><th>Now</th><th>After</th><th>Rank of ${N}</th></tr></thead><tbody>${rows}</tbody></table></div>${notes.length?`<p class="anote">${notes.join(" ")}</p>`:""}</div>`;};
   const v=imp.length===2?(imp[0].d>.05&&imp[1].d>.05?"Both teams come out ahead.":imp[0].d>.05||imp[1].d>.05?`Only ${esc(TEAMS[(imp[0].d>imp[1].d?imp[0]:imp[1]).T].name)} comes out ahead.`:"Neither team comes out ahead."):"";
   return sec("Team impact",`Per-game totals of healthy, non-IR players before and after · ${v||"pick a team on the other side too"}`,`<div class="pkimps">${imp.map(col).join("")}</div>
@@ -121,7 +121,7 @@ function pkgView(){
     <div class="tcbar pkacts"><button class="btn ghost sm" data-pkswap>⇄ Swap sides</button>${any?`<button class="btn ghost sm" data-pkclear>Clear players</button><button class="btn ghost sm" data-pksave>Save package</button>`:""}${can?`<button class="btn sm" data-pkoffer>Offer this trade</button>`:""}</div>`;
   const build=sec("Trade packages","Add any players to either side and compare what each package brings",`<div class="pkgrid">${pkSide("a")}<div class="pkmid" aria-hidden="true">⇄</div>${pkSide("b")}</div>${bar}`);
   if(!any)return `${build}${pkSavedSec()}<p class="foot-note">Tip: tap + on a roster player, or search for anyone in the league, including free agents. Player cards and Trade targets ideas have a Trade package button too.</p>`;
-  const R=pkCalc();
+  const R=pkCalc();pkgView.R=R;
   return `${build}${pkTable()}${pkTeamsSec(R)}${pkSavedSec()}<p class="foot-note">Packages are saved on this device only. IR players are left out of team totals.</p>`;
 }
 {const _av=analyticsView;analyticsView=function(){return SUB.analytics==="pkg"?pkgView():_av();};}
@@ -162,3 +162,75 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-ttpkg],[da
 // player cards: add him to a trade package
 {const _pc=playerCard;playerCard=function(n){_pc(n);const acts=document.querySelector("#sheetBody .sheetacts");if(!acts||!DIR[n])return;
   const inn=PK.a.ns.includes(n)||PK.b.ns.includes(n);acts.insertAdjacentHTML("afterbegin",`<button class="btn ghost" data-pkcard="${esc(n)}">${inn?"Open trade package":"Trade package"}</button>`);};}
+
+/* ---- 2.23 (BUG-211..213): show the math. Every dotted number opens a popup
+   (hover on desktop, tap anywhere) that walks through how it was worked out. */
+const pkN=(v,d=1)=>(v>=0?"+":"−")+Math.abs(v).toFixed(d);
+const pkSrc=()=>PK.mode==="season"?"season so far":"ESPN's season projection";
+const pkArr=n=>{const D=DIR[n];return D?(PK.mode==="season"?D.ss:D.pj):null;};
+const pkTbl=(head,rows,foot)=>`<table class="pkxt"><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>${foot?`<tfoot>${foot}</tfoot>`:""}</table>`;
+const pkCatWin=(G,x,SS,c)=>{const o=G.ids.filter(y=>y!==x);return o.length?o.reduce((s,y)=>s+ttPhi((val(SS[x],c)-val(SS[y],c))/G.sd[c[0]]),0)/o.length:0;};
+const pkMk=(l,c)=>`${l[c[2]].toFixed(1)}/${l[c[3]].toFixed(1)}`;
+function pkxHtml(key){
+  const [k,...r]=key.split(":"),R=pkgView.R,sideNs=i=>[PK.a.ns,PK.b.ns][+i]||[];
+  const pc=n=>`<span class="nmb">${esc(n)}</span>`;
+  if(k==="z"){const n=r.join(":"),l=pkLine(n);if(!l)return `<p>No ${pkSrc()} numbers for ${esc(n)}.</p>`;const B=zBase();let t=0;
+    const rows=CATS.map(c=>{const b=B[c[0]],z=catZ(l,c);t+=z;
+      if(c[1]==="pct"){const x=l[c[2]]-b.lg*l[c[3]];return `<tr><td>${c[0]}</td><td>${pkMk(l,c)} = ${pct(l[c[2]]/(l[c[3]]||1))}</td><td>${pkN(x,2)} makes vs ${pct(b.lg)}</td><td>${(b.sd).toFixed(2)}</td><td><b>${pkN(z,2)}</b></td></tr>`;}
+      return `<tr><td>${c[0]}</td><td>${l[c[2]].toFixed(1)}</td><td>${b.m.toFixed(1)}</td><td>${b.sd.toFixed(1)}</td><td><b>${pkN(z,2)}</b></td></tr>`;});
+    return `<h4>${esc(n)} · value ${pkN(t)}</h4><p>Each category: (his number − average of the top 150 players) ÷ spread of those players. Then add them up.</p>
+      ${pkTbl(["Cat","His per game","Top-150 avg","Spread","Score"],rows,`<tr><td colspan="4">Value</td><td><b>${pkN(t,2)}</b></td></tr>`)}
+      <p class="muted">For FG% and FT% the number is makes above what an average shooter would make on his attempts, so volume counts.</p>`;}
+  if(k==="pc"){const c=CATS[+r[0]],n=r.slice(1).join(":"),a=pkArr(n),l=pkLine(n);if(!a||!l)return "";const gp=a[11];
+    return `<h4>${esc(n)} · ${c[0]}</h4>${c[1]==="pct"?`<p>${pkSrc()}: ${Math.round(a[c[2]])} made of ${Math.round(a[c[3]])} = <b>${pct(a[c[2]]/(a[c[3]]||1))}</b></p><p class="muted">Per game that's ${pkMk(l,c)}.</p>`
+      :`<p>${pkSrc()}: ${Math.round(a[c[2]])} ${c[0]} in ${Math.round(gp)} games</p><p>${Math.round(a[c[2]])} ÷ ${Math.round(gp)} = <b>${l[c[2]].toFixed(1)}</b> a game</p>`}`;}
+  if(k==="pt"){const i=+r[0],c=CATS[+r[1]],ns=sideNs(i).filter(n=>pkLine(n));
+    if(c[1]==="pct"){let m=0,a=0;const rows=ns.map(n=>{const l=pkLine(n);m+=l[c[2]];a+=l[c[3]];return `<tr><td>${pc(n)}</td><td>${l[c[2]].toFixed(1)}</td><td>${l[c[3]].toFixed(1)}</td></tr>`;});
+      return `<h4>Package ${c[0]}</h4><p>Add up makes and attempts, then divide. Not an average of the percentages.</p>${pkTbl(["Player","Made","Tried"],rows,`<tr><td>Total</td><td>${m.toFixed(1)}</td><td>${a.toFixed(1)}</td></tr>`)}<p>${m.toFixed(1)} ÷ ${a.toFixed(1)} = <b>${pct(m/(a||1))}</b></p>`;}
+    let t=0;const rows=ns.map(n=>{const v=pkLine(n)[c[2]];t+=v;return `<tr><td>${pc(n)}</td><td>${v.toFixed(1)}</td></tr>`;});
+    return `<h4>Package ${c[0]} per game</h4>${pkTbl(["Player",c[0]],rows,`<tr><td>Total</td><td><b>${t.toFixed(1)}</b></td></tr>`)}`;}
+  if(k==="pz"){let t=0;const rows=sideNs(r[0]).map(n=>{const l=pkLine(n),z=l?zOf(l):0;t+=z||0;return `<tr><td>${pc(n)}</td><td>${l?pkN(z):"–"}</td></tr>`;});
+    return `<h4>Package value</h4><p>The players' values added up (tap a player's value for his breakdown).</p>${pkTbl(["Player","Value"],rows,`<tr><td>Total</td><td><b>${pkN(t)}</b></td></tr>`)}`;}
+  if(k==="g"||k==="pg"){const ns=k==="g"?[r.join(":")]:sideNs(r[0]);
+    const one=n=>{const D=DIR[n];if(!D)return "";if(INJ[n]==="OUT")return `<tr><td>${pc(n)}</td><td>OUT, counted as 0</td></tr>`;
+      const gs=DAYS.filter(sp=>upcoming(D.t,sp)&&gameOn(D.t,sp)).map(sp=>{const g=gameOn(D.t,sp);return `${dow(sp)} ${g[1]?"vs":"@"} ${g[0]}`;});
+      return `<tr><td>${pc(n)}<small>${esc(D.t)}</small></td><td>${gs.length?gs.join(", "):"none"} <b>(${gs.length})</b><small>${pkLeft(n,Math.max(1,TODAY),SEASON_END)} left this season</small></td></tr>`;};
+    return `<h4>Games left</h4><p>From the NBA schedule: games still to play this matchup (today counts until his game is final).</p>${pkTbl(["Player","This matchup"],ns.map(one))}`;}
+  if(!R)return "";const {G,SS,imp}=R,T=+r[0],I=imp.find(x=>x.T===T);if(!I||!TEAMS[T])return "";const tn=esc(TEAMS[T].name);
+  if(k==="tw"){const rows=CATS.map(c=>{const b=pkCatWin(G,T,G.S,c),a=pkCatWin(G,T,SS,c);return `<tr><td>${c[0]}</td><td>${(b*100).toFixed(0)}%</td><td>${(a*100).toFixed(0)}%</td><td class="${a>b+.005?"okc":a<b-.005?"badc":""}">${pkN((a-b)*100,0)}</td><td>${pkFmt(G.sd[c[0]],c)}</td></tr>`;});
+    return `<h4>${tn} · categories won a week</h4><p>For each category: the chance of beating each other team, from how far ahead or behind ${tn} is divided by the spread across the league (a bell curve). Averaged over the ${G.ids.length-1} other teams, then added up across categories.</p>
+      ${pkTbl(["Cat","Now","After","Change","Spread"],rows,`<tr><td>Total</td><td>${I.base.toFixed(2)}</td><td>${I.now.toFixed(2)}</td><td><b>${pkN(I.d,2)}</b></td><td></td></tr>`)}
+      <p class="muted">Example: ahead by one spread ≈ 84% to win that category, even ≈ 50%, behind by one spread ≈ 16%.</p>`;}
+  const c=CATS[+r[1]];
+  if(k==="tr"){const order=G.ids.slice().sort((x,y)=>val(SS[y],c)-val(SS[x],c));
+    return `<h4>${c[0]} ranking after the trade</h4>${pkTbl(["#","Team","Now","After"],order.map((x,j)=>`<tr${x===T?' class="me"':""}><td>${j+1}</td><td>${esc(TEAMS[x].name)}</td><td>${pkFmt(val(G.S[x],c),c)}</td><td>${pkFmt(val(SS[x],c),c)}</td></tr>`))}<p class="muted">Per-game totals of each team's healthy, non-IR players.</p>`;}
+  if(k==="tn"||k==="ta"){const after=k==="ta",list=after?I.after.concat(I.fa):G.act[T],T0=after?SS[T]:G.S[T];
+    const v=n=>{const l=G.ln(n);return l?(c[1]==="pct"?pkMk(l,c):l[c[2]].toFixed(1)):"0 (OUT)";};
+    const tag=n=>!after?"":I.fa.includes(n)?' <small>free agent</small>':!G.act[T].includes(n)?' <small class="okc">new</small>':"";
+    const gone=after?I.owned.filter(n=>G.act[T].includes(n)):[];
+    return `<h4>${tn} · ${c[0]} ${after?"after":"now"}</h4><p>Every healthy, non-IR player's per-game ${c[0]} added up${c[1]==="pct"?" (makes ÷ attempts)":""}.</p>
+      ${pkTbl(["Player",c[1]==="pct"?"Made/tried":c[0]],list.map(n=>`<tr><td>${pc(n)}${tag(n)}</td><td>${v(n)}</td></tr>`),`<tr><td>Total</td><td><b>${c[1]==="pct"?`${T0[c[2]].toFixed(1)}/${T0[c[3]].toFixed(1)} = ${pct(val(T0,c))}`:val(T0,c).toFixed(1)}</b></td></tr>`)}
+      ${gone.length?`<p class="muted">Traded away: ${gone.map(esc).join(", ")}.</p>`:""}`;}
+  return "";
+}
+const pkPop=(()=>{const d=document.createElement("div");d.className="pkpop";d.id="pkPop";d.hidden=true;d.setAttribute("role","dialog");document.body.appendChild(d);return d;})();
+let pkPopKey=null,pkPopPin=false,pkPopT=0;
+function pkShow(el,pin){
+  const h=pkxHtml(el.dataset.pkx);if(!h)return;pkPopKey=el.dataset.pkx;pkPopPin=pin;
+  pkPop.innerHTML=`<button class="pkpopx" aria-label="Close">✕</button>${h}`;pkPop.hidden=false;
+  if(innerWidth<=640){pkPop.classList.add("sheet");pkPop.style.left=pkPop.style.top="";return;}
+  pkPop.classList.remove("sheet");const b=el.getBoundingClientRect(),w=pkPop.offsetWidth,ht=pkPop.offsetHeight;
+  let x=Math.min(Math.max(8,b.left+b.width/2-w/2),innerWidth-w-8),y=b.bottom+6;if(y+ht>innerHeight-8)y=Math.max(8,b.top-ht-6);
+  pkPop.style.left=x+"px";pkPop.style.top=y+"px";}
+const pkHide=()=>{pkPop.hidden=true;pkPopKey=null;pkPopPin=false;};
+document.addEventListener("click",e=>{
+  if(e.target.closest(".pkpopx"))return pkHide();
+  const el=e.target.closest("[data-pkx]");
+  if(el){e.preventDefault();if(pkPopKey===el.dataset.pkx&&pkPopPin)return pkHide();return pkShow(el,true);}
+  if(!pkPop.hidden&&!e.target.closest("#pkPop"))pkHide();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pkPop.hidden)pkHide();});
+if(matchMedia("(hover:hover)").matches){
+  document.addEventListener("mouseover",e=>{const el=e.target.closest("[data-pkx]");if(el&&!pkPopPin){clearTimeout(pkPopT);pkPopT=setTimeout(()=>pkShow(el,false),120);}
+    else if(e.target.closest("#pkPop"))clearTimeout(pkPopT);});
+  document.addEventListener("mouseout",e=>{if(pkPopPin)return;const el=e.target.closest("[data-pkx],#pkPop");if(!el)return;clearTimeout(pkPopT);pkPopT=setTimeout(()=>{if(!pkPopPin)pkHide();},220);});}
+addEventListener("scroll",()=>{if(!pkPop.hidden&&!pkPop.classList.contains("sheet"))pkHide();},{passive:true});
