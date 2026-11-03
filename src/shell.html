@@ -1367,7 +1367,8 @@ section.ancol>:not(.teamhead){display:none!important}
 .pksv td small{display:block;color:var(--muted);font-size:.7rem;font-weight:400}
 @media (max-width:640px){.pkgrid{grid-template-columns:minmax(0,1fr);padding:10px 10px 4px}.pkmid{transform:rotate(90deg);height:18px}.pkscore{padding:10px 10px 4px}.pkhead .hf select{max-width:100%}}
 /* 2.23 trade packages: show the math */
-.pkx{cursor:help;text-decoration:underline dotted;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);text-underline-offset:3px}
+.pkx{cursor:help;text-decoration:underline dotted var(--accent)!important;text-decoration-thickness:2px!important;text-underline-offset:4px}
+.pkx:hover{background:var(--accent-wash)}
 .pkpop{position:fixed;z-index:200;width:min(380px,calc(100vw - 16px));max-height:min(70vh,520px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.25);padding:12px 14px;font-size:.82rem;line-height:1.4}
 .pkpop.sheet{left:0!important;right:0;bottom:0;top:auto!important;width:auto;max-height:65vh;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
 .pkpop h4{margin:0 26px 6px 0;font-size:.9rem}.pkpop p{margin:4px 0 8px}.pkpop .muted{font-size:.76rem}
