@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.22",date:"2026-11-03",title:"Trade packages",notes:[
+    ["208","New","Analytics › Trade packages: build any trade by hand. Pick a team for each side (or no team), then add any players to either side: tap + on a roster player, or search for anyone in the league, free agents too. See the two packages side by side: each player, the package's per-game totals in every category with the better package in green, how many categories each package wins, overall value and games left this matchup and this season. Switch between ESPN projections and Season so far."],
+    ["209","New","Trade packages shows what the trade does to each team: per-game totals before and after, league rank changes and categories won a week before → after, with a call on whether both teams come out ahead. It warns when a team goes over the roster limit and can fill open spots with the best free agents. If it's your trade with players you both have, tap Offer this trade."],
+    ["210","New","Save packages to line up different offers: the Saved packages list scores each one again with today's numbers, and Open loads it back. Player cards and every Trade targets idea have a Trade package button that opens the tool with that player or trade filled in."]]},
   {v:"2.21",date:"2026-11-02",title:"Trash talk",notes:[
     ["205","New","Fun › Trash talk: pick a team (this week's opponent by default) and get ammo from real league numbers: the live score and win odds, starts left, their worst category and your best one, the last time you met, standings, losing streaks, the taco, bench points, OUT players still in their lineup and a quiet waiver wire. Strongest facts come first."],
     ["206","New","Every fact comes with ready lines. Tap 🎲 for another line, Copy it, or open league chat or a DM to them with the line filled in, so you can edit it before you send."],
