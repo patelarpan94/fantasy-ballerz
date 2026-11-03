@@ -225,14 +225,16 @@ function auth_(b, who) {
       var cm = k === 'commish', LOCKED = 'Locked out after ' + LOCK_FAILS + ' wrong passwords. Ask the commissioner for a new 6-digit code.';
       if (!cm && a.locked) throw err_('locked', LOCKED);
       if (pwHash_(a.salt, String(b.pw || '')) !== a.pw) {
-        if (cm) throw err_('bad_pw', 'Wrong password.');
+        if (cm) { logAccess_(k, 'wrong password', b); throw err_('bad_pw', 'Wrong password.'); }
         a.fails = (a.fails || 0) + 1; if (a.fails >= LOCK_FAILS) a.locked = true;
         saveAcct_(k, a);
+        logAccess_(k, a.locked ? 'locked out' : 'wrong password', b);
         if (a.locked) throw err_('locked', LOCKED);
         var left = LOCK_FAILS - a.fails;
         throw err_('bad_pw', 'Wrong password.' + (left <= 5 ? ' ' + left + (left === 1 ? ' try' : ' tries') + ' left before it locks.' : ''));
       }
       a.fails = 0; delete a.lockUntil; saveAcct_(k, a);
+      logAccess_(k, 'login', b);
       return {s: newSession_(k), k: k};
     case 'checkcode':                            // the login screen checks a 6-digit code with the server, never a cached copy
       a = acct_(k);
@@ -247,6 +249,7 @@ function auth_(b, who) {
       if (!h || h !== b.h) throw err_('bad_code', 'That code doesn\'t match this team.');
       a.salt = token_().slice(0, 16); a.pw = pwHash_(a.salt, validPw_(b.pw)); a.fails = 0; delete a.locked;
       saveAcct_(k, a); CacheService.getScriptCache().remove('badges');
+      logAccess_(k, 'first login', b);
       return {s: newSession_(k), k: k};
     case 'acctme':                               // a logged-in phone changes its own password
       var mk = who.commish ? 'commish' : who.team;
@@ -261,6 +264,7 @@ function auth_(b, who) {
       CacheService.getScriptCache().remove('badges');
       return {ok: true};
     case 'logout':
+      if (who.b) logAccess_(who.commish ? 'commish' : who.team, 'logout', b);
       if (b.s) props_().deleteProperty('SESS_' + bid_(b.s));
       return {ok: true};
   }
@@ -314,6 +318,62 @@ function own_(who, c, id, v, old, op) {
   return true;   // automation: stats, nba, espn, hist, shots, refresh, waivers, trivia
 }
 
+/* -------------------------------------------------------------- usage log
+   2.24: the commissioner's League › Usage log. Every app open (and every
+   return after 30+ minutes away), login, failed login and logout is one row
+   in its own tab "access", outside the synced "docs" tab so it never reaches
+   other phones. Who is worked out here from the session, never taken from
+   the phone. Device and rough place (city from a free IP lookup, or off, per
+   the commissioner's setting) come from the phone. No IP addresses are kept.
+     Time (ET) | ms | who | team | what | device | where | device id      */
+var ACCESS_TAB = 'access', ACCESS_KEEP = 20000, ACCESS_HEAD = ['Time (ET)', 'ms', 'Who', 'Team', 'What', 'Device', 'Where', 'Device id'];
+function accessSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ACCESS_TAB);
+  if (!sh) { sh = ss.insertSheet(ACCESS_TAB); sh.getRange(1, 1, 1, ACCESS_HEAD.length).setValues([ACCESS_HEAD]); sh.setFrozenRows(1); }
+  return sh;
+}
+// text from a phone: short, one line, and never a formula
+function clean_(v, n) { return String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/^[=+\-@\s]+/, '').slice(0, n || 60); }
+function logAccess_(k, what, b) {
+  try {
+    b = b || {};
+    var L = league_(), now = Date.now(), dev = clean_(b.dev, 24), name = k === 'commish' ? 'Commissioner' : k ? teamName_(L, k) : 'Logged out';
+    var row = [Utilities.formatDate(new Date(now), TZ, 'yyyy-MM-dd H:mm'), now, k || '', name, what, clean_(b.ua), clean_(b.where), dev];
+    locked_(function () {
+      var sh = accessSheet_(), r = sh.getLastRow() + 1;
+      if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 500);
+      sh.getRange(r, 1, 1, row.length).setValues([row]);
+      // keep the newest rows only (about a season of normal use)
+      if (r > ACCESS_KEEP + 2000) {
+        var n = r - 1, all = sh.getRange(2, 1, n, row.length).getValues().slice(n - ACCESS_KEEP);
+        sh.getRange(2, 1, n, row.length).clearContent();
+        sh.getRange(2, 1, all.length, row.length).setValues(all);
+      }
+    });
+  } catch (x) {}
+}
+// the phone says hello when the app opens or comes back; repeats within 10 minutes count once
+function hello_(b, who) {
+  var k = who.b ? (who.commish ? 'commish' : who.team) : '', ev = b.ev === 'back' ? 'back' : 'open';
+  var C = CacheService.getScriptCache(), key = 'HI_' + bid_(k + '|' + clean_(b.dev, 24)).slice(0, 24);
+  if (C.get(key)) return {ok: true, dup: true};
+  C.put(key, '1', 600);
+  logAccess_(k, ev === 'back' ? 'came back' : 'opened app', b);
+  return {ok: true};
+}
+function accessLog_(days) {
+  days = Math.max(1, Math.min(400, +days || 30));
+  var sh = accessSheet_(), n = sh.getLastRow() - 1, since = Date.now() - days * 864e5;
+  if (n < 1) return {rows: [], since: since};
+  var all = sh.getRange(2, 1, n, ACCESS_HEAD.length).getValues(), rows = [];
+  for (var i = all.length - 1; i >= 0; i--) {
+    var r = all[i], at = +r[1] || 0;
+    if (at < since) break;
+    rows.push([at, String(r[2] || ''), String(r[4] || ''), String(r[5] || ''), String(r[6] || ''), String(r[7] || '')]);
+  }
+  return {rows: rows, since: since};
+}
+
 /* --------------------------------------------------------------------- API */
 function doGet() { return out_({ok: true, app: 'Fantasy Ballerz', rev: rev_(), season: SEASON}); }
 function doPost(e) {
@@ -336,6 +396,10 @@ function api_(b) {
     case 'pull':
       if (!who.commish) throw err_('denied', 'Only the commissioner can start a pull.');
       return {msg: pullNow_()};
+    case 'hello': return hello_(b, who);
+    case 'accesslog':
+      if (!who.commish) throw err_('denied', 'Only the commissioner can see the usage log.');
+      return accessLog_(b.days);
     case 'info': return {rev: rev_(), setup: who.setup, me: who.b ? who.b.role : null, team: who.team || null, expired: !!who.expired, retired: !!who.retired, timers: ScriptApp.getProjectTriggers().length};
   }
   throw err_('bad_request', 'Unknown op ' + b.op);
