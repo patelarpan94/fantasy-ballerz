@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.24",date:"2026-11-03",title:"Usage log",notes:[
+    ["214","New","League › Usage log (commissioner only): see how often the app is used. Visits today and this week, how many teams were on this week, visits per day, the busiest time of day, and a table for each team with its visits, which of the last 7 days it was on, when it was last seen, its usual device and its usual place. Tap a team to see its own log."],
+    ["215","New","The league server keeps the log: every app open (and every return after 30+ minutes away), login, wrong password, lockout and logout, with the time, the team (worked out by the server from the login, not from the phone), the device (like iPhone · Home Screen app) and roughly where. Repeat opens within 10 minutes count once."],
+    ["216","New","Place is approximate, from the internet connection (a free lookup, done at most every 6 hours per phone), and never more exact than a city. The commissioner can set it to City, State only or Off in the Usage log. IP addresses are not kept."]]},
   {v:"2.23",date:"2026-11-03",title:"Trade packages: show the math",notes:[
     ["211","New","Trade packages: every dotted number explains itself. Hover on a computer or tap on a phone and a popup shows how it was worked out with the real numbers: a player's value broken down category by category (his number vs the top-150 average and spread), where a per-game number comes from (season total ÷ games), and how package totals add up (makes ÷ attempts for FG% and FT%)."],
     ["212","New","Team impact numbers explain themselves too: Now and After list every player that goes into the team total (new players and free agents marked), Rank shows the whole league's ranking after the trade, and the big +/- shows each category's chance to win before and after."],
