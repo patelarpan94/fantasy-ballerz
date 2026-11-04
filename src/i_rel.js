@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.41",date:"2026-11-04",title:"Planner follows the pickup rules",notes:[
+    ["278","Fix","Win-the-week planner: a pickup now plays from the next day (as in our league), so each move shows the day to make it and the day he starts. It plans at most 6 pickups a week, or fewer if you have fewer left. Make each move after that day's games so the player you drop still plays."]]},
   {v:"2.40",date:"2026-11-04",title:"Win-the-week planner",notes:[
     ["276","New","Win-the-week planner: plans every pickup for the rest of your matchup, day by day, inside your pickup limit. It says who to add, who to drop and when to swap one streamer for the next, and only counts games where the player plays and fits an open lineup spot. Each plan is judged by how many categories it wins against this opponent. You see expected categories and win chance with no moves and with the plan, which categories it moves, a day-by-day grid of filled spots, and an Add button for today's moves."],
     ["277","Change","The planner never suggests dropping a player ranked inside the league's starting pool, or anyone a pickup hasn't outplayed this season. It leads the Win the week section on New Era + (added once), and the Game plan's pickup line now points to it."]]},
