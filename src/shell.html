@@ -427,6 +427,13 @@ td.g.tod.sel{background:var(--accent-wash)}
 .pchealth{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:.86rem}
 .pchealth .st{margin-left:0;flex:none;margin-top:2px}
 .pchealth.out{border-color:var(--loss);background:var(--loss-wash)}.pchealth.dtd{border-color:var(--warn);background:var(--warn-wash)}
+/* out kinds (2.27): injured out = red with a cross, just out = grey, out for season = dark */
+.st.out i{font-style:normal;font-size:.9em;margin-right:2px}
+.st.outn{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted)}
+.st.ofs{background:var(--loss);color:var(--surface)}
+.av.out.outn{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--muted)}
+.av.out.ofs{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.pchealth.out.outn{border-color:var(--line);background:color-mix(in srgb,var(--muted) 10%,transparent)}
 .pchealth p{margin:4px 0}
 .pcstats{font-size:.8rem}.pcstats td.nm{white-space:nowrap;text-align:left}
 .nwl{list-style:none;margin:0;padding:0}
