@@ -43,8 +43,9 @@ DW.rw={name:"Roster wall",desc:"Your whole team as photo cards: slot, last 7 day
 
 /* ---- the board, take two ---- */
 NEP_DEF.splice(0,NEP_DEF.length,["xa","f"],["lt","f"],["hd","f",{t:"Win the week"}],["hb","w"],["ct","s"],["mw","w"],["ef","s"],["pf","f"],["hd","f",{t:"Your squad"}],["sd","w"],["cd","s"],["tl","w"],["hc","s"],["rw","f"],["hd","f",{t:"Around the league"}],["ls","w"],["tc","s"],["bw","s"],["sw","s"],["bp","w"]);
-function nepUpgrade(){if(!prefKey()||!UI.dash||(UI.dash.nep||0)>=2)return;const bs=dashBoards();
-  if(bs.some(b=>b.id===NEP_ID)){dashBoardSet({boards:bs.map(b=>b.id===NEP_ID?{...b,w:nepW()}:b),nep:2});}else if(UI.dash.nep)dashBoardSet({nep:2});}
+let NEP_VER=2;
+function nepUpgrade(){if(!prefKey()||!UI.dash||(UI.dash.nep||0)>=NEP_VER)return;const bs=dashBoards();
+  if(bs.some(b=>b.id===NEP_ID)){dashBoardSet({boards:bs.map(b=>b.id===NEP_ID?{...b,w:nepW()}:b),nep:NEP_VER});}else if(UI.dash.nep)dashBoardSet({nep:NEP_VER});}
 {const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{nepUpgrade();}catch(e){}const r=_rr.apply(this,arguments);document.body.classList.toggle("nepon",nepOn());try{nepAfter();}catch(e){}return r;};}
 // title, subtitle and numbered sections
 {const _dv=dashView;dashView=function(){let h=_dv.apply(this,arguments);if(dashCur()!==NEP_ID)return h;const T=dashT();let live=0;try{live=Object.values(LIVE&&LIVE.g||{}).filter(g=>g.s==="in").length/2;}catch(e){}
