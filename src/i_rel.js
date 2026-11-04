@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.34",date:"2026-11-04",title:"Team tools for everyone",notes:[
+    ["249","New","The default dashboard is now in clean groups with section titles: Today (your matchup, anything waiting on you, today's lineup, tip-off countdown), This matchup (with the injury tracker) and Moves. Add your own Section title widgets from + Add widget and rename them with ⚙."],
+    ["250","New","Every dashboard now has the team tools: Today's lineup, My claims and offers, Week ahead, Quick add and Roster. If you had already arranged your dashboard, any of these you were missing were added once, in a Manage your team group right after My matchup. You can still move or remove them in ✎ Edit, and they won't come back on their own."]]},
   {v:"2.33",date:"2026-11-04",title:"Run your team from the dashboard",notes:[
     ["243","New","Today's lineup widget: your starters and bench for today with each player's game. Tap a slot to move a player or put him on IR, or tap Auto-set today. OUT starters and bench players who could fill an empty spot are highlighted. Slots still lock at tip-off."],
     ["244","New","Roster widget: every player with his slot, status, games left this matchup and last 7 days, plus Move, IR and Drop (you confirm drops first)."],

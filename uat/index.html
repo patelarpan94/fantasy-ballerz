@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104203321"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104204119"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.34",date:"2026-11-04",title:"Team tools for everyone",notes:[
+    ["249","New","The default dashboard is now in clean groups with section titles: Today (your matchup, anything waiting on you, today's lineup, tip-off countdown), This matchup (with the injury tracker) and Moves. Add your own Section title widgets from + Add widget and rename them with ⚙."],
+    ["250","New","Every dashboard now has the team tools: Today's lineup, My claims and offers, Week ahead, Quick add and Roster. If you had already arranged your dashboard, any of these you were missing were added once, in a Manage your team group right after My matchup. You can still move or remove them in ✎ Edit, and they won't come back on their own."]]},
   {v:"2.33",date:"2026-11-04",title:"Run your team from the dashboard",notes:[
     ["243","New","Today's lineup widget: your starters and bench for today with each player's game. Tap a slot to move a player or put him on IR, or tap Auto-set today. OUT starters and bench players who could fill an empty spot are highlighted. Slots still lock at tip-off."],
     ["244","New","Roster widget: every player with his slot, status, games left this matchup and last 7 days, plus Move, IR and Drop (you confirm drops first)."],
@@ -7698,7 +7701,7 @@ DW.sc={name:"Stat card",desc:"Pick any category. Shows your number this matchup 
     const wk=rk(x=>val(score(x),c)),ss=rk(x=>val(STAND[x]?.vbs||ZERO(),c)),ord=n=>n+(["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10<4?n%10:0]);
     return `<div class="dsc"><span class="dsck">${esc(c[0])}</span><div><b class="num dbig">${f(wk.v)}</b><small>this matchup · <b>${ord(wk.r)}</b> of ${ids.length}</small></div><div><b class="num">${f(ss.v)}</b><small>season · <b>${ord(ss.r)}</b> of ${ids.length}</small></div></div>`;},
   opts(w){return `<p class="muted dsnote">Which category?</p><div class="tabs sm dsrow" role="group" aria-label="Category">${CATS.map(c=>`<button data-dsccat="${esc(c[0])}" aria-selected="${(w.o.c||CATS[0][0])===c[0]}">${esc(c[0])}</button>`).join("")}</div>`;}};
-const dwTitle=w=>w.k==="sc"?`${DW.sc.name} · ${(CATS.find(x=>x[0]===w.o.c)||CATS[0])[0]}`:DW[w.k].name;
+const dwTitle=w=>w.k==="hd"?String((w.o&&w.o.t)||"Section"):w.k==="sc"?`${DW.sc.name} · ${(CATS.find(x=>x[0]===w.o.c)||CATS[0])[0]}`:DW[w.k].name;
 
 /* ---- the page ---- */
 function dashView(){
@@ -7706,7 +7709,7 @@ function dashView(){
   if(!TEAMS[T])return dashEmpty("Pick a team at the top to see its dashboard.");
   const SZ=[["s","Small"],["w","Wide"],["f","Full"]];
   const tile=(w,i)=>{let body;const big=w.s!=="s"||PHONE();try{window.DCH_W=PHONE()||w.s==="s"?300:w.s==="w"?560:820;body=DW[w.k].view(w,T,big);}catch(e){body=dashEmpty("This widget couldn't load right now.");}
-    return `<section class="dtile sz-${w.s}" data-dw="${esc(w.id)}" aria-label="${esc(dwTitle(w))}">
+    return `<section class="dtile sz-${w.k==="hd"?"f":w.s} dk-${esc(w.k)}" data-dw="${esc(w.id)}" aria-label="${esc(dwTitle(w))}">
       ${DASH_EDIT?`<div class="dtb"><span class="dgrip" data-dgrip="${esc(w.id)}" title="Drag to move" aria-hidden="true">⠿</span><span class="dtt">${esc(dwTitle(w))}</span>
         <button data-dmv="-1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} earlier"${i?"":" disabled"}>↑</button><button data-dmv="1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} later"${i<ws.length-1?"":" disabled"}>↓</button>
         <span class="dszs" role="group" aria-label="Size">${SZ.map(([k,l])=>`<button data-dsz="${k}" data-dwid="${esc(w.id)}" aria-pressed="${w.s===k}" title="${l}">${l[0]}</button>`).join("")}</span>
@@ -8537,7 +8540,27 @@ DW.wa={name:"Week ahead",desc:"How many of your starters play each day left in t
     return `<div class="dtlh"><span><b class="dbig num">${dCount(tot)}</b> starter games left as set</span>${ed?`<button class="btn sm" data-dauto="week">Auto-set rest of week</button>`:""}</div><div class="dwa">${cells}</div>`;}};
 
 // the manager default now leads with the action widgets
-DASH_DEF.splice(0,DASH_DEF.length,["mu","w"],["tl","w"],["sw","s"],["co","s"],["wp","w"],["ij","s"],["wa","w"],["qa","s"],["sm","w"],["cd","s"]);
+/* ---- section titles, so a dashboard reads in clean groups ---- */
+DW.hd={name:"Section title",desc:"A heading that splits your dashboard into groups, like Today or Moves. ⚙ to rename it. Add as many as you like.",s:"f",multi:true,
+  view(w){return w.o&&w.o.sub?`<p class="dhds muted">${esc(w.o.sub)}</p>`:"";},
+  opts(w){return `<p class="muted dsnote">Section name</p><div class="dqa"><input id="dhdIn" maxlength="30" value="${esc((w.o&&w.o.t)||"")}" aria-label="Section name"><button class="btn sm" data-dhdsave>Save</button></div>`;}};
+const H=(t,sub)=>["hd","f",{t,sub}];
+// the default: grouped so a manager reads it top to bottom (Arp: "make it clean and organized")
+DASH_DEF.splice(0,DASH_DEF.length,
+  H("Today","Your score, your lineup and anything waiting on you"),["mu","w"],["co","s"],["tl","w"],["cd","s"],
+  H("This matchup","Where each category is headed, your games left and who's hurt"),["sw","s"],["wp","w"],["wa","w"],["ij","s"],
+  H("Moves","Add, drop and stream"),["qa","s"],["sm","w"],["rr","f"]);
+// 2.34 (Arp: "add all the tools needed to manage a team to the default widgets to all players"):
+// every login's main dashboard that was arranged by hand gets the missing team tools once, as a "Manage your team" group after My matchup
+const DASH_MGMT=[["tl","w"],["co","s"],["wa","w"],["qa","s"],["rr","f"]];
+function dashMgmtMigrate(){if(!prefKey()||!UI.dash||!Array.isArray(UI.dash.w)||UI.dash.mg>=1)return;
+  const w=UI.dash.w.slice(),miss=DASH_MGMT.filter(([k])=>!w.some(x=>x.k===k)),id=i=>"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5)+i;
+  if(miss.length){const at=w.findIndex(x=>x.k==="mu")+1;w.splice(at,0,{id:id("h"),k:"hd",s:"f",o:{t:"Manage your team"}},...miss.map(([k,s],i)=>({id:id(i),k,s,o:{}})));}
+  UI={...UI,dash:{...UI.dash,w,mg:1}};uiSave();}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-dhdsave]");if(!b)return;const id=b.closest("[data-doptid]")?.dataset.doptid,v=($("#dhdIn").value||"").trim().slice(0,30);if(!id)return;
+  dashSet(dashW().map(x=>x.id===id?{...x,o:{...x.o,t:v||"Section"}}:x));sheet().close();dashDraw();});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dhdIn"){e.preventDefault();$("[data-dhdsave]")?.click();}});
+{const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{dashMgmtMigrate();}catch(e){}return _rr.apply(this,arguments);};}
 
 /* ---- clicks ---- */
 document.addEventListener("click",async e=>{let b;
@@ -8579,6 +8602,12 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dqaIn
 .dwad{font-weight:800}.dwac b{font-size:1.2rem}.dwac b small{font-size:.7rem;color:var(--muted)}
 .dwar{width:100%;height:6px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden}.dwar i{display:block;height:100%;width:var(--p);background:var(--accent);border-radius:3px}
 .dfirst .dwac{animation:drise .5s cubic-bezier(.3,.7,.2,1) both;animation-delay:var(--d)}.dfirst .dwar i{animation:dbarin .8s cubic-bezier(.3,.7,.2,1) both}
+.dtile.dk-hd{background:none!important;border:0!important;box-shadow:none!important;padding:14px 2px 0;gap:2px;backdrop-filter:none!important}
+.dtile.dk-hd::before{display:none}.dtile.dk-hd .dth .dopt{display:none}
+.dtile.dk-hd .dth h3{font-family:var(--f-display);font-size:1.15rem;letter-spacing:.02em;color:var(--ink);text-transform:none;display:flex;align-items:center;gap:10px;width:100%}
+.dtile.dk-hd .dth{flex:1}.dtile.dk-hd .dth h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.dtile.dk-hd .dhds{margin:0;font-size:.82rem}.dtile.dk-hd:first-child{padding-top:0}
+.dash.editing .dtile.dk-hd{border:1px dashed var(--line)!important;padding:10px}
 @media (max-width:640px){.drrh,.drrr{grid-template-columns:74px 1fr 28px 30px}.drrh span:nth-child(4),.drrr>span.num{display:none}}
 `;document.head.appendChild(s);}
 /* ============================================================================
