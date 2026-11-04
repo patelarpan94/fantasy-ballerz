@@ -996,7 +996,7 @@ function analyticsView(){
 
 /* ============================================================================
    NEWS AND HEALTH: ESPN's injuries feed (status, note, return date) and news
-   feed, both pulled by Refresh into nba/<season> as injd and news.
+   feed (plus RotoWire and CBS Sports RSS), pulled into nba/<season> as injd and news.
    ============================================================================ */
 let NEWSF="all";
 const newsAll=()=>(NBA&&NBA.news)||[],injOf=n=>(NBA&&NBA.injd||{})[n]||null;
@@ -1005,7 +1005,7 @@ const hasNews=n=>newsAll().some(a=>(a.p||[]).includes(n)&&Date.now()-a.at<48*360
 const ago=ms=>{const m=Math.max(0,Math.round((Date.now()-ms)/60000));return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";};
 const stPill=st=>st==="OUT"?'<span class="st out">OUT</span>':st==="DAY_TO_DAY"?'<span class="st dtd">DTD</span>':'<span class="st ok">Healthy</span>';
 const retTxt=r=>{if(!r)return "";const d=new Date(r+"T12:00:00");return isNaN(d)?esc(r):d.toLocaleDateString("en-US",{month:"short",day:"numeric"});};
-const newsItem=(a,showP=true)=>`<li class="nwi"><a href="${esc(a.u||"#")}" target="_blank" rel="noopener noreferrer"><b>${esc(a.h)}</b></a>${a.d?`<p>${esc(a.d)}</p>`:""}<div class="nwmeta"><span>${ago(a.at)}</span>${showP?(a.p||[]).slice(0,4).map(n=>{const o=ownerNow(n);return `<button class="nwp${o&&o===myTeamNum()?" mine":""}" data-pcard="${esc(n)}">${esc(n)}${o?` · ${esc(teamName(o))}`:DIR[n]?" · FA":""}</button>`;}).join(""):""}</div></li>`;
+const newsItem=(a,showP=true)=>`<li class="nwi"><a href="${esc(a.u||"#")}" target="_blank" rel="noopener noreferrer"><b>${esc(a.h)}</b></a>${a.d?`<p>${esc(a.d)}</p>`:""}<div class="nwmeta"><span class="nwsrc s-${esc(newsSrc(a).toLowerCase())}">${esc(newsSrc(a)==="CBS"?"CBS Sports":newsSrc(a))}</span><span>${ago(a.at)}</span>${showP?(a.p||[]).slice(0,4).map(n=>{const o=ownerNow(n);return `<button class="nwp${o&&o===myTeamNum()?" mine":""}" data-pcard="${esc(n)}">${esc(n)}${o?` · ${esc(teamName(o))}`:DIR[n]?" · FA":""}</button>`;}).join(""):""}</div></li>`;
 // per-game line from box scores on days in [a,b)
 function lineRange(n,a,b){const d=DAYLINES[n]||{},ls=Object.entries(d).filter(([sp])=>+sp>=a&&+sp<b).map(([,l])=>l);if(!ls.length)return null;const t=lineSum(ls);return {t,g:ls.length};}
 function playerCard(n){
@@ -1025,24 +1025,47 @@ function playerCard(n){
     <div class="pctabs" role="tablist">${tabs.map(([k,l],i)=>`<button role="tab" data-pctab="${k}" aria-selected="${!i}">${l}</button>`).join("")}</div>
     <div data-pane="ov"><h3>Health</h3>${health}
     <h3>Stats</h3>${stats}</div>
-    <div data-pane="nw" hidden><h3>News</h3>${nw.length?`<ol class="nwl">${nw.slice(0,6).map(a=>newsItem(a,false)).join("")}</ol>`:`<p class="muted">${newsAll().length?"No recent ESPN stories mention this player.":"News loads with Refresh in the Claude desktop app."}</p>`}</div>
+    <div data-pane="nw" hidden><h3>News</h3>${nw.length?`<ol class="nwl">${nw.slice(0,6).map(a=>newsItem(a,false)).join("")}</ol>`:`<p class="muted">${newsAll().length?"No recent stories mention this player.":"News loads with the next ESPN pull."}</p>`}</div>
     <div data-pane="gl" hidden><h3>Game log</h3>${pcGameLog(n,D.t||P.t)}</div>
     <div class="sheetacts">${act}<button class="btn ghost" data-sheet="close">Close</button></div></div>`);
 }
-function newsView(){
-  const mine=myTeamNum()||(TEAMS[cur]?cur:0),all=newsAll();
+/* NEWS TAB (2.26, BUG-221..223): its own main tab. Stories come from ESPN's news
+   feed plus RotoWire and CBS Sports' free RSS feeds (a.s = "RotoWire" | "CBS";
+   ESPN stories have no a.s). Filters: source, whose players, one fantasy team,
+   and the search box. Injury report is the second sub-tab. */
+let NEWSS="all",NEWST=0;
+try{NEWSF=localStorage.getItem("dfNewsF")||"all";NEWSS=localStorage.getItem("dfNewsS")||"all";}catch(e){}
+const NEWS_SRC=[["all","All"],["ESPN","ESPN"],["RotoWire","RotoWire"],["CBS","CBS"]];
+const newsSrc=a=>a.s||"ESPN";
+function newsSave(){try{localStorage.setItem("dfNewsF",NEWSF);localStorage.setItem("dfNewsS",NEWSS);}catch(e){}}
+function newsInjView(){
+  const mine=myTeamNum()||(TEAMS[cur]?cur:0);
   // injury report: every rostered player ESPN lists, grouped by fantasy team (mine first)
-  const inj=Object.keys(OWN).filter(n=>ownerNow(n)&&INJ[n]&&INJ[n]!=="ACTIVE").map(n=>({n,o:ownerNow(n),st:INJ[n],ij:injOf(n)}))
+  const inj=Object.keys(OWN).filter(n=>ownerNow(n)&&INJ[n]&&INJ[n]!=="ACTIVE"&&(!NEWST||ownerNow(n)===NEWST)).map(n=>({n,o:ownerNow(n),st:INJ[n],ij:injOf(n)}))
     .sort((a,b)=>(b.o===mine)-(a.o===mine)||a.o-b.o||(a.st==="OUT"?0:1)-(b.st==="OUT"?0:1));
   const ir=inj.length?`<ol class="nwl injl">${inj.map(x=>`<li class="nwi${x.o===mine?" mine":""}"><div class="injh"><button class="nmb" data-pcard="${esc(x.n)}"><b>${esc(x.n)}</b></button><span class="muted">${esc(DIR[x.n]?.t||"")} · ${esc(teamName(x.o))}</span></div>
       <div class="injs">${stPill(x.st)}${x.ij?.t?`<b>${esc(x.ij.t)}</b>`:""}${x.ij?.r?`<span class="muted">Back ${retTxt(x.ij.r)}</span>`:""}</div>${x.ij?.c?`<p>${esc(x.ij.c)}</p>`:""}</li>`).join("")}</ol>`
-    :`<p class="empty">${NBA?"No rostered players are on ESPN's injury report.":"Press Refresh in the Claude desktop app to load the injury report."}</p>`;
-  const f=NEWSF,list=all.filter(a=>f==="all"||(a.p||[]).some(n=>f==="mine"?ownerNow(n)===mine:ownerNow(n)));
-  const chips=`<div class="tabs sm" role="group" aria-label="Filter news">${[["all","All NBA"],["rost","Rostered players"],["mine",mine?"My team":"This team"]].map(([k,l])=>`<button data-newsf="${k}" aria-selected="${f===k}">${l}</button>`).join("")}</div>`;
-  const nl=list.length?`<ol class="nwl">${list.slice(0,40).map(a=>newsItem(a)).join("")}</ol>`:`<p class="empty">${all.length?"No stories match this filter right now.":"Press Refresh in the Claude desktop app to load ESPN news."}</p>`;
-  return sec("Injury report · rostered players",`From ESPN${NBA?.at?`, pulled ${ago(NBA.at)}`:""}${mine&&TEAMS[mine]?` · ${esc(TEAMS[mine].name)} first`:""}`,ir)
-    +`<div class="row anbar"><span class="hint">Tap a player name to open the player card</span>${chips}</div>`
-    +sec("Latest news",`ESPN NBA stories, newest first${all.length?` · ${all.length} stories`:""}`,nl);
+    :`<p class="empty">${NBA?(NEWST?"No players on this team are on ESPN's injury report.":"No rostered players are on ESPN's injury report."):"The injury report loads with the next ESPN pull."}</p>`;
+  return `<div class="row anbar nwbar">${newsTeamSel()}</div>`+sec("Injury report · rostered players",`From ESPN${NBA?.at?`, pulled ${ago(NBA.at)}`:""}${mine&&TEAMS[mine]&&!NEWST?` · ${esc(TEAMS[mine].name)} first`:""}`,ir);
+}
+function newsTeamSel(){
+  const ids=Object.keys(TEAMS).map(Number).sort((a,b)=>TEAMS[a].name.localeCompare(TEAMS[b].name));
+  return `<label class="nwsel"><span class="sr">Fantasy team</span><select id="newsTeam" aria-label="Fantasy team"><option value="0">All fantasy teams</option>${ids.map(t=>`<option value="${t}"${NEWST===t?" selected":""}>${esc(TEAMS[t].name)}</option>`).join("")}</select></label>`;
+}
+function newsView(){
+  if(SUB.news==="inj")return newsInjView();
+  const mine=myTeamNum()||(TEAMS[cur]?cur:0),all=newsAll(),f=NEWSF,sv=NEWSS;
+  const who=a=>{const ps=a.p||[];if(NEWST)return ps.some(n=>ownerNow(n)===NEWST);
+    return f==="all"||(f==="fa"?ps.some(n=>DIR[n]&&!ownerNow(n)):ps.some(n=>f==="mine"?ownerNow(n)===mine:ownerNow(n)));};
+  const txt=a=>!Q||norm(`${a.h} ${a.d||""} ${(a.p||[]).join(" ")}`).includes(Q);
+  const base=all.filter(a=>who(a)&&txt(a)),list=base.filter(a=>sv==="all"||newsSrc(a)===sv);
+  const cnt=k=>k==="all"?base.length:base.filter(a=>newsSrc(a)===k).length;
+  const srcChips=`<div class="tabs sm" role="group" aria-label="News source">${NEWS_SRC.map(([k,l])=>`<button data-newss="${k}" aria-selected="${sv===k}">${l} <span class="muted">${cnt(k)}</span></button>`).join("")}</div>`;
+  const whoChips=`<div class="tabs sm" role="group" aria-label="Whose players">${[["all","All NBA"],["rost","Rostered"],["mine",mine?"My team":"This team"],["fa","Free agents"]].map(([k,l])=>`<button data-newsf="${k}" aria-selected="${!NEWST&&f===k}">${l}</button>`).join("")}</div>`;
+  const nl=list.length?`<ol class="nwl">${list.slice(0,60).map(a=>newsItem(a)).join("")}</ol>`:`<p class="empty">${all.length?"No stories match these filters right now.":"News loads with the next ESPN pull."}</p>`;
+  const by=["ESPN","RotoWire","CBS"].filter(x=>all.some(a=>newsSrc(a)===x));
+  return `<div class="nwfilters">${srcChips}<div class="row anbar nwbar">${whoChips}${newsTeamSel()}</div><span class="hint">Tap a player name to open the player card. The search box filters headlines.</span></div>`
+    +sec("Latest news",`${by.length?by.map(x=>x==="CBS"?"CBS Sports":x).join(", "):"ESPN, RotoWire and CBS Sports"} · newest first · ${list.length} of ${all.length} stories`,nl);
 }
 
 // hot and cold players (last 7 days vs projection): shown in Players › Market
