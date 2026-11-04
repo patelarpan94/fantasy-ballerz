@@ -1117,9 +1117,11 @@ function injuries_() {
       var n = g_(x, 'athlete', 'displayName');
       if (!n) return;
       var raw = String(x.status || g_(x, 'type', 'description') || ''), s = raw.toLowerCase();
-      m[n] = s.indexOf('out') >= 0 ? 'OUT' : /day|question|doubt/.test(s) ? 'DAY_TO_DAY' : 'ACTIVE';
       var d = x.details || {}, at = new Date(x.date).getTime() || Date.now();
-      dd[n] = {s: raw, t: [d.side && d.side !== 'Not Specified' ? d.side : '', d.type || '', d.detail || ''].filter(Boolean).join(' ').slice(0, 60),
+      // ESPN's fantasy tag (OUT / GTD / OFS) wins: a player listed "Out" can be GTD tonight (BUG-226)
+      var f = String(g_(d, 'fantasyStatus', 'abbreviation') || '').toUpperCase();
+      m[n] = f === 'OUT' || f === 'OFS' ? 'OUT' : f === 'GTD' ? 'DAY_TO_DAY' : s.indexOf('out') >= 0 ? 'OUT' : /day|question|doubt/.test(s) ? 'DAY_TO_DAY' : 'ACTIVE';
+      dd[n] = {s: raw, f: f, y: String(d.type || '').slice(0, 30), t: [d.side && d.side !== 'Not Specified' ? d.side : '', d.type || '', d.detail || ''].filter(Boolean).join(' ').slice(0, 60),
         r: String(d.returnDate || '').slice(0, 10), c: String(x.shortComment || x.longComment || '').slice(0, 400), at: at};
     });
   });
