@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.31",date:"2026-11-04",title:"7 more dashboard widgets",notes:[
+    ["236","New","7 more widgets in + Add widget: Swing categories (the closest categories and exactly what flips each one, like \"you need +3 STL\"), Projected final score (where every category is headed, with a range for what's still to play), Power rankings climb (every team's rank week by week), Season heatmap (one square per day, darker for bigger days), Who carries your team (blocks sized by each player's share, ⚙ to pick a category), Draft value (draft pick vs how he ranks now, steals above the line) and Pickup report card (every add graded A to D on what he's done for you)."],
+    ["237","New","New chart types for these: diverging bars, range bands with dots that slide from now to the projected finish, a bump chart, a calendar heatmap, a treemap and a scatter chart. They animate in like the others and respect reduce motion."]]},
   {v:"2.30",date:"2026-11-04",title:"20 new dashboard widgets",notes:[
     ["233","New","20 new widgets in + Add widget: Win % tracker, Category tug-of-war, Race chart, Daily production, Games left heat strip, Team radar, Strengths and punts, Roster sparklines, Player of the week, Hot and cold, ESPN rising and falling, Streaming calendar, Trade idea, Playoff race, Strength of schedule, Rivalry, Weekly awards, Injury tracker, Waiver wire feed and Tip-off countdown. Some have ⚙ options, like which stat or which rival."],
     ["234","New","Charts and animation: widgets draw in as you open the dashboard. Lines trace, bars grow, rings fill, numbers count up, the fairness gauge needle swings and new waiver moves slide in. Turns off if your phone or computer is set to reduce motion."],
