@@ -356,8 +356,11 @@ async function refresh(){
     showUpdated("Loading injuries…");
     let inj=NBA?.inj||{},injd=NBA?.injd||{},news=NBA?.news||[];
     try{const ij=await fetchJSON(mcp,`${ESPN}/injuries`);const m={},dd={};
-      (ij.injuries||[]).forEach(t=>(t.injuries||[]).forEach(x=>{const n=x.athlete?.displayName,raw=String(x.status||x.type?.description||""),s=raw.toLowerCase();if(!n)return;m[n]=s.includes("out")?"OUT":s.includes("day")||s.includes("question")||s.includes("doubt")?"DAY_TO_DAY":"ACTIVE";
-        const dt=x.details||{},at=Date.parse(x.date||"");dd[n]={s:raw,t:[dt.side&&dt.side!=="Not Specified"?dt.side:"",dt.type||"",dt.detail||""].filter(Boolean).join(" ").slice(0,60),r:String(dt.returnDate||"").slice(0,10),c:String(x.shortComment||x.longComment||"").slice(0,400),at:isNaN(at)?Date.now():at};}));inj=m;injd=dd;}
+      (ij.injuries||[]).forEach(t=>(t.injuries||[]).forEach(x=>{const n=x.athlete?.displayName,raw=String(x.status||x.type?.description||""),s=raw.toLowerCase();if(!n)return;
+        // ESPN's fantasy tag wins: a player listed "Out" can be GTD tonight (BUG-226)
+        const dt=x.details||{},f=String(dt.fantasyStatus?.abbreviation||"").toUpperCase(),at=Date.parse(x.date||"");
+        m[n]=f==="OUT"||f==="OFS"?"OUT":f==="GTD"?"DAY_TO_DAY":s.includes("out")?"OUT":s.includes("day")||s.includes("question")||s.includes("doubt")?"DAY_TO_DAY":"ACTIVE";
+        dd[n]={s:raw,f,y:String(dt.type||"").slice(0,30),t:[dt.side&&dt.side!=="Not Specified"?dt.side:"",dt.type||"",dt.detail||""].filter(Boolean).join(" ").slice(0,60),r:String(dt.returnDate||"").slice(0,10),c:String(x.shortComment||x.longComment||"").slice(0,400),at:isNaN(at)?Date.now():at};}));inj=m;injd=dd;}
     catch(e){if(e?.code&&!["tool_error","bad_page"].includes(e.code))throw e;}
     let lgErr=null;
     if(mirror()){try{await syncEspnLeague(mcp);}catch(e){if(e?.code&&!["tool_error","bad_page","not_league"].includes(e.code))throw e;lgErr=e;}}

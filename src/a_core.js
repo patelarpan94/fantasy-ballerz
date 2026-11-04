@@ -62,6 +62,24 @@ const weekDone=n=>CAL[n-1]&&CAL[n-1][2]<TODAY;
 const weekDaysAll=n=>{const w=CAL[n-1],o=[];for(let sp=w[1];sp<=w[2];sp++)o.push(sp);return o;};
 const canPlayN=(n,s)=>s===11||s===12||s===13||((DIR[n]?.el)||[11]).includes(s);
 const isOut=n=>INJ[n]==="OUT";
+/* OUT KINDS (2.27, BUG-224..226): ESPN's injuries feed says why a player is out.
+   details.type is a body part, or a non-injury reason (rest, personal, suspension...),
+   saved as injd[n].y; details.fantasyStatus (OUT / GTD / OFS) is saved as injd[n].f.
+   outKind: "inj" injured out, "non" just out (not an injury), "ofs" out for the season. */
+const NONINJ=/\b(rest|personal|suspen|not injury|coach|conditioning|load management|family|bereave|g league|two-way|contract|trade|paternity|birth|league discipline|nba health)/i;
+function outKind(n){if(INJ[n]!=="OUT")return "";const ij=(NBA&&NBA.injd||{})[n]||{};
+  if(ij.f==="OFS"||/out for (the )?season|season-ending/i.test(ij.s||""))return "ofs";
+  return NONINJ.test(ij.y||ij.t||"")?"non":"inj";}
+const outWhy=n=>{const ij=(NBA&&NBA.injd||{})[n]||{};return ij.y||ij.t||"";};
+// status pill for a player: injured out (red, cross), just out (grey), out for season, DTD
+function stTag(n,st,healthy){st=st||INJ[n]||"ACTIVE";
+  if(st==="DAY_TO_DAY")return '<span class="st dtd" title="Day to day (game-time decision)">DTD</span>';
+  if(st!=="OUT")return healthy?'<span class="st ok">Healthy</span>':"";
+  const k=outKind(n),why=outWhy(n);
+  if(k==="ofs")return `<span class="st ofs" title="Out for the season${why?" · "+esc(why):""}">OFS</span>`;
+  if(k==="non")return `<span class="st outn" title="Out, not an injury${why?" · "+esc(why):""}">OUT</span>`;
+  return `<span class="st out" title="Injured, out${why?" · "+esc(why):""}"><i aria-hidden="true">✚</i>OUT</span>`;}
+const stCls=(n,st)=>{st=st||INJ[n]||"ACTIVE";if(st==="DAY_TO_DAY")return "dtd";if(st!=="OUT")return "";const k=outKind(n);return k==="inj"?"out":k==="non"?"out outn":"out ofs";};
 
 // Round-robin matchups for any team count (odd counts get a bye), repeated to fill the season.
 function roundRobin(ids,weeks){

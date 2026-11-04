@@ -140,8 +140,8 @@ function hlName(n){if(!Q)return esc(n);let ns="",map=[];for(let i=0;i<n.length;i
   const at=ns.indexOf(Q);if(at<0)return esc(n);const s=map[at],e=map[at+Q.length-1]+1;return esc(n.slice(0,s))+"<mark>"+esc(n.slice(s,e))+"</mark>"+esc(n.slice(e));}
 const noMatch=()=>`<p class="empty">No players match “${esc(Q)}”.</p>`;
 function playerCell(p,card=true){
-  const st=p.st==="DAY_TO_DAY"?'<span class="st dtd">DTD</span>':p.st==="OUT"?'<span class="st out">OUT</span>':"";
-  const av=`<span class="av ${p.p<=2?"g":p.p<=4?"f":"c"}${p.st==="OUT"?" out":p.st==="DAY_TO_DAY"?" dtd":""}" aria-hidden="true">${initials(p.n)}</span>`;
+  const st=stTag(p.n,p.st),sc=stCls(p.n,p.st);
+  const av=`<span class="av ${p.p<=2?"g":p.p<=4?"f":"c"}${sc?" "+sc:""}" aria-hidden="true">${initials(p.n)}</span>`;
   const pos=(p.el||[]).filter(e=>e<5).map(e=>SLOT[e]).join("/")||POS[p.p];
   return `<div class="pwho">${av}<div><div class="pname">${card?`<span class="nm nmb" role="button" tabindex="0" data-pcard="${esc(p.n)}" title="Player card: health, stats and news">${hlName(p.n)}</span>`:`<span class="nm">${hlName(p.n)}</span>`}${cups(p.n)}${st}${card&&hasNews(p.n)?'<span class="nwdot" title="News in the last 2 days" aria-label="Recent news"></span>':""}</div><div class="pmeta">${esc(p.t)} · ${pos}</div></div></div>`;
 }

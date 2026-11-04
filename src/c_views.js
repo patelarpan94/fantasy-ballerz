@@ -1003,7 +1003,7 @@ const newsAll=()=>(NBA&&NBA.news)||[],injOf=n=>(NBA&&NBA.injd||{})[n]||null;
 const newsFor=n=>newsAll().filter(a=>(a.p||[]).includes(n));
 const hasNews=n=>newsAll().some(a=>(a.p||[]).includes(n)&&Date.now()-a.at<48*3600e3);
 const ago=ms=>{const m=Math.max(0,Math.round((Date.now()-ms)/60000));return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";};
-const stPill=st=>st==="OUT"?'<span class="st out">OUT</span>':st==="DAY_TO_DAY"?'<span class="st dtd">DTD</span>':'<span class="st ok">Healthy</span>';
+const stPill=(st,n)=>stTag(n,st,true);
 const retTxt=r=>{if(!r)return "";const d=new Date(r+"T12:00:00");return isNaN(d)?esc(r):d.toLocaleDateString("en-US",{month:"short",day:"numeric"});};
 const newsItem=(a,showP=true)=>`<li class="nwi"><a href="${esc(a.u||"#")}" target="_blank" rel="noopener noreferrer"><b>${esc(a.h)}</b></a>${a.d?`<p>${esc(a.d)}</p>`:""}<div class="nwmeta"><span class="nwsrc s-${esc(newsSrc(a).toLowerCase())}">${esc(newsSrc(a)==="CBS"?"CBS Sports":newsSrc(a))}</span><span>${ago(a.at)}</span>${showP?(a.p||[]).slice(0,4).map(n=>{const o=ownerNow(n);return `<button class="nwp${o&&o===myTeamNum()?" mine":""}" data-pcard="${esc(n)}">${esc(n)}${o?` · ${esc(teamName(o))}`:DIR[n]?" · FA":""}</button>`;}).join(""):""}</div></li>`;
 // per-game line from box scores on days in [a,b)
@@ -1015,13 +1015,13 @@ function playerCard(n){
   const cell=(x,c,per)=>{if(!x)return "–";if(c[1]==="pct")return pct(val(x,c));return (val(x,c)/(per||1)).toFixed(1);};
   const rows=[["ESPN projection",pj,1],[`Season (${ss?ss.g:0} gp)`,ss&&ss.t,ss&&ss.g],[`Last 7 days (${l7?l7.g:0} gp)`,l7&&l7.t,l7&&l7.g]];
   const stats=`<div class="scroll"><table class="lg pcstats"><thead><tr><th class="nm">Per game</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead><tbody>${rows.map(([lab,x,per])=>`<tr><td class="nm">${lab}</td>${CATS.map(c=>`<td class="num">${cell(x,c,per)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-  const health=`<div class="pchealth ${st==="OUT"?"out":st==="DAY_TO_DAY"?"dtd":""}">${stPill(st)}<div>${ij?`<b>${esc(ij.s||"")}${ij.t?` · ${esc(ij.t)}`:""}</b>${ij.r?` <span class="muted">· expected back ${retTxt(ij.r)}</span>`:""}${ij.c?`<p>${esc(ij.c)}</p>`:""}${ij.at?`<span class="muted">Updated ${ago(ij.at)}</span>`:""}`:`<span class="muted">${NBA&&NBA.injd?"Not on ESPN's injury report.":"Injury details load with Refresh."}</span>`}</div></div>`;
+  const health=`<div class="pchealth ${stCls(n,st)}">${stPill(st,n)}<div>${ij?`<b>${esc(st==="OUT"?{inj:"Injured, out",non:"Out, not an injury",ofs:"Out for the season"}[outKind(n)]:ij.s||"")}${ij.t?` · ${esc(ij.t)}`:""}</b>${ij.r?` <span class="muted">· expected back ${retTxt(ij.r)}</span>`:""}${ij.c?`<p>${esc(ij.c)}</p>`:""}${ij.at?`<span class="muted">Updated ${ago(ij.at)}</span>`:""}`:`<span class="muted">${NBA&&NBA.injd?"Not on ESPN's injury report.":"Injury details load with Refresh."}</span>`}</div></div>`;
   const nw=newsFor(n);
   const T=actTeam(),act=T&&!WRITE_BLOCKED&&!mirror()?(o===0&&DIR[n]?`<button class="btn" data-add="${esc(n)}">Add to ${esc(TEAMS[T].name)}</button>`:o===T?`<button class="btn ghost" data-drop="${esc(n)}">Drop</button>`:o?`<button class="btn ghost" data-trade="${esc(n)}">Offer a trade</button>`:""):"";
   const sg=ss||pj&&{t:pj,g:1},rk=D.srk||D.rk,key=(v,l)=>`<div><b class="num">${v}</b><span>${l}</span></div>`;
   const keys=key(rk?"#"+rk:"–",D.srk?"Season rank":"ESPN rank")+[[K.PTS,"PTS"],[K.REB,"REB"],[K.AST,"AST"]].map(([i,l])=>key(sg?(sg.t[i]/sg.g).toFixed(1):"–",l)).join("")+key(sg&&sg.t[K.MIN]!=null?(sg.t[K.MIN]/sg.g).toFixed(1):"–","MIN");
   const tabs=[["ov","Overview"],["nw",`News${nw.length?` (${nw.length})`:""}`],["gl","Game log"]];
-  openSheet(n,`<div class="pcard"><div class="pchead"><span class="hav ${o?"me":"fa"}">${esc(initials(n))}</span><div><p class="pcmeta">${esc(D.t||P.t||"")} · ${esc(pos)} · ${o?`<b>${esc(teamName(o))}</b>`:"Free agent"} ${rostPct(n)!=null?`<span class="pown"><b>${rostTxt(n)}</b> rostered on ESPN</span> `:""}${stPill(st)}</p><div class="pckeys">${keys}</div><span class="muted pcsrc">${ss?`Season per game (${ss.g} gp)`:pj?"ESPN projection per game":""}</span></div></div>
+  openSheet(n,`<div class="pcard"><div class="pchead"><span class="hav ${o?"me":"fa"}">${esc(initials(n))}</span><div><p class="pcmeta">${esc(D.t||P.t||"")} · ${esc(pos)} · ${o?`<b>${esc(teamName(o))}</b>`:"Free agent"} ${rostPct(n)!=null?`<span class="pown"><b>${rostTxt(n)}</b> rostered on ESPN</span> `:""}${stPill(st,n)}</p><div class="pckeys">${keys}</div><span class="muted pcsrc">${ss?`Season per game (${ss.g} gp)`:pj?"ESPN projection per game":""}</span></div></div>
     <div class="pctabs" role="tablist">${tabs.map(([k,l],i)=>`<button role="tab" data-pctab="${k}" aria-selected="${!i}">${l}</button>`).join("")}</div>
     <div data-pane="ov"><h3>Health</h3>${health}
     <h3>Stats</h3>${stats}</div>
@@ -1044,7 +1044,7 @@ function newsInjView(){
   const inj=Object.keys(OWN).filter(n=>ownerNow(n)&&INJ[n]&&INJ[n]!=="ACTIVE"&&(!NEWST||ownerNow(n)===NEWST)).map(n=>({n,o:ownerNow(n),st:INJ[n],ij:injOf(n)}))
     .sort((a,b)=>(b.o===mine)-(a.o===mine)||a.o-b.o||(a.st==="OUT"?0:1)-(b.st==="OUT"?0:1));
   const ir=inj.length?`<ol class="nwl injl">${inj.map(x=>`<li class="nwi${x.o===mine?" mine":""}"><div class="injh"><button class="nmb" data-pcard="${esc(x.n)}"><b>${esc(x.n)}</b></button><span class="muted">${esc(DIR[x.n]?.t||"")} · ${esc(teamName(x.o))}</span></div>
-      <div class="injs">${stPill(x.st)}${x.ij?.t?`<b>${esc(x.ij.t)}</b>`:""}${x.ij?.r?`<span class="muted">Back ${retTxt(x.ij.r)}</span>`:""}</div>${x.ij?.c?`<p>${esc(x.ij.c)}</p>`:""}</li>`).join("")}</ol>`
+      <div class="injs">${stPill(x.st,x.n)}${x.ij?.t?`<b>${esc(x.ij.t)}</b>`:""}${x.ij?.r?`<span class="muted">Back ${retTxt(x.ij.r)}</span>`:""}</div>${x.ij?.c?`<p>${esc(x.ij.c)}</p>`:""}</li>`).join("")}</ol>`
     :`<p class="empty">${NBA?(NEWST?"No players on this team are on ESPN's injury report.":"No rostered players are on ESPN's injury report."):"The injury report loads with the next ESPN pull."}</p>`;
   return `<div class="row anbar nwbar">${newsTeamSel()}</div>`+sec("Injury report · rostered players",`From ESPN${NBA?.at?`, pulled ${ago(NBA.at)}`:""}${mine&&TEAMS[mine]&&!NEWST?` · ${esc(TEAMS[mine].name)} first`:""}`,ir);
 }

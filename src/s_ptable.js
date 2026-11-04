@@ -57,7 +57,7 @@ function ptRows(id,side,v,editable,title){
     if(!isOpen)return;
     if(key==="start")list.sort((a,b)=>LINEUP.indexOf(slotOn(a,vd))-LINEUP.indexOf(slotOn(b,vd)));
     list.forEach(p=>{const warn=key==="start"&&vd>=TODAY&&(!gameOn(p.t,vd)||p.st==="OUT"),mv=MOVING&&MOVING.n===p.n&&MOVING.team===id;
-      const st=p.st==="DAY_TO_DAY"?'<span class="st dtd">DTD</span>':p.st==="OUT"?'<span class="st out">OUT</span>':"";
+      const st=stTag(p.n,p.st);
       h+=`<tr class="${warn?"ptwarn":""}${mv?" mving":""}${key!=="start"?" ptbn":""}"><td class="pl"><div class="ptp">${slotTag(p,id,editable)}<div class="ptn"><span class="nmb" role="button" tabindex="0" data-pcard="${esc(p.n)}" title="${esc(p.n)}">${esc(ptName(p.n))}</span>${st}<small>${esc(p.t)} · ${ptSub(p,vd,id)}</small></div></div></td>${ptCells(p,v,id)}</tr>`;});
     empties.forEach(s=>{h+=`<tr class="ptempty"><td class="pl"><div class="ptp"><span class="slot">${SLOT[s]}</span><div class="ptn"><span class="muted">Empty</span></div></div></td><td colspan="${nc}"></td></tr>`;});
     if(key==="start")h+=ptTotal(id,v,"Starters total");});

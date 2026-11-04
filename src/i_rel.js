@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.27",date:"2026-11-04",title:"Why a player is out",notes:[
+    ["224","New","OUT now tells you why. A red OUT with a cross means the player is injured and out. A grey OUT means he's out for a reason that isn't an injury, like rest, personal reasons or a suspension. Hover the tag (or open the player card) to see the reason, for example \"Knee\" or \"Rest\". Shows everywhere OUT showed before: My Team, Matchup, Players, player cards and the injury report."],
+    ["225","New","New OFS tag for players ESPN lists as out for the season, like a torn ACL or Achilles."],
+    ["226","Fix","Players ESPN listed as \"Out\" but tagged questionable or probable for tonight (game-time decision) showed as OUT. They now show as DTD, matching ESPN's fantasy status, so auto-set lineups, projections and the lineup alert stop treating them as out. Needs the server release for this site."]]},
   {v:"2.26",date:"2026-11-04",title:"News tab",notes:[
     ["221","New","RotoWire and CBS Sports NBA headlines now show up with ESPN's stories, from their free news feeds. The league server checks them about once an hour and keeps a week of stories. Each story has a small ESPN, ROTOWIRE or CBS SPORTS tag, and stories that name a player also show on that player's card."],
     ["222","New","News is its own tab in the main menu (it used to be League › News). Latest news has filters: source (All, ESPN, RotoWire, CBS Sports, with a count for each), whose players (All NBA, Rostered, My team, Free agents), one fantasy team, and the search box for any word or player. Your source and player filters are remembered on this phone."],
