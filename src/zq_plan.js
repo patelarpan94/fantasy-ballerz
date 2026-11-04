@@ -16,10 +16,12 @@
      finish (same per-category odds as the rest of the dashboard).
    ============================================================================ */
 let DPL_K="",DPL=null;
+// Arp 2026-11-04: "i can only pickup 6 players a week ... players i pickup only show up next day"
+const PL_MAX=6,PL_LAG=1;
 function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
   const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
-  let budget=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):8;budget=Math.min(budget,8);
+  let budget=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):PL_MAX;budget=Math.min(budget,PL_MAX);
   const perDay=mode==="day"&&lim?lim:99;
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
   // regulars: everyone not on IR. Each brings his projected line on days he plays and fits.
@@ -51,7 +53,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   for(let k=0;k<budget;k++){let best=null;
     const tryPlan=(pl,meta)=>{const r=evalPlan(pl);const g=r.exp-cur.exp;if(g>.04&&(!best||g>best.g+1e-9))best={pl,r,g,meta};};
     for(const x of fa){if(plan.adds.some(a=>a.x.n===x.n))continue;
-      const ok=d=>!(x.w&&d<=TODAY+1)&&plays(x,d)&&plan.adds.filter(a=>a.from===d).length<perDay;
+      const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&plan.adds.filter(a=>a.from===d).length<perDay;
       const d0=days.find(ok);if(d0==null)continue;const end=days[days.length-1];
       // a new spot: start on his first playable day (a later start only loses games)
       if(openLeft>0)tryPlan({drops:plan.drops,adds:[...plan.adds,{x,from:d0,to:end,spot:"open"+openLeft}]},{kind:"open",d:d0});
@@ -72,17 +74,17 @@ DW.pl={name:"Win-the-week planner",desc:"Plans every pickup for the rest of this
   view(w,T){const r=dPlan(T);if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
     const ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp);
     const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
-      <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">${r.lim?`Uses up to ${r.budget} of your pickups ${esc(addWhen())}.`:"Your league has no pickup limit; the plan stops at 8."} Free agents only count on days they play and fit an open spot.</small></p></div>`;
+      <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">${r.lim?`Uses up to ${r.budget} of your pickups ${esc(addWhen())}.`:"The plan uses at most ${PL_MAX} pickups."} A pickup plays from the next day, and only counts on days he has a game and fits an open spot.</small></p></div>`;
     if(!r.moves.length)return head+`<p class="dempty okc">✓ No pickup helps this week. Your lineup already covers your open spots${r.budget?"":", or you've used your pickups"}.</p>`;
     const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
     const cats=`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`;
-    const mv=`<ol class="pl-m">${r.moves.map((m,i)=>`<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${m.x.w?" · on waivers, claim now":""}</small></span>
+    const mv=`<ol class="pl-m">${r.moves.map((m,i)=>`<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from-PL_LAG))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"} · plays from ${esc(dow(m.from))}${m.x.w?" · on waivers, claim now":""}</small></span>
       <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
-      ${ed&&m.from===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:m.from===TODAY?"":`<small class="pl-when muted">${esc(dn(m.from))}</small>`}</li>`).join("")}</ol>`;
+      ${ed&&m.from-PL_LAG===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:m.from-PL_LAG===TODAY?"":`<small class="pl-when muted">${esc(dn(m.from-PL_LAG))}</small>`}</li>`).join("")}</ol>`;
     const grid=`<div class="pl-grid" role="img" aria-label="Lineup spots filled each day">${r.days.map(sp=>{const u=r.cur.slotsUsed[sp]||{g:[],reg:0,free:0},tot=LINEUP.length;
       return `<span><i class="pl-bar">${Array.from({length:tot},(_,j)=>`<b class="${j<u.reg?"r":j<u.reg+u.g.length?"s":"e"}"></b>`).join("")}</i><small class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</small></span>`;}).join("")}</div>
       <p class="dsm muted pl-key"><i class="r"></i>your players <i class="s"></i>planned pickups <i class="e"></i>empty spot</p>`;
-    return head+cats+mv+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Tap Add for today's move and you pick who to drop. Later moves update as the week plays out.</p>`;}};
+    return head+cats+mv+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Tap Add for today's moves and you pick who to drop. Later moves update as the week plays out.</p>`;}};
 
 // New Era +: the planner leads "Win the week" (applied once)
 NEP_VER=4;
@@ -90,7 +92,7 @@ NEP_VER=4;
 // the Game plan's pickup line points at the planner when it's on the board
 {const _gp=dGamePlan;dGamePlan=function(T){const xs=_gp.apply(this,arguments);if(!dashW().some(w=>w.k==="pl"))return xs;let r=null;try{r=dPlan(T);}catch(e){}
   const i=xs.findIndex(x=>x.ic==="+");if(i<0||!r||!r.moves||!r.moves.length)return xs;const m=r.moves[0],ed=dCanEdit(T);
-  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: add ${m.x.n} ${m.from===TODAY?"today":"on "+dow(m.from)}.`,imp:`+${r.gain.toFixed(1)}`,act:ed&&m.from===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
+  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: add ${m.x.n} ${m.from-PL_LAG===TODAY?"today":"on "+dow(m.from-PL_LAG)} (he plays from ${dow(m.from)}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&m.from-PL_LAG===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
 
 {const s=document.createElement("style");s.textContent=`
 .pl-h{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:12px}
