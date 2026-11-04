@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.37",date:"2026-11-04",title:"New Era +",notes:[
+    ["260","New","New Era +: a ready-made dashboard everyone gets once (next to your others, so nothing you set up changes). It has its own look: a slow aurora glow behind, glowing glass tiles that lift when you point at them, and color-graded section titles. Reset puts its original layout back."],
+    ["261","New","Matchup arena: your matchup as a big scoreboard with a glowing win-chance ring, momentum since yesterday, every category battle marked likely yours, likely theirs or toss-up, and a games-left duel bar."],
+    ["262","New","Live ticker: a scrolling ticker of tonight's lines for your players and your opponent's, with game status. It pauses when you point at it."],
+    ["263","New","Moves that win: a pickup coach that tests the best free agents in your open lineup spots for the rest of the matchup and shows the adds that win you the most categories (and which ones they flip), with an Add button. Category targets shows what you need per game to win each category, closest battles first."],
+    ["264","New","League scoreboard (every matchup with win chances), Lineup efficiency (how many of your players' games counted, ranked, with Auto-set the week), Bench points wasted (and your league rank) and Trophy case (every weekly award you've won, with a shine)."]]},
   {v:"2.36",date:"2026-11-04",title:"Every widget, polished",notes:[
     ["254","Fix","Rivalry no longer shows an all-orange bar before you've played the team. Today's lineup and Tip-off countdown show games as in progress once they tip, even before live scores arrive."],
     ["255","Change","Fewer duplicates: Lineup check is now a one-line status that jumps to Today's lineup. Trades and waivers is now part of My claims and offers (next waiver run and trade deadline included), and Hot free agents is now part of Quick add. Dashboards that already have them keep them. Roster now shows the season view: season average and form over the last 10 games."],
