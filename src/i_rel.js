@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.29",date:"2026-11-04",title:"Your own dashboard",notes:[
+    ["230","New","New Dashboard tab (Home on phones): one page of widgets with what matters to you. My matchup, Lineup check, My players' news, Hot free agents, Trades and waivers, Standings, Watchlist, League chat, Tonight's games and Stat card. Tap a widget to jump to the full page. You can make Dashboard the tab the app opens on in ✎ Customize."],
+    ["231","New","Edit your dashboard: tap ✎ Edit, then drag any widget by its ⠿ bar to move it (mouse or finger), or use ↑ ↓. Pick S, W or F to make it small, wide or full width, ✕ to remove it, and + Add widget to bring one back or add another Stat card. Saved to your login, so it follows you to any device. Reset puts the default dashboard back."],
+    ["232","New","Watchlist: tap ☆ Watch on any player card (or use ⚙ on the Watchlist widget) to keep an eye on players. The widget shows each player's status, who owns him and his last 5 games."]]},
   {v:"2.28",date:"2026-11-04",title:"Make the app your own",notes:[
     ["227","New","New ✎ Customize button next to ◐ at the top. Reorder or hide the main tabs (drag ⠿ or use ▲ ▼, untick to hide), do the same for each tab's sub-tabs, and pick which tab the app opens on. A hidden tab still works from links and banners, it just leaves the tab bar."],
     ["228","New","Edit this page: in Customize, tap Edit this page and every card on the page gets ↑ ↓ and Hide, so you can put the cards you care about first on League, Analytics, Fun, News and the rest. Hidden cards stay dimmed while you edit so you can bring them back. Reset page puts that page back to the default."],

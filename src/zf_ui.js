@@ -109,7 +109,7 @@ function uiSheet(){
   const subNavs=Object.keys(SUBTABS).filter(n=>SUBTABS[n].length>1).sort((a,b)=>T.o.indexOf(a)-T.o.indexOf(b));
   if(!subNavs.includes(UI_SUBTAB))UI_SUBTAB=subNavs.includes(nav)?nav:subNavs[0];
   const sl=SUBTABS[UI_SUBTAB].filter(([k])=>k!=="setup"||isCommish()),S=uiOrder(UI.subs&&UI.subs[UI_SUBTAB],sl.map(x=>x[0]));
-  const nCards=Object.keys(UI.cards||{}).length,one=uiUnits().length>1;
+  const nCards=Object.keys(UI.cards||{}).length,one=uiUnits().length>1||nav==="dash";
   const html=`<div class="uisx">
     ${who?"":`<p class="dsnote"><b>Log in to customize the app.</b> Your layout is saved for your team and follows you to any device.</p>`}
     <h3>Tabs</h3><p class="muted dsnote">Untick a tab to hide it from the tab bar. Drag ⠿ or use ▲ ▼ to change the order: top of the list = first tab.${PHONE()?" Fewer tabs gives each one more room on the bottom bar.":""}</p>
