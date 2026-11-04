@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.35",date:"2026-11-04",title:"Cleaner lineup and quick add",notes:[
+    ["251","Improved","Today's lineup widget is tighter and split into Starters, Bench and IR, with player photos. Each row shows today's projection before tip-off and his line so far once the game starts, and wide tiles add last 7 days."],
+    ["252","New","Every lineup row shows the game status: a green pulsing dot and the score while it's live, grey after the final, and the tip time in bold before it starts. The header adds your starters' projected points, rebounds and assists for today (or what they have so far)."],
+    ["253","Improved","Quick add shows player photos and each free agent's ESPN ownership with this week's trend. While the league mirrors ESPN, Today's lineup and Quick add say moves are made on ESPN and have an Open ESPN button."]]},
   {v:"2.34",date:"2026-11-04",title:"Team tools for everyone",notes:[
     ["249","New","The default dashboard is now in clean groups with section titles: Today (your matchup, anything waiting on you, today's lineup, tip-off countdown), This matchup (with the injury tracker) and Moves. Add your own Section title widgets from + Add widget and rename them with ⚙."],
     ["250","New","Every dashboard now has the team tools: Today's lineup, My claims and offers, Week ahead, Quick add and Roster. If you had already arranged your dashboard, any of these you were missing were added once, in a Manage your team group right after My matchup. You can still move or remove them in ✎ Edit, and they won't come back on their own."]]},
