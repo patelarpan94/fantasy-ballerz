@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.28",date:"2026-11-04",title:"Make the app your own",notes:[
+    ["227","New","New ✎ Customize button next to ◐ at the top. Reorder or hide the main tabs (drag ⠿ or use ▲ ▼, untick to hide), do the same for each tab's sub-tabs, and pick which tab the app opens on. A hidden tab still works from links and banners, it just leaves the tab bar."],
+    ["228","New","Edit this page: in Customize, tap Edit this page and every card on the page gets ↑ ↓ and Hide, so you can put the cards you care about first on League, Analytics, Fun, News and the rest. Hidden cards stay dimmed while you edit so you can bring them back. Reset page puts that page back to the default."],
+    ["229","New","Text size: Smaller, Normal, Bigger or Biggest, in Customize. Everything in Customize is saved for your login, so it follows you to any device, and Reset everything puts the default layout back (your theme, colors and columns stay)."]]},
   {v:"2.27",date:"2026-11-04",title:"Why a player is out",notes:[
     ["224","New","OUT now tells you why. A red OUT with a cross means the player is injured and out. A grey OUT means he's out for a reason that isn't an injury, like rest, personal reasons or a suspension. Hover the tag (or open the player card) to see the reason, for example \"Knee\" or \"Rest\". Shows everywhere OUT showed before: My Team, Matchup, Players, player cards and the injury report."],
     ["225","New","New OFS tag for players ESPN lists as out for the season, like a torn ACL or Achilles."],

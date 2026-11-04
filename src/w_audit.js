@@ -24,9 +24,9 @@ document.addEventListener("toggle",e=>{if(e.target.classList?.contains("apmore")
 document.addEventListener("click",e=>{const w=e.target.closest("#whoBtn");if(!w)return;e.stopPropagation();e.preventDefault();
   const nm=isCommish()?"the commissioner":esc(teamName(SESSION.team)),dot=!!$("#relBtn")?.querySelector(".dot,.reldot,i");
   openSheet("Account",`<p>You're logged in as <b>${nm}</b>.</p><div class="acctl">
-    <button class="btn ghost" data-acct="theme">◐ Display settings</button><button class="btn ghost" data-acct="rel">🗂 Release notes</button><button class="btn ghost" data-acct="help">? How this app works</button></div>
+    <button class="btn ghost" data-acct="theme">◐ Display settings</button><button class="btn ghost" data-acct="ui">✎ Customize tabs and cards</button><button class="btn ghost" data-acct="rel">🗂 Release notes</button><button class="btn ghost" data-acct="help">? How this app works</button></div>
     <div class="sheetacts"><button class="btn ghost" data-sheet="close">Close</button><button class="btn danger" data-logout="1">Log out</button></div>`);},true);
-document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;sheet().close();const id={theme:"#themeBtn",rel:"#relBtn",help:"#helpBtn"}[b.dataset.acct];setTimeout(()=>$(id)?.click(),30);});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;sheet().close();const id={theme:"#themeBtn",ui:"#uiBtn",rel:"#relBtn",help:"#helpBtn"}[b.dataset.acct];setTimeout(()=>$(id)?.click(),30);});
 
 /* ---- 1.40 phone upgrades ---- */
 // I1: one-row phone header. Theme, release notes, help, stats time, this week and switch-to-opponent move into the account menu;
