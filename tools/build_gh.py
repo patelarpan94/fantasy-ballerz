@@ -93,7 +93,7 @@ hp = sub(hp, "<li id=\"hRefreshLi\"><b>Refresh</b>: for the commissioner it star
 
 body = (a + r("b_board.js") + r("b2_tracker.js") + c + r("e_ui.js") + r("f_feat.js") + r("g_anim.js") + r("h_shots.js") + r("i_rel.js")
         + r("j_prefs.js") + r("n_colors.js") + r("k_waivers.js") + r("l_trades.js") + r("m_wow.js") + oh + ps + r("q_compare.js")
-        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + r("y_mirror.js") + r("za_target.js") + r("zb_pcmp.js") + r("zc_trash.js") + r("zd_pkg.js") + r("ze_cols.js") + r("zf_ui.js") + r("zg_dash.js") + r("zh_dash2.js") + r("zi_dash3.js") + r("zj_dash4.js") + r("zk_dash5.js") + r("zl_dash6.js") + r("zm_dash7.js") + r("zn_nep.js") + zs + d)
+        + r("r_duo.js") + r("s_ptable.js") + r("t_hfun.js") + r("u_fun.js") + r("v_legal.js") + r("w_audit.js") + r("x_help.js") + r("y_mirror.js") + r("za_target.js") + r("zb_pcmp.js") + r("zc_trash.js") + r("zd_pkg.js") + r("ze_cols.js") + r("zf_ui.js") + r("zg_dash.js") + r("zh_dash2.js") + r("zi_dash3.js") + r("zj_dash4.js") + r("zk_dash5.js") + r("zl_dash6.js") + r("zm_dash7.js") + r("zn_nep.js") + r("zo_nep2.js") + zs + d)
 
 # the touch layout for wider screens: copy every phone-width rule under body.fold (same as the artifact build)
 def fold(css):

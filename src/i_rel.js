@@ -4,6 +4,13 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.38",date:"2026-11-04",title:"New Era + Max",notes:[
+    ["265","New","New Era + now plays on a dark arena stage with a dot-grid floor, a court that draws itself in, and a big animated NEW ERA+ title with your team, week and live game count. Sections are numbered."],
+    ["266","New","Motion: tiles slide in as you scroll, catch light and tilt toward your finger or pointer, and the headline tiles get a slow neon border. Everything stays still if your phone is set to reduce motion."],
+    ["267","New","Star duel: your best player of the matchup against theirs, big photos, face to face, with stat bars."],
+    ["268","New","Matchup heartbeat: your win chance day by day as a glowing pulse line, with a beating dot on today."],
+    ["269","New","Roster wall: your whole roster as photo cards with slot, last 7 days line, and a hot or cold glow. New Era + gets its new layout once; Reset also brings it back."],
+    ["270","Fix","New Era +: the win-chance ring and heartbeat glow no longer disappear on iPhone after you open Edit (or anything else redraws the dashboard)."]]},
   {v:"2.37",date:"2026-11-04",title:"New Era +",notes:[
     ["260","New","New Era +: a ready-made dashboard everyone gets once (next to your others, so nothing you set up changes). It has its own look: a slow aurora glow behind, glowing glass tiles that lift when you point at them, and color-graded section titles. Reset puts its original layout back."],
     ["261","New","Matchup arena: your matchup as a big scoreboard with a glowing win-chance ring, momentum since yesterday, every category battle marked likely yours, likely theirs or toss-up, and a games-left duel bar."],

@@ -16,7 +16,7 @@ const dRemDays=t=>DAYS.filter(sp=>upcoming(t,sp)&&gameOn(t,sp));
 
 /* ---- 1. matchup arena: the hero ---- */
 DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win chance ring, momentum since yesterday, every category battle and the games-left duel.",s:"f",
-  view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");
+  view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const u=++NEP_U;
     const a=fcProj(T),b=fcProj(opp),p=winProb(a,b),now=h2h(a.now,b.now),pr=h2h(a.fin,b.fin),pc=dPct(p);
     let prev=null;try{const D=dMatchDays(T,opp);if(D.length>1)prev=D[D.length-2].p;}catch(e){}
     const mom=prev==null?null:Math.round((p-prev)*100),live=dLiveOn(),ga=gamesLeft(T),gb=gamesLeft(opp),gt=Math.max(1,ga+gb);
@@ -29,14 +29,16 @@ DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win cha
     return `<div class="xa${live?" live":""}"><div class="xa-bg" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="xa-top"><span>${esc(weekName(wk[0]))}</span>${live?'<span class="xa-live"><i class="dlive"></i>LIVE</span>':""}${mom!=null&&mom!==0?`<span class="xa-mom ${mom>0?"up":"down"}">${mom>0?"▲":"▼"} win chance ${mom>0?"up":"down"} ${Math.abs(mom)} since yesterday</span>`:""}</div>
       <div class="xa-main">${side(T,"me")}
-        <div class="xa-core"><svg class="xa-ring" viewBox="0 0 120 120" role="img" aria-label="${pc}% chance to win"><defs><linearGradient id="xag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="xa-s1"/><stop offset="1" class="xa-s2"/></linearGradient></defs>
-          <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
+        <div class="xa-core"><svg class="xa-ring" viewBox="0 0 120 120" role="img" aria-label="${pc}% chance to win"><defs><linearGradient id="xag${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="xa-s1"/><stop offset="1" class="xa-s2"/></linearGradient></defs>
+          <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" stroke="url(#xag${u})" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
           <div class="xa-num"><b>${dCount(pc,0,"xa"+T)}<small>%</small></b><span>to win</span></div></div>
         ${side(opp,"op")}</div>
       <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected</span></div>
       <div class="xa-cats">${CATS.map(chip).join("")}</div>
       <div class="xa-gl"><span><b class="num">${ga}</b> games left</span><i class="xa-glb"><i style="--w:${(ga/gt*100).toFixed(1)}%"></i></i><span><b class="num">${gb}</b> games left</span></div></div>`;}};
 
+/* unique SVG ids per render: iPhone Safari drops gradients/glows when a re-render reuses the same id */
+let NEP_U=0;
 /* ---- 2. live ticker ---- */
 DW.lt={name:"Live ticker",desc:"A scrolling ticker of tonight's lines for your players and your opponent's, with game scores. Pauses when you hover.",s:"f",
   view(w,T){const sp=TODAY,opp=dOpp(T),ps=[...TEAMS[T].P.map(p=>[p,"me"]),...(opp?TEAMS[opp].P.map(p=>[p,"op"]):[])].filter(([p])=>startedOn(p,sp)&&gameOn(p.t,sp));
@@ -158,7 +160,7 @@ document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||dReduce(
 .xa .xa-team b,.xa .xa-num b,.xa .xa-score b{color:#fff!important}.xa .xa-cv b{color:#aab4d4!important}.xa .xa-cv b.lead,.xa .xa-gl b{color:#fff!important}.xa-live .dlive{background:#4ade80!important;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
 .xa-core{position:relative;width:150px;height:150px;display:grid;place-items:center}
 .xa-ring{position:absolute;inset:0;width:100%;height:100%}.xa-rt{fill:none;stroke:rgba(255,255,255,.1);stroke-width:9}
-.xa-rv{fill:none;stroke:url(#xag);stroke-width:9;stroke-linecap:round;stroke-dasharray:var(--p) 100;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--me) 70%,transparent))}
+.xa-rv{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:var(--p) 100;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--me) 70%,transparent))}
 .xa-s1{stop-color:var(--me)}.xa-s2{stop-color:#a78bfa}
 .dfirst .xa-rv{animation:xaring 1.4s cubic-bezier(.3,.7,.2,1) both}@keyframes xaring{from{stroke-dasharray:0 100}}
 .xa-num{display:flex;flex-direction:column;align-items:center;line-height:1}.xa-num b{font-size:2.6rem;font-weight:900;letter-spacing:-.03em}.xa-num b small{font-size:1rem;margin-left:2px;opacity:.7}.xa-num>span{font-size:.7rem;color:#aab4d4;text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
