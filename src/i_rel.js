@@ -7,7 +7,8 @@ const RELEASES=[
   {v:"2.25",date:"2026-11-04",title:"Pick your columns",notes:[
     ["217","New","Every stat table has a ⚙ in its top-left corner: Players, My Team, Matchup (both rosters), League, Analytics and the rest. Tap it to pick which columns show and in what order. Untick a column to hide it; drag ⠿ or use ▲ ▼ to move it (top of the list = left side of the table). The player or team name, Slot, day columns and the tick/+ − ⇄ buttons stay where they are."],
     ["218","New","Your columns are saved for your login, one setting per table, and follow you to any phone or computer you log in on. Logged out, tables show the default columns."],
-    ["219","New","Columns › Reset to default puts a table back the way it came. Columns the app adds later show up at the end of your list."]]},
+    ["219","New","Columns › Reset to default puts a table back the way it came. Columns the app adds later show up at the end of your list."],
+    ["220","Change","The ⚙ column button is bigger and sits on a tinted square so it's easy to spot and tap."]]},
   {v:"2.24",date:"2026-11-03",title:"Usage log",notes:[
     ["214","New","League › Usage log (commissioner only): see how often the app is used. Visits today and this week, how many teams were on this week, visits per day, the busiest time of day, and a table for each team with its visits, which of the last 7 days it was on, when it was last seen, its usual device and its usual place. Tap a team to see its own log."],
     ["215","New","The league server keeps the log: every app open (and every return after 30+ minutes away), login, wrong password, lockout and logout, with the time, the team (worked out by the server from the login, not from the phone), the device (like iPhone · Home Screen app) and roughly where. Repeat opens within 10 minutes count once."],
