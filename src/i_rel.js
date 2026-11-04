@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.42",date:"2026-11-04",title:"Right roster everywhere",notes:[
+    ["279","Fix","Win-the-week planner, Pulse, Roster wall, Scout, Playoff odds, Moves that win and Hot and cold now use only the players on your roster today. They were also counting players you'd dropped earlier in the season, so the planner could suggest dropping someone who was already gone."]]},
   {v:"2.41",date:"2026-11-04",title:"Planner follows the pickup rules",notes:[
     ["278","Fix","Win-the-week planner: a pickup now plays from the next day (as in our league), so each move shows the day to make it and the day he starts. It plans at most 6 pickups a week, or fewer if you have fewer left. Make each move after that day's games so the player you drop still plays."]]},
   {v:"2.40",date:"2026-11-04",title:"Win-the-week planner",notes:[

@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104235355"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104235829"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.42",date:"2026-11-04",title:"Right roster everywhere",notes:[
+    ["279","Fix","Win-the-week planner, Pulse, Roster wall, Scout, Playoff odds, Moves that win and Hot and cold now use only the players on your roster today. They were also counting players you'd dropped earlier in the season, so the planner could suggest dropping someone who was already gone."]]},
   {v:"2.41",date:"2026-11-04",title:"Planner follows the pickup rules",notes:[
     ["278","Fix","Win-the-week planner: a pickup now plays from the next day (as in our league), so each move shows the day to make it and the day he starts. It plans at most 6 pickups a week, or fewer if you have fewer left. Make each move after that day's games so the player you drop still plays."]]},
   {v:"2.40",date:"2026-11-04",title:"Win-the-week planner",notes:[
@@ -7997,7 +7999,7 @@ DW.pw={name:"Player of the week",desc:"Your best player over the last 7 days.",s
       <div class="dpst">${st.map(([l,i])=>`<span><b>${dCount(dRound(pg[i]),1)}</b><small>${l}</small></span>`).join("")}</div>`;}};
 /* ---- 10. hot and cold ---- */
 DW.hc={name:"Hot and cold",desc:"Your players beating or missing their ESPN projection over the last 7 days.",s:"s",
-  view(w,T){const xs=TEAMS[T].P.map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
+  view(w,T){const xs=TEAMS[T].P.filter(p=>ownerNow(p.n)===T).map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
     const hot=xs.slice().sort((a,b)=>b.d-a.d).filter(x=>x.d>0).slice(0,3),cold=xs.slice().sort((a,b)=>a.d-b.d).filter(x=>x.d<0).slice(0,3);
     const li=(x,up)=>`<li><span class="dhcz ${up?"up":"down"}">${up?"▲":"▼"}</span><span>${dashNm(x.p.n)}<br><small class="muted num">${pra(x.r.pg)}</small></span><b class="num ${up?"okc":"badc"}">${up?"+":""}${x.d.toFixed(1)}</b></li>`;
     return `<ol class="dhcl">${hot.map(x=>li(x,true)).join("")}${cold.map(x=>li(x,false)).join("")}</ol><p class="dsm muted">Value vs projection (z-score), last 7 days</p>`;}};
@@ -8946,6 +8948,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dchIn
    All motion is transform/opacity only and stops under Reduce Motion.
    ============================================================================ */
 const NEP_ID="nep";
+const dNowP=T=>{if(!TEAMS[T])return [];const s=new Set(rosterNow(T));return TEAMS[T].P.filter(p=>s.has(p.n));};
 const dPct=v=>Math.round(v*100);
 const dCatV=(c,v)=>c[1]==="pct"?pct(v):Math.round(v);
 const dExpCats=(A,B)=>CATS.reduce((s,c)=>s+dLogit(val(A,c),val(B,c),c),0);
@@ -8990,7 +8993,7 @@ DW.lt={name:"Live ticker",desc:"A scrolling ticker of tonight's lines for your p
 /* ---- 3. moves that win (tool) ---- */
 let DMW_K="",DMW=null;
 function dMovesThatWin(T){const opp=dOpp(T);if(!opp)return null;const a=fcProj(T),b=fcProj(opp),base=dExpCats(a.fin,b.fin);
-  const act=TEAMS[T].P.filter(p=>slotOn(p,TODAY)!==13),full=TEAMS[T].P.length>=ROSTER_MAX||act.length>=13;
+  const act=dNowP(T).filter(p=>slotOn(p,TODAY)!==13),full=dNowP(T).length>=ROSTER_MAX||act.length>=13;
   const left=p=>DAYS.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)).length;
   let drop=null;if(full){drop=act.filter(p=>p.st!=="OUT").map(p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return {p,z:r?zOf(r.pg):pj?zOf(pj):-9,pj,g:left(p)};}).sort((x,y)=>x.z-y.z)[0]||null;}
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT").map(D=>{const r=recentPG(D.n,14);return r?{D,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((x,y)=>y.z-x.z).slice(0,40);
@@ -9171,7 +9174,7 @@ document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||dReduce(
 const nepOn=()=>nav==="dash"&&dashCur()===NEP_ID;
 const dBestOf=id=>{let best=null;TEAMS[id].P.forEach(p=>{let v=0,g=0;const tot=new Array(11).fill(0);DAYS.filter(sp=>sp<=TODAY).forEach(sp=>{const d=p.d&&p.d[sp];if(d&&startedOn(p,sp)){g++;v+=gscore(d);d.forEach((x,i)=>tot[i]+=+x||0);}});
   if(g&&(!best||v>best.v))best={p,v,g,pg:tot.map(x=>x/g)};});
-  if(!best){TEAMS[id].P.forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
+  if(!best){dNowP(id).forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
 
 /* ---- star duel ---- */
 DW.sd={name:"Star duel",desc:"Your best player this matchup against your opponent's best, face to face, stat by stat.",s:"w",
@@ -9196,7 +9199,7 @@ DW.hb={name:"Matchup heartbeat",desc:"Your win chance through the matchup as a g
 
 /* ---- roster wall ---- */
 DW.rw={name:"Roster wall",desc:"Your whole team as photo cards: slot, last 7 days, and a warm glow for players running hot, cool for cold.",s:"f",
-  view(w,T){const sp=TODAY,P=TEAMS[T].P.slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
+  view(w,T){const sp=TODAY,P=dNowP(T).slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
     return `<div class="rw">${P.map((p,i)=>{const s=slotOn(p,sp),r=recentPG(p.n,7),ss=recentPG(p.n,400);let hc=null;try{hc=typeof arpHC==="function"?arpHC(p.n):null;}catch(e){}
       if(!hc&&r){const pj=pgLine(p.pj);if(pj){const d=zOf(r.pg)-zOf(pj);hc=d>=3?"hot":d<=-3?"cold":null;}}const g=gameOn(p.t,sp);
       return `<div class="rw-c${hc?" "+hc:""}${s===13?" ir":s===12?" be":""}" style="--d:${i*40}ms">${dFace(p.n,p.t,"xl")}<span class="rw-s">${s!=null?SLOT[s]:""}</span>${p.st&&p.st!=="ACTIVE"?`<span class="rw-st">${stTag(p.n,p.st)}</span>`:""}
@@ -9327,7 +9330,7 @@ const dDelta=(d,unit,inv)=>{if(d==null||!isFinite(d)||Math.abs(d)<.5)return `<sp
 
 /* ---- playoff odds: simulate the rest of the regular season 2,000 times ---- */
 let DPO_K="",DPO=null;
-function dTeamStr(id){const xs=TEAMS[id].P.filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
+function dTeamStr(id){const xs=dNowP(id).filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
 function dPlayoffOdds(){const k=TODAY+":"+TXLOG.length+":"+Object.keys(STATS||{}).length;if(k===DPO_K&&DPO)return DPO;DPO_K=k;
   const ids=Object.keys(TEAMS).map(Number).filter(x=>TEAMS[x].P.length);if(ids.length<2){DPO=null;return null;}
   const reg=regWeeks(),P=Math.min(+L.playoffTeams||4,ids.length),cw=dCurWk(),NC=CATS.length,most=L.format==="most",N=2000;
@@ -9385,17 +9388,17 @@ DW.kp={name:"Pulse",desc:"Four numbers the matchup hero doesn't show, each with 
     const order=standOrder(),rk=order.indexOf(T)+1,r=STAND[T]?.rec||[0,0,0],stk=typeof streakOf==="function"?streakOf(T):"",n=order.length;
     const wr=[];for(let k=1;k<=regWeeks();k++){if(!weekDone(k))break;const pr=(W[k]||[]).find(([a,b])=>a===T||b===T);if(!pr)continue;const o=pr[0]===T?pr[1]:pr[0];const x=h2h(wt(T,k),wt(o,k));wr.push(x[0]-x[1]);}
     const days=DAYS.filter(sp=>sp>=TODAY),gm=opp?dLeft(T,days):0,go=opp?dLeft(opp,days):0,gs=days.map((sp,i)=>dLeft(T,days.slice(i))-(opp?dLeft(opp,days.slice(i)):0)).reverse();
-    const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-TEAMS[T].P.length);
+    const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-dNowP(T).length);
     return `<div class="kp">${card(mr?(mr.p>=.5?"good":"bad"):"","Playoff odds",mr?`${dPct(mr.p)}<small>%</small>`:"–",mr?`<small class="muted">likely ${ord(Math.max(1,Math.round(mr.avg)))} of ${po.rows.length} · top ${po.P} get in</small>`:`<small class="muted">no schedule yet</small>`,mr?`<div class="kp-mini">${mr.seed.map((v,i)=>`<i class="${i<po.P?"in":""}" style="--h:${Math.max(6,v/Math.max(...mr.seed)*100).toFixed(0)}%"></i>`).join("")}</div>`:"")}
       ${card(rk&&rk<=(po?po.P:4)?"good":"bad","Standing",rk?`${ord(rk)}<small> of ${n}</small>`:"–",`<small class="muted">${r.join("-")}${stk?` · ${esc(stk)}`:""}</small>`,dSpk(wr.length>1?wr:null,"acc"))}
       ${opp?card(gm>=go?"good":"bad","Games left",`${gm}<small> vs ${go}</small>`,gm===go?`<span class="kp-d flat">even</span>`:`<span class="kp-d ${gm>go?"up":"down"}">${gm>go?"▲ +":"▼ −"}${Math.abs(gm-go)}</span><small class="muted"> starter games</small>`,dSpk(gs.length>1?gs:null,gm>=go?"good":"bad")):card("","Games left","–",`<small class="muted">no matchup</small>`)}
       ${lim?card(pl>0?"good":"bad","Pickups left",`${pl}<small> of ${lim}</small>`,`<small class="muted">${esc(addWhen())}</small>`,`<div class="kp-pips">${Array.from({length:lim},(_,i)=>`<i class="${i<lim-pl?"used":""}"></i>`).join("")}</div>`)
-        :card(open?"good":"","Open roster spots",`${open}<small> of ${ROSTER_MAX}</small>`,`<small class="muted">${TEAMS[T].P.length} players on the roster</small>`)}</div>`;}};
+        :card(open?"good":"","Open roster spots",`${open}<small> of ${ROSTER_MAX}</small>`,`<small class="muted">${dNowP(T).length} players on the roster</small>`)}</div>`;}};
 
 /* ---- scout your opponent ---- */
 DW.op={name:"Scout your opponent",desc:"This week's opponent at a glance: who's hot for them, their games left by day next to yours, and where they're soft.",s:"s",
   view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const a=fcProj(T),b=fcProj(opp),r=STAND[opp]?.rec||[0,0,0],rk=standOrder().indexOf(opp)+1;
-    const hot=TEAMS[opp].P.map(p=>{const x=recentPG(p.n,7),pj=pgLine(p.pj);return x&&pj?{p,d:zOf(x.pg)-zOf(pj),x}:null;}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
+    const hot=dNowP(opp).map(p=>{const x=recentPG(p.n,7),pj=pgLine(p.pj);return x&&pj?{p,d:zOf(x.pg)-zOf(pj),x}:null;}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
     const days=DAYS.filter(sp=>sp>=TODAY),mx=Math.max(1,...days.map(sp=>Math.max(dLeft(T,[sp]),dLeft(opp,[sp]))));
     const soft=CATS.map(c=>({c,p:dLogit(val(a.fin,c),val(b.fin,c),c)})).sort((x,y)=>y.p-x.p).slice(0,2);
     return `<div class="op-h"><span class="op-cr">${esc(tmInit(opp))}</span><span><b>${esc(TEAMS[opp].name)}</b><small class="muted">${r.join("-")}${rk?` · ${ord(rk)}`:""}</small></span></div>
@@ -9506,7 +9509,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const perDay=mode==="day"&&lim?lim:99;
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
   // regulars: everyone not on IR. Each brings his projected line on days he plays and fits.
-  const regs=TEAMS[T].P.map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"})).filter(x=>!x.ir);
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"})).filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   // who plays on a day: match players (best first) to lineup slots; returns totals
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
@@ -9526,7 +9529,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,22);
   // spots: open roster spots + the 3 lowest-value regulars you could drop
-  const openN=Math.max(0,ROSTER_MAX-TEAMS[T].P.length);
+  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
   // never a player ranked inside the league's starting pool (teams x 13); only ones a pickup already beats on the season
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   const dropC=regs.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);

@@ -25,7 +25,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const perDay=mode==="day"&&lim?lim:99;
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
   // regulars: everyone not on IR. Each brings his projected line on days he plays and fits.
-  const regs=TEAMS[T].P.map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"})).filter(x=>!x.ir);
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"})).filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   // who plays on a day: match players (best first) to lineup slots; returns totals
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
@@ -45,7 +45,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,22);
   // spots: open roster spots + the 3 lowest-value regulars you could drop
-  const openN=Math.max(0,ROSTER_MAX-TEAMS[T].P.length);
+  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
   // never a player ranked inside the league's starting pool (teams x 13); only ones a pickup already beats on the season
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   const dropC=regs.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);

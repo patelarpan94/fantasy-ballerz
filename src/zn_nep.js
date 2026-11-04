@@ -9,6 +9,7 @@
    All motion is transform/opacity only and stops under Reduce Motion.
    ============================================================================ */
 const NEP_ID="nep";
+const dNowP=T=>{if(!TEAMS[T])return [];const s=new Set(rosterNow(T));return TEAMS[T].P.filter(p=>s.has(p.n));};
 const dPct=v=>Math.round(v*100);
 const dCatV=(c,v)=>c[1]==="pct"?pct(v):Math.round(v);
 const dExpCats=(A,B)=>CATS.reduce((s,c)=>s+dLogit(val(A,c),val(B,c),c),0);
@@ -53,7 +54,7 @@ DW.lt={name:"Live ticker",desc:"A scrolling ticker of tonight's lines for your p
 /* ---- 3. moves that win (tool) ---- */
 let DMW_K="",DMW=null;
 function dMovesThatWin(T){const opp=dOpp(T);if(!opp)return null;const a=fcProj(T),b=fcProj(opp),base=dExpCats(a.fin,b.fin);
-  const act=TEAMS[T].P.filter(p=>slotOn(p,TODAY)!==13),full=TEAMS[T].P.length>=ROSTER_MAX||act.length>=13;
+  const act=dNowP(T).filter(p=>slotOn(p,TODAY)!==13),full=dNowP(T).length>=ROSTER_MAX||act.length>=13;
   const left=p=>DAYS.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)).length;
   let drop=null;if(full){drop=act.filter(p=>p.st!=="OUT").map(p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return {p,z:r?zOf(r.pg):pj?zOf(pj):-9,pj,g:left(p)};}).sort((x,y)=>x.z-y.z)[0]||null;}
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT").map(D=>{const r=recentPG(D.n,14);return r?{D,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((x,y)=>y.z-x.z).slice(0,40);
