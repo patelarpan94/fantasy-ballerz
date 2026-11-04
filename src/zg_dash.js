@@ -106,7 +106,7 @@ function dashView(){
   if(!L)return emptyLeague();const T=dashT(),who=prefKey(),ws=dashW().filter(w=>DW[w.k]);
   if(!TEAMS[T])return dashEmpty("Pick a team at the top to see its dashboard.");
   const SZ=[["s","Small"],["w","Wide"],["f","Full"]];
-  const tile=(w,i)=>{let body;const big=w.s!=="s"||PHONE();try{body=DW[w.k].view(w,T,big);}catch(e){body=dashEmpty("This widget couldn't load right now.");}
+  const tile=(w,i)=>{let body;const big=w.s!=="s"||PHONE();try{window.DCH_W=PHONE()||w.s==="s"?300:w.s==="w"?560:820;body=DW[w.k].view(w,T,big);}catch(e){body=dashEmpty("This widget couldn't load right now.");}
     return `<section class="dtile sz-${w.s}" data-dw="${esc(w.id)}" aria-label="${esc(dwTitle(w))}">
       ${DASH_EDIT?`<div class="dtb"><span class="dgrip" data-dgrip="${esc(w.id)}" title="Drag to move" aria-hidden="true">⠿</span><span class="dtt">${esc(dwTitle(w))}</span>
         <button data-dmv="-1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} earlier"${i?"":" disabled"}>↑</button><button data-dmv="1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} later"${i<ws.length-1?"":" disabled"}>↓</button>

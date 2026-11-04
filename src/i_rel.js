@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.30",date:"2026-11-04",title:"20 new dashboard widgets",notes:[
+    ["233","New","20 new widgets in + Add widget: Win % tracker, Category tug-of-war, Race chart, Daily production, Games left heat strip, Team radar, Strengths and punts, Roster sparklines, Player of the week, Hot and cold, ESPN rising and falling, Streaming calendar, Trade idea, Playoff race, Strength of schedule, Rivalry, Weekly awards, Injury tracker, Waiver wire feed and Tip-off countdown. Some have ⚙ options, like which stat or which rival."],
+    ["234","New","Charts and animation: widgets draw in as you open the dashboard. Lines trace, bars grow, rings fill, numbers count up, the fairness gauge needle swings and new waiver moves slide in. Turns off if your phone or computer is set to reduce motion."],
+    ["235","New","New Era look for the dashboard: glass tiles, a dark scoreboard for My matchup, player photos in widgets, and widgets wiggle while you edit. The default dashboard now also has Win %, Tug-of-war, Games left, Team radar, Player of the week and the tip-off countdown."]]},
   {v:"2.29",date:"2026-11-04",title:"Your own dashboard",notes:[
     ["230","New","New Dashboard tab (Home on phones): one page of widgets with what matters to you. My matchup, Lineup check, My players' news, Hot free agents, Trades and waivers, Standings, Watchlist, League chat, Tonight's games and Stat card. Tap a widget to jump to the full page. You can make Dashboard the tab the app opens on in ✎ Customize."],
     ["231","New","Edit your dashboard: tap ✎ Edit, then drag any widget by its ⠿ bar to move it (mouse or finger), or use ↑ ↓. Pick S, W or F to make it small, wide or full width, ✕ to remove it, and + Add widget to bring one back or add another Stat card. Saved to your login, so it follows you to any device. Reset puts the default dashboard back."],
