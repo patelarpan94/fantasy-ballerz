@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.26",date:"2026-11-04",title:"News tab",notes:[
+    ["221","New","RotoWire and CBS Sports NBA headlines now show up with ESPN's stories, from their free news feeds. The league server checks them about once an hour and keeps a week of stories. Each story has a small ESPN, ROTOWIRE or CBS SPORTS tag, and stories that name a player also show on that player's card."],
+    ["222","New","News is its own tab in the main menu (it used to be League › News). Latest news has filters: source (All, ESPN, RotoWire, CBS Sports, with a count for each), whose players (All NBA, Rostered, My team, Free agents), one fantasy team, and the search box for any word or player. Your source and player filters are remembered on this phone."],
+    ["223","Change","The injury report moved to News › Injury report, and can be narrowed to one fantasy team."]]},
   {v:"2.25",date:"2026-11-04",title:"Pick your columns",notes:[
     ["217","New","Every stat table has a ⚙ in its top-left corner: Players, My Team, Matchup (both rosters), League, Analytics and the rest. Tap it to pick which columns show and in what order. Untick a column to hide it; drag ⠿ or use ▲ ▼ to move it (top of the list = left side of the table). The player or team name, Slot, day columns and the tick/+ − ⇄ buttons stay where they are."],
     ["218","New","Your columns are saved for your login, one setting per table, and follow you to any phone or computer you log in on. Logged out, tables show the default columns."],

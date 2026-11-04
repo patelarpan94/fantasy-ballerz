@@ -884,6 +884,7 @@ function syncEspn_(full, maxDays) {
   if (full) {
     try { var ij = injuries_(); doc.inj = ij[0]; doc.injd = ij[1]; } catch (e) { log.push('injuries failed: ' + e); }
     try { doc.news = news_(doc.news, now); } catch (e) { log.push('news failed: ' + e); }
+    try { var rn = rss_(doc.news, doc, now); doc.news = rn[0]; if (rn[1]) log.push(rn[1]); } catch (e) { log.push('rss failed: ' + e); }
     try { var o = ownership_(LG); if (o) { doc.own = o; doc.ownAt = now; } } catch (e) { log.push('ownership skipped: ' + e); }
   }
   putDoc_('nba', SEASON, doc);
@@ -1135,7 +1136,62 @@ function news_(old, now) {
       p: (a.categories || []).filter(function (c) { return c.type === 'athlete'; }).map(function (c) { return c.description || g_(c, 'athlete', 'description') || ''; }).slice(0, 6)});
   });
   (old || []).forEach(function (a) { if (!seen[a.id] && now - a.at < 7 * 864e5) { seen[a.id] = 1; out.push(a); } });
-  return out.sort(function (a, b) { return b.at - a.at; }).slice(0, 120);
+  // the 120 cap is for ESPN stories; RotoWire/CBS stories (a.s) are capped in rss_
+  var ne = 0;
+  return out.sort(function (a, b) { return b.at - a.at; }).filter(function (a) { return a.s || ++ne <= 120; });
+}
+// RotoWire and CBS Sports headlines from their free RSS feeds (2.26, BUG-221). The
+// browser feed worker can't read them (no CORS), so only the Apps Script timer gets
+// them; a failed feed keeps last week's stories. Player names are matched against
+// ESPN's names (ownership + injury lists) so the stories land on player cards.
+var RSS = [{s: 'RotoWire', u: 'https://www.rotowire.com/rss/news.php?sport=NBA'}, {s: 'CBS', u: 'https://www.cbssports.com/rss/headlines/nba/'}];
+function rssText_(x) {
+  x = String(x || '').replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1').replace(/<[^>]+>/g, ' ');
+  x = x.replace(/&#(\d+);/g, function (m, n) { return String.fromCharCode(+n); }).replace(/&#x([0-9a-f]+);/gi, function (m, n) { return String.fromCharCode(parseInt(n, 16)); })
+    .replace(/&quot;/g, '"').replace(/&apos;|&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+  return x.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function rssTag_(it, t) { var m = it.match(new RegExp('<' + t + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + t + '>', 'i')); return m ? m[1] : ''; }
+function rssParse_(xml, src, names, now) {
+  var out = [], items = String(xml || '').match(/<item[\s>][\s\S]*?<\/item>/gi) || [];
+  var key = function (n) { return String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); };
+  items.forEach(function (it) {
+    var h = rssText_(rssTag_(it, 'title')), u = rssText_(rssTag_(it, 'link')), d = rssText_(rssTag_(it, 'description'));
+    if (!h) return;
+    var g = rssText_(rssTag_(it, 'guid')) || u || h, at = new Date(rssText_(rssTag_(it, 'pubDate'))).getTime() || now;
+    var hay = ' ' + key(h + ' ' + d) + ' ', p = [];
+    var lead = h.indexOf(':') > 0 ? key(h.slice(0, h.indexOf(':'))) : '';   // RotoWire titles start "Player Name: ..."
+    for (var i = 0; i < names.length && p.length < 6; i++) {
+      var k = names[i][0];
+      if (k === lead || hay.indexOf(' ' + k + ' ') >= 0) { if (k === lead) p.unshift(names[i][1]); else p.push(names[i][1]); }
+    }
+    if (d === h) d = '';
+    out.push({id: src.toLowerCase() + ':' + g.slice(0, 160), s: src, h: h.slice(0, 200), d: d.slice(0, 240), u: /^https?:\/\//.test(u) ? u : '', at: at, p: p.filter(function (n, j) { return p.indexOf(n) === j; }).slice(0, 6)});
+  });
+  return out;
+}
+function rss_(cur, nbaDoc, now) {
+  if (typeof XMLHttpRequest !== 'undefined') return [cur || [], ''];   // in the browser feed worker: these feeds block browsers (CORS), the server timer gets them
+  var seen = {}, names = [], msg = [];
+  var key = function (n) { return String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); };
+  [nbaDoc.own || {}, nbaDoc.injd || {}].forEach(function (o) { for (var n in o) if (!seen[n] && n.indexOf(' ') > 0) { seen[n] = 1; names.push([key(n), n]); } });
+  seen = {};
+  var got = UrlFetchApp.fetchAll(RSS.map(function (f) { return {url: f.u, muteHttpExceptions: true, headers: {'User-Agent': 'Mozilla/5.0 (fantasy-ballerz news reader)'}}; }));
+  var out = [], fresh = {};
+  RSS.forEach(function (f, i) {
+    var r = got[i], code = r && r.getResponseCode ? r.getResponseCode() : 0;
+    if (code !== 200) { msg.push(f.s + ' ' + code); return; }
+    var its = rssParse_(r.getContentText(), f.s, names, now);
+    fresh[f.s] = 1;
+    its.forEach(function (a) { if (!seen[a.id]) { seen[a.id] = 1; out.push(a); } });
+  });
+  // keep ESPN stories, and a week of RSS stories (a feed that failed this time keeps its old ones)
+  (cur || []).forEach(function (a) { if (!seen[a.id] && (!a.s || now - a.at < 7 * 864e5)) { seen[a.id] = 1; out.push(a); } });
+  out.sort(function (a, b) { return b.at - a.at; });
+  // room for every source: ESPN's 120 plus up to 60 per RSS feed
+  var lim = {ESPN: 120, RotoWire: 60, CBS: 60}, n = {};
+  out = out.filter(function (a) { var s = a.s || 'ESPN'; n[s] = (n[s] || 0) + 1; return n[s] <= (lim[s] || 40); });
+  return [out, msg.length ? 'rss: ' + msg.join(', ') : ''];
 }
 function ownership_(LG) {
   var o = {}, any = false;

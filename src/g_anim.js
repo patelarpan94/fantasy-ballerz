@@ -4,7 +4,7 @@
    ============================================================================ */
 const NOMO=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isPhone=()=>PHONE();
-const NAV_ORDER=["team","matchup","players","league","pickem","analytics","draft"];
+const NAV_ORDER=["team","matchup","players","league","news","pickem","analytics","draft"];
 const replay=(el,cls)=>{if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);el.addEventListener("animationend",()=>el.classList.remove(cls),{once:true});};
 
 // ---- 1. sheets and help slide up on phones, slide down to close, swipe down on the top to close

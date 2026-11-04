@@ -2,13 +2,15 @@
 /* ============================================================================
    NAVIGATION AND RENDERING
    ============================================================================ */
-const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["tgt","Trade targets"],["pkg","Trade packages"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["news","News"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"],["trash","Trash talk"]]};
-const NAVS=["team","matchup","players","league","draft","analytics","pickem"];
+const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["tgt","Trade targets"],["pkg","Trade packages"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],news:[["latest","Latest news"],["inj","Injury report"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"],["trash","Trash talk"]]};
+const NAVS=["team","matchup","players","league","news","draft","analytics","pickem"];
 let navSaved=false;try{const n=localStorage.getItem("dfNav");if(NAVS.includes(n)){nav=n;navSaved=true;}Object.assign(SUB,JSON.parse(localStorage.getItem("dfSub")||"{}"));}catch(e){}
 function setNav(n,sub){nav=n;if(sub)SUB[n]=sub;MOVING=null;try{localStorage.setItem("dfNav",nav);localStorage.setItem("dfSub",JSON.stringify(SUB));}catch(e){}render();window.scrollTo({top:0});}
 function renderChrome(){
   if(nav==="draft"&&draftHidden()){nav="league";SUB.league="draft";}
   if(SUB.league==="setup"&&!isCommish())SUB.league="score";
+  if(SUB.league==="news"){SUB.league="score";if(nav==="league")nav="news";}   // News moved to its own tab (2.26)
+  if(nav==="news"&&!["latest","inj"].includes(SUB.news))SUB.news="latest";
   document.querySelectorAll("#mainnav [data-nav]").forEach(b=>b.setAttribute("aria-selected",b.dataset.nav===nav));
   $("#mainnav [data-nav=\"draft\"]").hidden=draftHidden();
   const st=SUBTABS[nav]?.filter(([k])=>(nav!=="league"||(k==="draft"?PICKS.length>0:k==="setup"?isCommish():true))&&!(k==="track"&&simpleM())),sub=SUB[nav];
@@ -19,7 +21,7 @@ function renderChrome(){
   $("#daysWrap").hidden=!((nav==="team"||nav==="matchup"&&!simpleM())&&hasTeam);$("#daysWrap").classList.toggle("teamnav",nav==="team");
   $("#weekTitle").hidden=nav==="matchup";
   $("#daysHint").textContent=nav==="team"?"Starters with a game each day. Pick a day to see or set that day's lineup.":"Starters with a game each day (bench, IR and OUT not counted). Tap a day to filter.";
-  $("#searchWrap").hidden=!((nav==="team"||nav==="matchup")&&sub!=="track"||nav==="players"||(nav==="league"&&sub==="nba"))||(simpleM()&&!mFocus());
+  $("#searchWrap").hidden=!((nav==="team"||nav==="matchup")&&sub!=="track"||nav==="players"||(nav==="news"&&sub!=="inj")||(nav==="league"&&sub==="nba"))||(simpleM()&&!mFocus());
   $("#compactBtn").style.visibility=(nav==="team"||nav==="matchup")?"":"hidden";$("#compactBtn").hidden=simpleM()&&!mFocus();
   const n=tradesNeedingMe(),dot=$("#offerDot");dot.hidden=!n;dot.textContent=n;
   $("#lgName").textContent=L?`${L.name} ${L.season}${L.uat?" · UAT":""}`:"Draft Fantasy";
@@ -54,7 +56,8 @@ function renderRosters(){
   else if(nav==="players")h=allView();
   else if(nav==="analytics")h=analyticsView();
   else if(nav==="pickem")h=funView();
-  else if(nav==="league")h=({score:scoreView,stand:standView,sched:seasonView,trades:tradesView,news:newsView,tx:txView,draft:draftResultsView,nba:nbaView,setup:setupView}[SUB.league]||scoreView)();
+  else if(nav==="news")h=newsView();
+  else if(nav==="league")h=({score:scoreView,stand:standView,sched:seasonView,trades:tradesView,tx:txView,draft:draftResultsView,nba:nbaView,setup:setupView}[SUB.league]||scoreView)();
   else h=draftView();
   if(editing&&el.dataset.view==="setup")return;
   el.dataset.view=nav==="league"?SUB.league:nav;
@@ -144,7 +147,8 @@ document.addEventListener("click",async e=>{
   else if(d.dpos){DPOS=d.dpos;renderRosters();}
   else if(d.drv){DRV=d.drv;renderRosters();}
   else if(d.pcard)playerCard(d.pcard);
-  else if(d.newsf){NEWSF=d.newsf;renderRosters();}
+  else if(d.newsf){NEWSF=d.newsf;NEWST=0;newsSave();renderRosters();}
+  else if(d.newss){NEWSS=d.newss;newsSave();renderRosters();}
   else if(d.anmode){ANMODE=d.anmode;try{localStorage.setItem("dfAnMode",ANMODE)}catch(_){}renderRosters();}
   else if(d.sact)await setupAct(d.sact);
   else if(d.rmteam){const F=FORM;F.teams=F.teams.filter(t=>t.id!==d.rmteam);F.draft.order=F.draft.order.filter(x=>x!==d.rmteam);FORM_DIRTY=true;renderRosters();}
@@ -158,6 +162,7 @@ document.addEventListener("change",e=>{const t=e.target;
   else if(t.dataset.dauto){const T=myTeamNum();if(T)saveQueue(T,{auto:t.checked});}
   else if(t.id==="drost"){DROST=+t.value;renderRosters();}
   else if(t.id==="drt"){DRT=+t.value;renderRosters();}
+  else if(t.id==="newsTeam"){NEWST=+t.value||0;renderRosters();}
   else if(t.id==="trWith"){sheetTradeWith(+t.value||0);}
 });
 document.addEventListener("toggle",e=>{if(e.target.id==="dsetBox")DSET_OPEN=e.target.open;},true);
