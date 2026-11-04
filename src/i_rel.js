@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.39",date:"2026-11-04",title:"New Era + Pro",notes:[
+    ["271","New","Pulse: four big numbers under the matchup on New Era +: playoff odds, your standing, the games-left edge and pickups left, each with which way it is heading and a small trend graphic."],
+    ["272","New","Game plan: one to-do list for your matchup, most important first: lineup fixes, the pickup that helps most, the games-left gap, and which categories to fight for or let go. Each has a button to act."],
+    ["273","New","Playoff odds: plays out the rest of the regular season 2,000 times to show every team's chance to make the playoffs, your likely seed, and the playoff line."],
+    ["274","New","Scout your opponent: who's running hot for them, their games left by day next to yours, and the categories where they're soft."],
+    ["275","Change","Tap Hide on any section title to fold that section away (on every dashboard); it stays folded for your login. New Era + gets a cleaner order once: the numbers first, then Today, Win the week, Your squad and The race."]]},
   {v:"2.38",date:"2026-11-04",title:"New Era + Max",notes:[
     ["265","New","New Era + now plays on a dark arena stage with a dot-grid floor, a court that draws itself in, and a big animated NEW ERA+ title with your team, week and live game count. Sections are numbered."],
     ["266","New","Motion: tiles slide in as you scroll, catch light and tilt toward your finger or pointer, and the headline tiles get a slow neon border. Everything stays still if your phone is set to reduce motion."],
