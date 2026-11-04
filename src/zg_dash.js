@@ -12,9 +12,16 @@
 const DW={};   // widget kinds: {name, desc, def size, multi, opts(w) -> html | null, view(w,T,big) -> html}
 const DASH_DEF=[["mu","w"],["lu","s"],["tr","s"],["nw","w"],["fa","s"],["st","s"],["gm","w"],["wl","s"],["ch","s"],["sc","s",{c:""}]];
 let DASH_EDIT=false,DASH_DRAG=null;
-const dashW=()=>{const d=UI.dash&&Array.isArray(UI.dash.w)?UI.dash.w:null;return d||DASH_DEF.map(([k,s,o],i)=>({id:"d"+i,k,s,o:o?{...o}:{}}));};
+// 2.32: more than one dashboard. "main" lives in UI.dash.w as before; extra ones in UI.dash.boards [{id,n,w}], the open one in UI.dash.cur
+const dashCur=()=>(UI.dash&&UI.dash.cur)||"main";
+const dashBoards=()=>UI.dash&&Array.isArray(UI.dash.boards)?UI.dash.boards:[];
+// the starting dashboard: the commissioner's league default if set (L.dashDef, same [k,s,o] shape), else the built-in one
+const dashDefW=()=>{const d=typeof L==="object"&&L&&Array.isArray(L.dashDef)&&L.dashDef.length?L.dashDef:DASH_DEF;return d.filter(x=>Array.isArray(x)).map(([k,s,o],i)=>({id:"d"+i,k,s,o:o?{...o}:{}}));};
+const dashW=()=>{const c=dashCur();if(c!=="main"){const b=dashBoards().find(x=>x.id===c);if(b)return Array.isArray(b.w)?b.w:[];}const d=UI.dash&&Array.isArray(UI.dash.w)?UI.dash.w:null;return d||dashDefW();};
 const dashT=()=>myTeamNum()||(TEAMS[cur]?cur:0);
-function dashSet(w,extra){UI={...UI,dash:{...(UI.dash||{}),...(extra||{}),...(w?{w}:{})}};uiSave();}
+function dashSet(w,extra){const c=dashCur(),bs=dashBoards();
+  if(w&&c!=="main"&&bs.some(b=>b.id===c)){UI={...UI,dash:{...(UI.dash||{}),...(extra||{}),boards:bs.map(b=>b.id===c?{...b,w}:b)}};}
+  else UI={...UI,dash:{...(UI.dash||{}),...(extra||{}),...(w?{w}:{})}};uiSave();}
 const dashWatch=()=>(UI.dash&&UI.dash.watch)||[];
 const dashNm=n=>`<span class="dnm" role="button" tabindex="0" data-pcard="${esc(n)}">${esc(n)}</span>`;
 const dashLast=n=>{const w=n.split(" ").filter(x=>!/^(Jr\.?|Sr\.?|II|III|IV)$/.test(x));return w.slice(-1)[0]||n;};
@@ -136,7 +143,7 @@ document.addEventListener("click",e=>{let b;
   if((b=e.target.closest("[data-dsz]"))){const w=dashW().map(x=>x.id===b.dataset.dwid?{...x,s:b.dataset.dsz}:x);dashSet(w);dashDraw();return;}
   if((b=e.target.closest("[data-ddel]"))){const w=dashW().filter(x=>x.id!==b.dataset.ddel);dashSet(w);dashDraw();return;}
   if((b=e.target.closest("[data-dopt]"))){dashOpts(b.dataset.dopt);return;}
-  if((b=e.target.closest("[data-dreset]"))){if(!confirm("Put the dashboard back to the default widgets? Your watchlist stays."))return;const d={...(UI.dash||{})};delete d.w;UI={...UI,dash:d};uiSave();dashDraw();toast("Dashboard back to the default");return;}
+  if((b=e.target.closest("[data-dreset]"))){if(!confirm("Put this dashboard back to the default widgets? Your watchlist stays."))return;if(dashCur()!=="main"){dashSet(dashDefW());}else{const d={...(UI.dash||{})};delete d.w;UI={...UI,dash:d};uiSave();}dashDraw();toast("Dashboard back to the default");return;}
   if((b=e.target.closest("[data-dsccat]"))){const id=b.closest("[data-doptid]").dataset.doptid,w=dashW().map(x=>x.id===id?{...x,o:{...x.o,c:b.dataset.dsccat}}:x);dashSet(w);dashOpts(id);dashDraw();return;}
   if((b=e.target.closest("[data-dwadd]"))){const i=$("#dwIn"),n=Object.keys(DIR).find(x=>x.toLowerCase()===String(i.value).trim().toLowerCase());if(!n)return toast("Pick a player from the list");const ws=dashWatch();if(!ws.includes(n))dashWatchSet([...ws,n]);const id=b.closest("[data-doptid]").dataset.doptid;dashOpts(id);toast(`Watching ${n}`);return;}
   if((b=e.target.closest("[data-dwdel]"))){dashWatchSet(dashWatch().filter(x=>x!==b.dataset.dwdel));const id=b.closest("[data-doptid]").dataset.doptid;dashOpts(id);return;}

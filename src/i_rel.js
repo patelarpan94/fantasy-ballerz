@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.32",date:"2026-11-04",title:"Dashboards that keep up",notes:[
+    ["238","New","More than one dashboard: tap + New under the title to make another one (for example Game night or Trade planning), then switch with the chips or swipe left and right on your phone. In ✎ Edit you can rename or delete it. Up to 6."],
+    ["239","New","Share a layout: tap ↗ Share to get a link. A friend who opens it gets a copy of your dashboard as a new one, showing their own team. The commissioner can also make any dashboard the league default in ✎ Edit."],
+    ["240","New","Live dashboard: it refreshes on its own every 30 seconds while games are on (every minute otherwise), and any number that changes flashes green if it went up or red if it went down."],
+    ["241","New","Alerts: a red badge on the Dashboard tab counts things that need you, and the dashboard lists them at the top with a Fix button: an OUT player in today's lineup, a bench player who could fill an empty spot, a trade waiting on you, or an illegal roster."],
+    ["242","New","A new default dashboard built for managers: My matchup, Lineup check, Swing categories, Win %, Injury tracker, Games left, Hot free agents, Streaming calendar, Trades and waivers and the tip-off countdown. It only changes dashboards you haven't arranged yourself."]]},
   {v:"2.31",date:"2026-11-04",title:"7 more dashboard widgets",notes:[
     ["236","New","7 more widgets in + Add widget: Swing categories (the closest categories and exactly what flips each one, like \"you need +3 STL\"), Projected final score (where every category is headed, with a range for what's still to play), Power rankings climb (every team's rank week by week), Season heatmap (one square per day, darker for bigger days), Who carries your team (blocks sized by each player's share, ⚙ to pick a category), Draft value (draft pick vs how he ranks now, steals above the line) and Pickup report card (every add graded A to D on what he's done for you)."],
     ["237","New","New chart types for these: diverging bars, range bands with dots that slide from now to the projected finish, a bump chart, a calendar heatmap, a treemap and a scatter chart. They animate in like the others and respect reduce motion."]]},
