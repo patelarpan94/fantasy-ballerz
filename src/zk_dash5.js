@@ -68,7 +68,27 @@ DW.wa={name:"Week ahead",desc:"How many of your starters play each day left in t
     return `<div class="dtlh"><span><b class="dbig num">${dCount(tot)}</b> starter games left as set</span>${ed?`<button class="btn sm" data-dauto="week">Auto-set rest of week</button>`:""}</div><div class="dwa">${cells}</div>`;}};
 
 // the manager default now leads with the action widgets
-DASH_DEF.splice(0,DASH_DEF.length,["mu","w"],["tl","w"],["sw","s"],["co","s"],["wp","w"],["ij","s"],["wa","w"],["qa","s"],["sm","w"],["cd","s"]);
+/* ---- section titles, so a dashboard reads in clean groups ---- */
+DW.hd={name:"Section title",desc:"A heading that splits your dashboard into groups, like Today or Moves. ⚙ to rename it. Add as many as you like.",s:"f",multi:true,
+  view(w){return w.o&&w.o.sub?`<p class="dhds muted">${esc(w.o.sub)}</p>`:"";},
+  opts(w){return `<p class="muted dsnote">Section name</p><div class="dqa"><input id="dhdIn" maxlength="30" value="${esc((w.o&&w.o.t)||"")}" aria-label="Section name"><button class="btn sm" data-dhdsave>Save</button></div>`;}};
+const H=(t,sub)=>["hd","f",{t,sub}];
+// the default: grouped so a manager reads it top to bottom (Arp: "make it clean and organized")
+DASH_DEF.splice(0,DASH_DEF.length,
+  H("Today","Your score, your lineup and anything waiting on you"),["mu","w"],["co","s"],["tl","w"],["cd","s"],
+  H("This matchup","Where each category is headed, your games left and who's hurt"),["sw","s"],["wp","w"],["wa","w"],["ij","s"],
+  H("Moves","Add, drop and stream"),["qa","s"],["sm","w"],["rr","f"]);
+// 2.34 (Arp: "add all the tools needed to manage a team to the default widgets to all players"):
+// every login's main dashboard that was arranged by hand gets the missing team tools once, as a "Manage your team" group after My matchup
+const DASH_MGMT=[["tl","w"],["co","s"],["wa","w"],["qa","s"],["rr","f"]];
+function dashMgmtMigrate(){if(!prefKey()||!UI.dash||!Array.isArray(UI.dash.w)||UI.dash.mg>=1)return;
+  const w=UI.dash.w.slice(),miss=DASH_MGMT.filter(([k])=>!w.some(x=>x.k===k)),id=i=>"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5)+i;
+  if(miss.length){const at=w.findIndex(x=>x.k==="mu")+1;w.splice(at,0,{id:id("h"),k:"hd",s:"f",o:{t:"Manage your team"}},...miss.map(([k,s],i)=>({id:id(i),k,s,o:{}})));}
+  UI={...UI,dash:{...UI.dash,w,mg:1}};uiSave();}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-dhdsave]");if(!b)return;const id=b.closest("[data-doptid]")?.dataset.doptid,v=($("#dhdIn").value||"").trim().slice(0,30);if(!id)return;
+  dashSet(dashW().map(x=>x.id===id?{...x,o:{...x.o,t:v||"Section"}}:x));sheet().close();dashDraw();});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dhdIn"){e.preventDefault();$("[data-dhdsave]")?.click();}});
+{const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{dashMgmtMigrate();}catch(e){}return _rr.apply(this,arguments);};}
 
 /* ---- clicks ---- */
 document.addEventListener("click",async e=>{let b;
@@ -110,5 +130,11 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dqaIn
 .dwad{font-weight:800}.dwac b{font-size:1.2rem}.dwac b small{font-size:.7rem;color:var(--muted)}
 .dwar{width:100%;height:6px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden}.dwar i{display:block;height:100%;width:var(--p);background:var(--accent);border-radius:3px}
 .dfirst .dwac{animation:drise .5s cubic-bezier(.3,.7,.2,1) both;animation-delay:var(--d)}.dfirst .dwar i{animation:dbarin .8s cubic-bezier(.3,.7,.2,1) both}
+.dtile.dk-hd{background:none!important;border:0!important;box-shadow:none!important;padding:14px 2px 0;gap:2px;backdrop-filter:none!important}
+.dtile.dk-hd::before{display:none}.dtile.dk-hd .dth .dopt{display:none}
+.dtile.dk-hd .dth h3{font-family:var(--f-display);font-size:1.15rem;letter-spacing:.02em;color:var(--ink);text-transform:none;display:flex;align-items:center;gap:10px;width:100%}
+.dtile.dk-hd .dth{flex:1}.dtile.dk-hd .dth h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.dtile.dk-hd .dhds{margin:0;font-size:.82rem}.dtile.dk-hd:first-child{padding-top:0}
+.dash.editing .dtile.dk-hd{border:1px dashed var(--line)!important;padding:10px}
 @media (max-width:640px){.drrh,.drrr{grid-template-columns:74px 1fr 28px 30px}.drrh span:nth-child(4),.drrr>span.num{display:none}}
 `;document.head.appendChild(s);}

@@ -106,7 +106,7 @@ DW.sc={name:"Stat card",desc:"Pick any category. Shows your number this matchup 
     const wk=rk(x=>val(score(x),c)),ss=rk(x=>val(STAND[x]?.vbs||ZERO(),c)),ord=n=>n+(["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10<4?n%10:0]);
     return `<div class="dsc"><span class="dsck">${esc(c[0])}</span><div><b class="num dbig">${f(wk.v)}</b><small>this matchup · <b>${ord(wk.r)}</b> of ${ids.length}</small></div><div><b class="num">${f(ss.v)}</b><small>season · <b>${ord(ss.r)}</b> of ${ids.length}</small></div></div>`;},
   opts(w){return `<p class="muted dsnote">Which category?</p><div class="tabs sm dsrow" role="group" aria-label="Category">${CATS.map(c=>`<button data-dsccat="${esc(c[0])}" aria-selected="${(w.o.c||CATS[0][0])===c[0]}">${esc(c[0])}</button>`).join("")}</div>`;}};
-const dwTitle=w=>w.k==="sc"?`${DW.sc.name} · ${(CATS.find(x=>x[0]===w.o.c)||CATS[0])[0]}`:DW[w.k].name;
+const dwTitle=w=>w.k==="hd"?String((w.o&&w.o.t)||"Section"):w.k==="sc"?`${DW.sc.name} · ${(CATS.find(x=>x[0]===w.o.c)||CATS[0])[0]}`:DW[w.k].name;
 
 /* ---- the page ---- */
 function dashView(){
@@ -114,7 +114,7 @@ function dashView(){
   if(!TEAMS[T])return dashEmpty("Pick a team at the top to see its dashboard.");
   const SZ=[["s","Small"],["w","Wide"],["f","Full"]];
   const tile=(w,i)=>{let body;const big=w.s!=="s"||PHONE();try{window.DCH_W=PHONE()||w.s==="s"?300:w.s==="w"?560:820;body=DW[w.k].view(w,T,big);}catch(e){body=dashEmpty("This widget couldn't load right now.");}
-    return `<section class="dtile sz-${w.s}" data-dw="${esc(w.id)}" aria-label="${esc(dwTitle(w))}">
+    return `<section class="dtile sz-${w.k==="hd"?"f":w.s} dk-${esc(w.k)}" data-dw="${esc(w.id)}" aria-label="${esc(dwTitle(w))}">
       ${DASH_EDIT?`<div class="dtb"><span class="dgrip" data-dgrip="${esc(w.id)}" title="Drag to move" aria-hidden="true">⠿</span><span class="dtt">${esc(dwTitle(w))}</span>
         <button data-dmv="-1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} earlier"${i?"":" disabled"}>↑</button><button data-dmv="1" data-dwid="${esc(w.id)}" aria-label="Move ${esc(dwTitle(w))} later"${i<ws.length-1?"":" disabled"}>↓</button>
         <span class="dszs" role="group" aria-label="Size">${SZ.map(([k,l])=>`<button data-dsz="${k}" data-dwid="${esc(w.id)}" aria-pressed="${w.s===k}" title="${l}">${l[0]}</button>`).join("")}</span>
