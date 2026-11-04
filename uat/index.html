@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104154157"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261104155025"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4382,7 +4382,8 @@ const RELEASES=[
   {v:"2.25",date:"2026-11-04",title:"Pick your columns",notes:[
     ["217","New","Every stat table has a ⚙ in its top-left corner: Players, My Team, Matchup (both rosters), League, Analytics and the rest. Tap it to pick which columns show and in what order. Untick a column to hide it; drag ⠿ or use ▲ ▼ to move it (top of the list = left side of the table). The player or team name, Slot, day columns and the tick/+ − ⇄ buttons stay where they are."],
     ["218","New","Your columns are saved for your login, one setting per table, and follow you to any phone or computer you log in on. Logged out, tables show the default columns."],
-    ["219","New","Columns › Reset to default puts a table back the way it came. Columns the app adds later show up at the end of your list."]]},
+    ["219","New","Columns › Reset to default puts a table back the way it came. Columns the app adds later show up at the end of your list."],
+    ["220","Change","The ⚙ column button is bigger and sits on a tinted square so it's easy to spot and tap."]]},
   {v:"2.24",date:"2026-11-03",title:"Usage log",notes:[
     ["214","New","League › Usage log (commissioner only): see how often the app is used. Visits today and this week, how many teams were on this week, visits per day, the busiest time of day, and a table for each team with its visits, which of the last 7 days it was on, when it was last seen, its usual device and its usual place. Tap a team to see its own log."],
     ["215","New","The league server keeps the log: every app open (and every return after 30+ minutes away), login, wrong password, lockout and logout, with the time, the team (worked out by the server from the login, not from the phone), the device (like iPhone · Home Screen app) and roughly where. Repeat opens within 10 minutes count once."],
@@ -7285,8 +7286,8 @@ const colDrop=e=>{if(!COLDRAG||e.pointerId!==COLDRAG.id)return;const ul=COLDRAG.
 document.addEventListener("pointerup",colDrop);document.addEventListener("pointercancel",colDrop);
 {const s=document.createElement("style");s.textContent=`
 .colgh{white-space:nowrap}
-.colg{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-right:4px;border-radius:6px;font-size:.85rem;line-height:1;color:var(--accent);opacity:.75;vertical-align:middle}
-.colg:hover,.colg:focus-visible{opacity:1;background:var(--accent-wash)}
+.colg{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:-4px 6px -4px 0;border-radius:8px;font-size:1.35rem;line-height:1;color:var(--accent);background:var(--accent-wash);vertical-align:middle;text-transform:none;letter-spacing:0}
+.colg:hover,.colg:focus-visible{filter:brightness(.92);outline:2px solid var(--accent);outline-offset:-2px}
 .collist{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:3px}
 .colrow{display:flex;align-items:center;gap:8px;padding:2px 6px;border:1px solid var(--line);border-radius:10px;background:var(--surface);user-select:none;-webkit-user-select:none}
 .colrow.off span{color:var(--muted)}

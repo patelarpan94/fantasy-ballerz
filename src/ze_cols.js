@@ -100,8 +100,8 @@ const colDrop=e=>{if(!COLDRAG||e.pointerId!==COLDRAG.id)return;const ul=COLDRAG.
 document.addEventListener("pointerup",colDrop);document.addEventListener("pointercancel",colDrop);
 {const s=document.createElement("style");s.textContent=`
 .colgh{white-space:nowrap}
-.colg{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-right:4px;border-radius:6px;font-size:.85rem;line-height:1;color:var(--accent);opacity:.75;vertical-align:middle}
-.colg:hover,.colg:focus-visible{opacity:1;background:var(--accent-wash)}
+.colg{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:-4px 6px -4px 0;border-radius:8px;font-size:1.35rem;line-height:1;color:var(--accent);background:var(--accent-wash);vertical-align:middle;text-transform:none;letter-spacing:0}
+.colg:hover,.colg:focus-visible{filter:brightness(.92);outline:2px solid var(--accent);outline-offset:-2px}
 .collist{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:3px}
 .colrow{display:flex;align-items:center;gap:8px;padding:2px 6px;border:1px solid var(--line);border-radius:10px;background:var(--surface);user-select:none;-webkit-user-select:none}
 .colrow.off span{color:var(--muted)}
