@@ -102,7 +102,7 @@ DW.pw={name:"Player of the week",desc:"Your best player over the last 7 days.",s
       <div class="dpst">${st.map(([l,i])=>`<span><b>${dCount(dRound(pg[i]),1)}</b><small>${l}</small></span>`).join("")}</div>`;}};
 /* ---- 10. hot and cold ---- */
 DW.hc={name:"Hot and cold",desc:"Your players beating or missing their ESPN projection over the last 7 days.",s:"s",
-  view(w,T){const xs=TEAMS[T].P.map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
+  view(w,T){const xs=TEAMS[T].P.filter(p=>ownerNow(p.n)===T).map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
     const hot=xs.slice().sort((a,b)=>b.d-a.d).filter(x=>x.d>0).slice(0,3),cold=xs.slice().sort((a,b)=>a.d-b.d).filter(x=>x.d<0).slice(0,3);
     const li=(x,up)=>`<li><span class="dhcz ${up?"up":"down"}">${up?"▲":"▼"}</span><span>${dashNm(x.p.n)}<br><small class="muted num">${pra(x.r.pg)}</small></span><b class="num ${up?"okc":"badc"}">${up?"+":""}${x.d.toFixed(1)}</b></li>`;
     return `<ol class="dhcl">${hot.map(x=>li(x,true)).join("")}${cold.map(x=>li(x,false)).join("")}</ol><p class="dsm muted">Value vs projection (z-score), last 7 days</p>`;}};

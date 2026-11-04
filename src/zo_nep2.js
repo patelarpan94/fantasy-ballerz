@@ -9,7 +9,7 @@
 const nepOn=()=>nav==="dash"&&dashCur()===NEP_ID;
 const dBestOf=id=>{let best=null;TEAMS[id].P.forEach(p=>{let v=0,g=0;const tot=new Array(11).fill(0);DAYS.filter(sp=>sp<=TODAY).forEach(sp=>{const d=p.d&&p.d[sp];if(d&&startedOn(p,sp)){g++;v+=gscore(d);d.forEach((x,i)=>tot[i]+=+x||0);}});
   if(g&&(!best||v>best.v))best={p,v,g,pg:tot.map(x=>x/g)};});
-  if(!best){TEAMS[id].P.forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
+  if(!best){dNowP(id).forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
 
 /* ---- star duel ---- */
 DW.sd={name:"Star duel",desc:"Your best player this matchup against your opponent's best, face to face, stat by stat.",s:"w",
@@ -34,7 +34,7 @@ DW.hb={name:"Matchup heartbeat",desc:"Your win chance through the matchup as a g
 
 /* ---- roster wall ---- */
 DW.rw={name:"Roster wall",desc:"Your whole team as photo cards: slot, last 7 days, and a warm glow for players running hot, cool for cold.",s:"f",
-  view(w,T){const sp=TODAY,P=TEAMS[T].P.slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
+  view(w,T){const sp=TODAY,P=dNowP(T).slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
     return `<div class="rw">${P.map((p,i)=>{const s=slotOn(p,sp),r=recentPG(p.n,7),ss=recentPG(p.n,400);let hc=null;try{hc=typeof arpHC==="function"?arpHC(p.n):null;}catch(e){}
       if(!hc&&r){const pj=pgLine(p.pj);if(pj){const d=zOf(r.pg)-zOf(pj);hc=d>=3?"hot":d<=-3?"cold":null;}}const g=gameOn(p.t,sp);
       return `<div class="rw-c${hc?" "+hc:""}${s===13?" ir":s===12?" be":""}" style="--d:${i*40}ms">${dFace(p.n,p.t,"xl")}<span class="rw-s">${s!=null?SLOT[s]:""}</span>${p.st&&p.st!=="ACTIVE"?`<span class="rw-st">${stTag(p.n,p.st)}</span>`:""}

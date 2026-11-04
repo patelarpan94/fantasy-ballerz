@@ -22,7 +22,7 @@ const dDelta=(d,unit,inv)=>{if(d==null||!isFinite(d)||Math.abs(d)<.5)return `<sp
 
 /* ---- playoff odds: simulate the rest of the regular season 2,000 times ---- */
 let DPO_K="",DPO=null;
-function dTeamStr(id){const xs=TEAMS[id].P.filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
+function dTeamStr(id){const xs=dNowP(id).filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
 function dPlayoffOdds(){const k=TODAY+":"+TXLOG.length+":"+Object.keys(STATS||{}).length;if(k===DPO_K&&DPO)return DPO;DPO_K=k;
   const ids=Object.keys(TEAMS).map(Number).filter(x=>TEAMS[x].P.length);if(ids.length<2){DPO=null;return null;}
   const reg=regWeeks(),P=Math.min(+L.playoffTeams||4,ids.length),cw=dCurWk(),NC=CATS.length,most=L.format==="most",N=2000;
@@ -80,17 +80,17 @@ DW.kp={name:"Pulse",desc:"Four numbers the matchup hero doesn't show, each with 
     const order=standOrder(),rk=order.indexOf(T)+1,r=STAND[T]?.rec||[0,0,0],stk=typeof streakOf==="function"?streakOf(T):"",n=order.length;
     const wr=[];for(let k=1;k<=regWeeks();k++){if(!weekDone(k))break;const pr=(W[k]||[]).find(([a,b])=>a===T||b===T);if(!pr)continue;const o=pr[0]===T?pr[1]:pr[0];const x=h2h(wt(T,k),wt(o,k));wr.push(x[0]-x[1]);}
     const days=DAYS.filter(sp=>sp>=TODAY),gm=opp?dLeft(T,days):0,go=opp?dLeft(opp,days):0,gs=days.map((sp,i)=>dLeft(T,days.slice(i))-(opp?dLeft(opp,days.slice(i)):0)).reverse();
-    const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-TEAMS[T].P.length);
+    const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-dNowP(T).length);
     return `<div class="kp">${card(mr?(mr.p>=.5?"good":"bad"):"","Playoff odds",mr?`${dPct(mr.p)}<small>%</small>`:"–",mr?`<small class="muted">likely ${ord(Math.max(1,Math.round(mr.avg)))} of ${po.rows.length} · top ${po.P} get in</small>`:`<small class="muted">no schedule yet</small>`,mr?`<div class="kp-mini">${mr.seed.map((v,i)=>`<i class="${i<po.P?"in":""}" style="--h:${Math.max(6,v/Math.max(...mr.seed)*100).toFixed(0)}%"></i>`).join("")}</div>`:"")}
       ${card(rk&&rk<=(po?po.P:4)?"good":"bad","Standing",rk?`${ord(rk)}<small> of ${n}</small>`:"–",`<small class="muted">${r.join("-")}${stk?` · ${esc(stk)}`:""}</small>`,dSpk(wr.length>1?wr:null,"acc"))}
       ${opp?card(gm>=go?"good":"bad","Games left",`${gm}<small> vs ${go}</small>`,gm===go?`<span class="kp-d flat">even</span>`:`<span class="kp-d ${gm>go?"up":"down"}">${gm>go?"▲ +":"▼ −"}${Math.abs(gm-go)}</span><small class="muted"> starter games</small>`,dSpk(gs.length>1?gs:null,gm>=go?"good":"bad")):card("","Games left","–",`<small class="muted">no matchup</small>`)}
       ${lim?card(pl>0?"good":"bad","Pickups left",`${pl}<small> of ${lim}</small>`,`<small class="muted">${esc(addWhen())}</small>`,`<div class="kp-pips">${Array.from({length:lim},(_,i)=>`<i class="${i<lim-pl?"used":""}"></i>`).join("")}</div>`)
-        :card(open?"good":"","Open roster spots",`${open}<small> of ${ROSTER_MAX}</small>`,`<small class="muted">${TEAMS[T].P.length} players on the roster</small>`)}</div>`;}};
+        :card(open?"good":"","Open roster spots",`${open}<small> of ${ROSTER_MAX}</small>`,`<small class="muted">${dNowP(T).length} players on the roster</small>`)}</div>`;}};
 
 /* ---- scout your opponent ---- */
 DW.op={name:"Scout your opponent",desc:"This week's opponent at a glance: who's hot for them, their games left by day next to yours, and where they're soft.",s:"s",
   view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const a=fcProj(T),b=fcProj(opp),r=STAND[opp]?.rec||[0,0,0],rk=standOrder().indexOf(opp)+1;
-    const hot=TEAMS[opp].P.map(p=>{const x=recentPG(p.n,7),pj=pgLine(p.pj);return x&&pj?{p,d:zOf(x.pg)-zOf(pj),x}:null;}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
+    const hot=dNowP(opp).map(p=>{const x=recentPG(p.n,7),pj=pgLine(p.pj);return x&&pj?{p,d:zOf(x.pg)-zOf(pj),x}:null;}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
     const days=DAYS.filter(sp=>sp>=TODAY),mx=Math.max(1,...days.map(sp=>Math.max(dLeft(T,[sp]),dLeft(opp,[sp]))));
     const soft=CATS.map(c=>({c,p:dLogit(val(a.fin,c),val(b.fin,c),c)})).sort((x,y)=>y.p-x.p).slice(0,2);
     return `<div class="op-h"><span class="op-cr">${esc(tmInit(opp))}</span><span><b>${esc(TEAMS[opp].name)}</b><small class="muted">${r.join("-")}${rk?` · ${ord(rk)}`:""}</small></span></div>
