@@ -23,9 +23,10 @@ const dashAllBoards=()=>[{id:"main",n:(UI.dash&&UI.dash.n)||"Home"},...dashBoard
 function dashAlerts(T){const out=[];if(!T||!TEAMS[T]||!L)return out;const sp=TODAY,P=TEAMS[T].P;
   try{const lg=legalIssues(T);if(lg)out.push({lv:"bad",t:"Your roster isn't legal, so moves are locked. Fix it on My Team.",go:["team",""]});}catch(e){}
   const outSt=P.filter(p=>startedOn(p,sp)&&gameOn(p.t,sp)&&p.st==="OUT");
-  if(outSt.length)out.push({lv:"bad",t:`${outSt.map(p=>dashLast(p.n)).join(", ")} ${outSt.length>1?"are":"is"} OUT but in your lineup today.`,go:["team",""]});
+  const ce=typeof canEditTeam==="function"&&canEditTeam(T);
+  if(outSt.length)out.push({lv:"bad",act:ce?"today":0,t:`${outSt.map(p=>dashLast(p.n)).join(", ")} ${outSt.length>1?"are":"is"} OUT but in your lineup today.`,go:["team",""]});
   let can=0;try{can=benchPlan(T,sp).extra||0;}catch(e){}
-  if(can)out.push({lv:"warn",t:`${can} bench player${can>1?"s":""} could fill an empty starting spot today.`,go:["team",""]});
+  if(can)out.push({lv:"warn",act:ce?"today":0,t:`${can} bench player${can>1?"s":""} could fill an empty starting spot today.`,go:["team",""]});
   let tr=0;try{tr=myTeamNum()===T?tradesNeedingMe():0;}catch(e){}
   if(tr)out.push({lv:"warn",t:`${tr} trade${tr>1?"s":""} waiting on you.`,go:["league","trades"]});
   return out;}
@@ -42,7 +43,7 @@ function dashChrome(){const who=prefKey(),T=dashT(),c=dashCur(),bs=dashAllBoards
   const ed=DASH_EDIT?`<div class="dbedit"><span class="muted">This dashboard:</span><button class="btn ghost sm" data-dbren>Rename</button>${c!=="main"?`<button class="btn ghost sm" data-dbdel>Delete</button>`:""}
     ${isCommish()?`<button class="btn ghost sm" data-dleague>★ Make league default</button>${L&&L.dashDef?`<button class="btn ghost sm" data-dleagueoff>Clear league default</button>`:""}`:""}</div>`:"";
   const live=`<p class="dlivep">${dLiveOn()?`<i class="dlive"></i><b>Live</b> · updates every 30 seconds`:`Updates on its own`}<span class="muted"> · ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</span></p>`;
-  const alerts=al.length?`<ul class="dalerts" role="list">${al.map(a=>`<li class="${a.lv}"><span>${a.lv==="bad"?"⚠":"●"}</span><span>${esc(a.t)}</span><button class="btn sm${a.lv==="bad"?"":" ghost"}" data-dgo="${a.go[0]}${a.go[1]?":"+a.go[1]:""}">Fix ›</button></li>`).join("")}</ul>`:"";
+  const alerts=al.length?`<ul class="dalerts" role="list">${al.map(a=>`<li class="${a.lv}"><span>${a.lv==="bad"?"⚠":"●"}</span><span>${esc(a.t)}</span>${a.act?`<button class="btn sm" data-dauto="${a.act}">Fix now</button><button class="btn ghost sm" data-dgo="${a.go[0]}">Open</button>`:`<button class="btn sm${a.lv==="bad"?"":" ghost"}" data-dgo="${a.go[0]}${a.go[1]?":"+a.go[1]:""}">Fix ›</button>`}</li>`).join("")}</ul>`:"";
   return chips+ed+live+alerts;}
 {const _dv=dashView;dashView=function(){const h=_dv.apply(this,arguments);const i=h.indexOf('<div class="dgrid"');if(i<0)return h;
   const T=dashT();if(!TEAMS[T])return h;let x="";try{x=dashChrome();}catch(e){}
@@ -56,7 +57,7 @@ const dNum=s=>{const v=parseFloat(String(s).replace(/[^0-9.\-]/g,""));return isN
     ns.forEach((e,i)=>{const now=e.dataset.dcount??e.textContent;if(now===old[i])return;const a=dNum(old[i]),b=dNum(now);e.classList.remove("dflash","up","down");void e.offsetWidth;e.classList.add("dflash",a!=null&&b!=null&&b<a?"down":"up");});});}catch(e){}
   try{dashBadge();}catch(e){}return r;};}
 let DASH_TICK=0;
-setInterval(()=>{try{dashBadge();}catch(e){}if(nav!=="dash"||DASH_EDIT||DASH_DRAG||document.visibilityState!=="visible")return;if(sheet&&sheet().open)return;
+setInterval(()=>{try{dashBadge();}catch(e){}if(nav!=="dash"||DASH_EDIT||DASH_DRAG||MOVING||document.visibilityState!=="visible")return;if(sheet&&sheet().open)return;
   DASH_TICK+=15;if(DASH_TICK>=(dLiveOn()?30:60)){DASH_TICK=0;dashDraw();}},15000);
 
 /* ---- board actions, share, league default ---- */

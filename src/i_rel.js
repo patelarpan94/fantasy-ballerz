@@ -4,6 +4,13 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.33",date:"2026-11-04",title:"Run your team from the dashboard",notes:[
+    ["243","New","Today's lineup widget: your starters and bench for today with each player's game. Tap a slot to move a player or put him on IR, or tap Auto-set today. OUT starters and bench players who could fill an empty spot are highlighted. Slots still lock at tip-off."],
+    ["244","New","Roster widget: every player with his slot, status, games left this matchup and last 7 days, plus Move, IR and Drop (you confirm drops first)."],
+    ["245","New","Quick add widget: search any free agent and add him (pick who to drop), or put in a waiver claim if he's on waivers. Shows the best free agents right now and how many pickups you have left. Pickup and roster limits still apply."],
+    ["246","New","My claims and offers widget: your waiver claims with Cancel, and every trade that involves you or needs your vote with Accept, Counter, Reject, Cancel offer and Pass or Veto."],
+    ["247","New","Week ahead widget: how many of your starters play on each day left in the matchup, which days the bench could add more, and one tap to auto-set a day or the rest of the week."],
+    ["248","New","Alerts now fix things in place: for an OUT starter or an empty spot, Fix now auto-sets today's lineup without leaving the dashboard. The default dashboard now leads with Today's lineup, My claims and offers, Week ahead and Quick add."]]},
   {v:"2.32",date:"2026-11-04",title:"Dashboards that keep up",notes:[
     ["238","New","More than one dashboard: tap + New under the title to make another one (for example Game night or Trade planning), then switch with the chips or swipe left and right on your phone. In ✎ Edit you can rename or delete it. Up to 6."],
     ["239","New","Share a layout: tap ↗ Share to get a link. A friend who opens it gets a copy of your dashboard as a new one, showing their own team. The commissioner can also make any dashboard the league default in ✎ Edit."],
