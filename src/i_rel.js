@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.57",date:"2026-11-05",title:"First to the wire and Season win plan",notes:[
+    ["307","New","First to the wire: the league server now checks injury news every 5 minutes from 9 AM to 1 AM ET. When a starter is ruled out for more than a game, the dashboard shows it within minutes with the teammates who really gain (from this season's games without him) and an Add button, plus an alert and a pop-up message so you get there before anyone else."],
+    ["308","New","Season win plan: every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much winning or losing each week moves them. Marks must-win weeks (use every pickup), swing weeks, weeks you're favored (don't drop good players for streamers) and long shots, plus a trade-deadline checklist."]]},
   {v:"2.56",date:"2026-11-05",title:"Pickups this matchup",notes:[
     ["305","New","Your pickups (under the Win-the-week planner) now starts with how many pickups you've made this matchup and how many you have left, for example 3 pickups this matchup · 3 left of 6."],
     ["306","Fix","Win-the-week planner: pickups you already made this matchup now count against your limit while the league mirrors ESPN. Before, the planner could plan up to 6 more no matter how many you'd used."]]},

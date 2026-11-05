@@ -371,7 +371,8 @@ async function refresh(){
       // keep a week of stories so older items stay on player cards between pulls
       news.forEach(a=>{if(!seen.has(a.id)&&Date.now()-a.at<7*864e5){seen.add(a.id);out.push(a);}});news=out.sort((a,b)=>b.at-a.at).slice(0,120);}
     catch(e){if(e?.code&&!["tool_error","bad_page"].includes(e.code))throw e;}
-    await Store.set("nba",SEASON,{season:SEASON,inj,injd,news,live:live||NBA?.live||null,own:NBA?.own||null,ownAt:NBA?.ownAt||null,at:Date.now()});
+    const pi=NBA?.inj||{},wa=NBA?.outAt||{},outAt={};Object.keys(inj).forEach(n=>{if(inj[n]==="OUT")outAt[n]=pi[n]==="OUT"?(wa[n]&&Date.now()-wa[n]<7*864e5?wa[n]:0):Date.now();});
+    await Store.set("nba",SEASON,{season:SEASON,inj,injd,news,live:live||NBA?.live||null,own:NBA?.own||null,ownAt:NBA?.ownAt||null,outAt,injAt:inj===pi?(NBA?.injAt||0):Date.now(),at:Date.now()});
     if(days.length&&days[days.length-1]<last)toast("Loaded 10 days. Press Refresh again for the rest.");
     if(lgErr){showUpdated(ERR.not_league,true);busy=false;btn.disabled=false;return;}
   }catch(e){showUpdated((e?.code==="server_not_connected"?(L.espn?.task?ERR.cloud:ERR.host_missing):ERR[e?.code])||(e?.code?`Refresh failed (${e.code}). Try again.`:"Refresh failed. Try again."),true);busy=false;btn.disabled=false;return;}

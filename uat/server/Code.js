@@ -531,6 +531,13 @@ function tick() {
   if (used > DAILY_CAP) return;                                     // out of free runtime: wait for tomorrow
   if (used > SLOW_AT && Math.floor(now / 60e3) % 2) return;          // close to it: every 2 minutes
   var full = now - (+P.getProperty('LAST_FULL') || 0) >= 59.5 * 60e3;
+  // First to the wire (2.50): injury news every 5 minutes from 9 AM to 1 AM ET, so a new absence shows within minutes
+  var hr = +Utilities.formatDate(new Date(now), TZ, 'H');
+  if (!full && (hr >= 9 || hr < 1) && now - (+P.getProperty('LAST_INJ') || 0) >= 4.5 * 60e3 && now - (+P.getProperty('BUSY') || 0) >= 4 * 60e3) {
+    var i0 = Date.now();
+    try { injWatch_(now); } catch (e) { Logger.log('injury watch failed: ' + e); }
+    finally { P.setProperty('LAST_INJ', String(now)); P.setProperty(dk, String((+P.getProperty(dk) || 0) + Date.now() - i0)); }
+  }
   if (!full && !inWindow_(now)) return;                             // no game on: no ESPN call
   var t0 = Date.now();
   try { runSync_(full); }
@@ -880,9 +887,9 @@ function syncEspn_(full, maxDays) {
   });
   saveMeta_(M);
 
-  var doc = {season: SEASON, inj: NBA.inj || {}, injd: NBA.injd || {}, news: NBA.news || [], live: live || NBA.live || null, own: NBA.own || null, ownAt: NBA.ownAt || null, at: now};
+  var doc = {season: SEASON, inj: NBA.inj || {}, injd: NBA.injd || {}, news: NBA.news || [], live: live || NBA.live || null, own: NBA.own || null, ownAt: NBA.ownAt || null, outAt: NBA.outAt || {}, injAt: NBA.injAt || 0, at: now};
   if (full) {
-    try { var ij = injuries_(); doc.inj = ij[0]; doc.injd = ij[1]; } catch (e) { log.push('injuries failed: ' + e); }
+    try { var ij = injuries_(); doc.outAt = outAt_(doc.inj, ij[0], doc.outAt, now); doc.inj = ij[0]; doc.injd = ij[1]; doc.injAt = now; } catch (e) { log.push('injuries failed: ' + e); }
     try { doc.news = news_(doc.news, now); } catch (e) { log.push('news failed: ' + e); }
     try { var rn = rss_(doc.news, doc, now); doc.news = rn[0]; if (rn[1]) log.push(rn[1]); } catch (e) { log.push('rss failed: ' + e); }
     try { var o = ownership_(LG); if (o) { doc.own = o; doc.ownAt = now; } } catch (e) { log.push('ownership skipped: ' + e); }
@@ -1126,6 +1133,22 @@ function injuries_() {
     });
   });
   return [m, dd];
+}
+// when each player was first seen OUT (kept a week), so the app can tell new absences from old ones
+function outAt_(prev, cur, was, now) {
+  var o = {};
+  for (var n in cur) if (cur[n] === 'OUT') o[n] = prev[n] === 'OUT' ? (was[n] || 0) : now;
+  for (var k in o) if (o[k] && now - o[k] > 7 * 864e5) o[k] = 0;
+  return o;
+}
+function injWatch_(now) {
+  var NBA = getDoc_('nba', SEASON);
+  if (!NBA) return;
+  var ij = injuries_();
+  if (JSON.stringify(ij[0]) === JSON.stringify(NBA.inj || {}) && JSON.stringify(ij[1]) === JSON.stringify(NBA.injd || {})) return;   // nothing new: no write, no app refresh
+  NBA.outAt = outAt_(NBA.inj || {}, ij[0], NBA.outAt || {}, now);
+  NBA.inj = ij[0]; NBA.injd = ij[1]; NBA.injAt = now;
+  putDoc_('nba', SEASON, NBA);
 }
 function news_(old, now) {
   var nw = getJson_(ESPN + '/news?limit=50'), seen = {}, out = [];
