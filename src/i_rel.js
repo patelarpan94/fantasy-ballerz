@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.58",date:"2026-11-05",title:"Trade radar and a tidier New Era +",notes:[
+    ["309","New","Trade radar: scans every team in the league for trades that help you AND the other manager (so they're likely to accept), ranked by how many more categories a week you'd win, with which categories it helps and what it adds up to over the rest of the season. Tap Tweak in Trade packages to adjust it, or Offer trade to send it."],
+    ["310","Change","New Era + is regrouped by when you make each call: Right now (injury news, game plan, both lineups), Win this week (planner and your pickups, Sunday closer, opponent watch, scout), Build your team (Trade radar, Team identity, Opportunity radar, Hot and cold) and The season (Season win plan, playoff odds, playoff schedule, league scoreboard). Each section has a one-line summary. Star duel, Roster wall and Trophy case left the default board and are still in + Add widget."]]},
   {v:"2.57",date:"2026-11-05",title:"First to the wire and Season win plan",notes:[
     ["307","New","First to the wire: the league server now checks injury news every 5 minutes from 9 AM to 1 AM ET. When a starter is ruled out for more than a game, the dashboard shows it within minutes with the teammates who really gain (from this season's games without him) and an Add button, plus an alert and a pop-up message so you get there before anyone else."],
     ["308","New","Season win plan: every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much winning or losing each week moves them. Marks must-win weeks (use every pickup), swing weeks, weeks you're favored (don't drop good players for streamers) and long shots, plus a trade-deadline checklist."]]},
