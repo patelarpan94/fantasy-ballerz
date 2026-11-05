@@ -27,3 +27,18 @@ function otlAdd(){if(!prefKey()||!UI.dash||UI.dash.otl)return;const bs=dashBoard
 .otl-who{margin:0 0 6px;font-size:.85rem}
 .dk-otl .dtl li.off{opacity:.7}
 `;document.head.appendChild(s);}
+
+// computers: Today's lineup and Their lineup today side by side. The packed grid runs at double columns, so each gets half.
+{const _np=nepPack;nepPack=function(){const g=$("#dgrid");
+  if(g)g.style.setProperty("--nc",Math.max(1,Math.floor((g.clientWidth+14)/294))*2);
+  const r=_np.apply(this,arguments);if(!g)return r;
+  const ts=[...g.children].filter(t=>t.classList.contains("dtile"));
+  ts.forEach(t=>{if(t.classList.contains("dpl")||t.classList.contains("dpr")){t.classList.remove("dpl","dpr");t.style.gridColumn="";}});
+  if(g.classList.contains("npack"))for(let i=0;i+1<ts.length;i++){const a=ts[i],b=ts[i+1],k=t=>t.classList.contains("dk-tl")?1:t.classList.contains("dk-otl")?2:0;
+    if(k(a)&&k(b)&&k(a)!==k(b)){a.classList.add("dpl");b.classList.add("dpr");const h=`span ${+g.style.getPropertyValue("--nc")/2}`;a.style.gridColumn=b.style.gridColumn=h;break;}}
+  return r;};}
+{const s=document.createElement("style");s.textContent=`
+.dgrid.npack{grid-template-columns:repeat(var(--nc,6),minmax(0,1fr))}
+.dgrid.npack>.dtile.sz-s{grid-column:span 2}.dgrid.npack>.dtile.sz-w{grid-column:span 4}.dgrid.npack>.dtile.sz-f{grid-column:1/-1}
+`;document.head.appendChild(s);}
+DKEEP.push("dpl","dpr");
