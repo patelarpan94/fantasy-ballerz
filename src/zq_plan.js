@@ -45,7 +45,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,22);
   // spots: open roster spots + the 3 lowest-value regulars you could drop
-  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  const openN=typeof plOpen==="function"?plOpen(T):Math.max(0,ROSTER_MAX-dNowP(T).length);
   // never a player ranked inside the league's starting pool (teams x 13); only ones a pickup already beats on the season
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   const dropC=regs.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);

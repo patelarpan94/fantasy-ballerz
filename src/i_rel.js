@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.50",date:"2026-11-05",title:"Planner counts roster spots right",notes:[
+    ["296","Fix","The Win-the-week planner no longer says you have an open roster spot when you don't. It counted the 3 IR slots as open spots, so a full roster with an empty IR slot looked like it had room. Now it only counts a spot as open if you're under both the roster max and the max off IR, and a pending waiver claim with no drop takes up a spot too."]]},
   {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
     ["295","New","Their lineup today: a dashboard widget that shows your opponent's lineup for today, with who starts, who sits, game times, live stat lines as games go on and any open spots they left empty. On a computer it sits side by side with Today's lineup on New Era +, and you can add it to any dashboard with + Add widget."]]},
   {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
