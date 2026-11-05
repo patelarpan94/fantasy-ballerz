@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
+    ["293","Fix","The dashboard no longer blinks while it's open. Each refresh used to rebuild the whole page, so player photos reloaded, moving backgrounds restarted, open panels closed and the page jumped. Now only the numbers that changed update, and everything else stays still."],
+    ["294","Fix","The Win-the-week planner keeps showing its last plan while it works out the new one, instead of going blank for a moment and making the page below it jump."]]},
   {v:"2.47",date:"2026-11-05",title:"New Era + cleaned up",notes:[
     ["291","Change","New Era + board reorganized: hero, then Today, Win the week, Your squad and The race, with 21 widgets instead of 28. Widgets that repeated the same numbers (Live ticker, Matchup heartbeat, Category targets, Projected final, Lineup efficiency, Bench wasted, Power climb) left the default board; you can still add them with + Add widget."],
     ["292","Change","On a computer, smaller widgets now stack beside the wide ones, so the board has no empty gaps and is much shorter. The planner's Who plays when grid starts folded; tap it to open."]]},

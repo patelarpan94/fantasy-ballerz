@@ -124,7 +124,8 @@ function dashView(){
     ${DASH_EDIT?`<button class="btn ghost sm" data-dreset>Reset</button><button class="btn sm ghost" data-dadd>+ Add widget</button><button class="btn sm" data-dedit="0">Done</button>`:`<button class="btn sm" data-dedit="1"${who?"":` disabled title="Log in to edit your dashboard"`}>✎ Edit</button>`}</div></div>
     ${DASH_EDIT?`<p class="dnote">Drag a widget by its ⠿ bar to move it${PHONE()?"":", or pick S, W or F for its width"}. ✕ removes it, ⚙ changes its options.</p>`:""}`;
   return `<div class="dash${DASH_EDIT?" editing":""}">${head}<div class="dgrid" id="dgrid">${ws.map(tile).join("")}${DASH_EDIT?`<button class="dtile dadd" data-dadd><span>+</span>Add widget</button>`:""}</div>${!who?`<p class="muted dsm">This is the default dashboard. Log in to make it your own; it's saved for your team on every device.</p>`:""}</div>`;}
-{const _rr=renderRosters;renderRosters=function(){document.body.classList.toggle("navdash",nav==="dash");if(nav!=="dash")return _rr.apply(this,arguments);if(DASH_DRAG)return;const el=$("#rosters");el.dataset.view="dash";el.innerHTML=dashView();};}
+{const _rr=renderRosters;renderRosters=function(){document.body.classList.toggle("navdash",nav==="dash");if(nav!=="dash")return _rr.apply(this,arguments);if(DASH_DRAG)return;const el=$("#rosters");const h=dashView();dashPaint(el,h);el.dataset.view="dash";};}
+let dashPaint=(el,h)=>{el.innerHTML=h;};
 const dashDraw=()=>{if(nav==="dash"&&!DASH_DRAG){const sy=scrollY;renderRosters();scrollTo(0,sy);}};
 
 /* ---- editing ---- */
