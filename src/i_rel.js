@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.43",date:"2026-11-05",title:"Planner Pro",notes:[
+    ["280","New","Win-the-week planner: a smarter search that tries several plans side by side instead of one at a time, and shows what each move is worth on its own and which categories it helps."],
+    ["281","New","Win-the-week planner: your own controls. Tap a category to target it or punt it, set how many pickups to use, turn drops on or off, and skip any player you don't want (✕). The plan rebuilds right away."],
+    ["282","New","Win-the-week planner: a Who plays when grid for every day left (who starts, who sits, who has no game) and Add buttons that already pick the player to drop for you."]]},
   {v:"2.42",date:"2026-11-04",title:"Right roster everywhere",notes:[
     ["279","Fix","Win-the-week planner, Pulse, Roster wall, Scout, Playoff odds, Moves that win and Hot and cold now use only the players on your roster today. They were also counting players you'd dropped earlier in the season, so the planner could suggest dropping someone who was already gone."]]},
   {v:"2.41",date:"2026-11-04",title:"Planner follows the pickup rules",notes:[
