@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
+    ["295","New","Their lineup today: a dashboard widget that shows your opponent's lineup for today, with who starts, who sits, game times, live stat lines as games go on and any open spots they left empty. It sits next to Today's lineup on New Era +, and you can add it to any dashboard with + Add widget."]]},
   {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
     ["293","Fix","The dashboard no longer blinks while it's open. Each refresh used to rebuild the whole page, so player photos reloaded, moving backgrounds restarted, open panels closed and the page jumped. Now only the numbers that changed update, and everything else stays still."],
     ["294","Fix","The Win-the-week planner keeps showing its last plan while it works out the new one, instead of going blank for a moment and making the page below it jump."]]},
