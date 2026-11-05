@@ -10,7 +10,9 @@ const PLH_MAX=80;
 const plhList=()=>(UI.dash&&Array.isArray(UI.dash.plh))?UI.dash.plh:[];
 // whose moves this login tracks: a team login its own team, the commissioner the team the dashboard shows (BUG-303:
 // the commissioner login was skipped, so nothing was logged or shown). Each entry carries its team (T).
-const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||(isCommish()&&dCanEdit(T))));
+// BUG-314: the commissioner gets it for whichever team the dashboard shows, also while the league mirrors ESPN
+// (dCanEdit is false in mirror mode, so the commissioner saw no pickups and nothing was tracked).
+const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||isCommish()));
 const plhFor=T=>plhList().filter(e=>(e.T||myTeamNum()||T)===T);
 // remember the moves the planner suggests to your own team (first day suggested, every drop it paired)
 function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!plhOn(T)||!DAYS.length)return;
@@ -46,9 +48,9 @@ function plhRow(m){const e=m.e,net=plhNet(m),up=net.filter(x=>x.d>0).length,dn=n
     ${net.length?`<span class="plh-net">${net.map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":""}${x.d}</i>`).join("")}</span>`:""}</span></li>`;}
 // every pickup this matchup, not only the planner's (Arp 2026-11-05 picked up Zaire Williams and Jrue Holiday and saw nothing):
 // adds from the move log (with the drop paired in the same move) or, in mirror mode, players who joined the roster this week
-function plhAuto(T){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set();
+function plhAuto(T,claimed,skip){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set(claimed||[]);
   const tradeIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
-  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n))return;
+  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n)||(skip&&skip.has(n+"|"+iv.from)))return;
     const tx=[...TXLOG].reverse().find(t=>t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade");
     let ds=tx&&tx.drop?[tx.drop]:[];
     if(!tx){ds=Object.entries(OWN).filter(([d,dv])=>d!==n&&!usedDrop.has(d)&&dv.some(i=>i.team===T&&i.to!==Infinity&&i.to>=iv.from-1&&i.to<=iv.from+1)).map(([d])=>d).slice(0,1);}
@@ -61,7 +63,8 @@ function plUsedWk(T){if(!TEAMS[T])return 0;const m=L&&(L.addMode||"matchup");let
 function plhView(T){if(!plhOn(T))return "";
   const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
   const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
-  const auto=plhAuto(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
+  // BUG-316: a drop already paired with a tracked planner pick isn't paired again with another pickup
+  const auto=plhAuto(T,logged.filter(m=>m.drop).map(m=>m.drop.n),seen).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
   const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
   const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
   const lim=+L.addLimit||PL_MAX,used=plUsedWk(T),wkOnly=!(L.addMode&&L.addMode!=="matchup");
