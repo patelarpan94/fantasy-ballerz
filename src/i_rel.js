@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
+    ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
   {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
     ["301","Change","Win-the-week planner: when you add a player it suggested, he goes on your Willing to drop list on his own (marked planner pickup), so the plan can swap him out for a better streamer later. Tap him to keep him; he won't be added back. Reset all keeps your planner pickups on the list."]]},
   {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
