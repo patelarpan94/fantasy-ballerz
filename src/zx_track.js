@@ -15,7 +15,13 @@ function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!prefKey()||T!==myTeamNum
     if(!e){e={a:m.x.n,t:m.x.t,ds:[],sp:TODAY,wk};list.push(e);ch=true;}
     if(m.drop&&!e.ds.includes(m.drop)){e.ds.push(m.drop);ch=true;}});
   if(ch)dashBoardSet({plh:list.slice(-PLH_MAX)});}
-{const _dp=dPlan;dPlan=function(T,sync){const r=_dp.apply(this,arguments);try{if(r&&!r.done)plhLog(T,r);}catch(e){}return r;};}
+// Arp 2026-11-05: pickups you made from a suggestion go on your Willing to drop list (once, so taking one off sticks)
+function plhSyncDrop(T){if(!prefKey()||T!==myTeamNum())return;const list=plhList();let ch=false;const add=[];
+  const nl=list.map(e=>{if(e.dl)return e;const m=plhMatch(T,e);if(!m||m.gone!=null||ownerNow(e.a)!==T)return e;ch=true;add.push(e.a);return {...e,dl:1};});
+  if(!ch)return;const o=PLO();
+  const np=o.d?{...o,d:[...new Set([...o.d,...add])]}:{...o,ad:[...new Set([...(o.ad||[]),...add])]};
+  dashBoardSet({plh:nl,plan:np});DPL_K="";}
+{const _dp=dPlan;dPlan=function(T,sync){try{plhSyncDrop(T);}catch(e){}const r=_dp.apply(this,arguments);try{if(r&&!r.done)plhLog(T,r);}catch(e){}return r;};}
 
 // a logged suggestion you acted on: he joined your team on/after the day it was suggested (within a week)
 function plhMatch(T,e){const iv=(OWN[e.a]||[]).find(i=>i.team===T&&i.from>=e.sp&&i.from<=e.sp+7);if(!iv)return null;

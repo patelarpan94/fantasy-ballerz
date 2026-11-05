@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
+    ["301","Change","Win-the-week planner: when you add a player it suggested, he goes on your Willing to drop list on his own (marked planner pickup), so the plan can swap him out for a better streamer later. Tap him to keep him; he won't be added back. Reset all keeps your planner pickups on the list."]]},
   {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
     ["298","New","Dashboard on an unfolded iPhone Duo held sideways: the right side now holds the dashboard's own buttons (your boards, Share, Edit and alerts), so the widgets start right at the top on the left."],
     ["299","New","Dashboard on the Duo held sideways: a live score card on the right with every category, now and projected, that stays on screen while you scroll (tap it for Matchup). Below it, Jump to: tap a section (Today, Win the week and so on) to go straight there, and the one you're reading is lit up."],
