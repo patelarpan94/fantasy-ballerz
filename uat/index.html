@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105022538"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105023807"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
+    ["293","Fix","The dashboard no longer blinks while it's open. Each refresh used to rebuild the whole page, so player photos reloaded, moving backgrounds restarted, open panels closed and the page jumped. Now only the numbers that changed update, and everything else stays still."],
+    ["294","Fix","The Win-the-week planner keeps showing its last plan while it works out the new one, instead of going blank for a moment and making the page below it jump."]]},
   {v:"2.47",date:"2026-11-05",title:"New Era + cleaned up",notes:[
     ["291","Change","New Era + board reorganized: hero, then Today, Win the week, Your squad and The race, with 21 widgets instead of 28. Widgets that repeated the same numbers (Live ticker, Matchup heartbeat, Category targets, Projected final, Lineup efficiency, Bench wasted, Power climb) left the default board; you can still add them with + Add widget."],
     ["292","Change","On a computer, smaller widgets now stack beside the wide ones, so the board has no empty gaps and is much shorter. The planner's Who plays when grid starts folded; tap it to open."]]},
@@ -7774,7 +7777,8 @@ function dashView(){
     ${DASH_EDIT?`<button class="btn ghost sm" data-dreset>Reset</button><button class="btn sm ghost" data-dadd>+ Add widget</button><button class="btn sm" data-dedit="0">Done</button>`:`<button class="btn sm" data-dedit="1"${who?"":` disabled title="Log in to edit your dashboard"`}>✎ Edit</button>`}</div></div>
     ${DASH_EDIT?`<p class="dnote">Drag a widget by its ⠿ bar to move it${PHONE()?"":", or pick S, W or F for its width"}. ✕ removes it, ⚙ changes its options.</p>`:""}`;
   return `<div class="dash${DASH_EDIT?" editing":""}">${head}<div class="dgrid" id="dgrid">${ws.map(tile).join("")}${DASH_EDIT?`<button class="dtile dadd" data-dadd><span>+</span>Add widget</button>`:""}</div>${!who?`<p class="muted dsm">This is the default dashboard. Log in to make it your own; it's saved for your team on every device.</p>`:""}</div>`;}
-{const _rr=renderRosters;renderRosters=function(){document.body.classList.toggle("navdash",nav==="dash");if(nav!=="dash")return _rr.apply(this,arguments);if(DASH_DRAG)return;const el=$("#rosters");el.dataset.view="dash";el.innerHTML=dashView();};}
+{const _rr=renderRosters;renderRosters=function(){document.body.classList.toggle("navdash",nav==="dash");if(nav!=="dash")return _rr.apply(this,arguments);if(DASH_DRAG)return;const el=$("#rosters");const h=dashView();dashPaint(el,h);el.dataset.view="dash";};}
+let dashPaint=(el,h)=>{el.innerHTML=h;};
 const dashDraw=()=>{if(nav==="dash"&&!DASH_DRAG){const sy=scrollY;renderRosters();scrollTo(0,sy);}};
 
 /* ---- editing ---- */
@@ -10093,6 +10097,65 @@ addEventListener("resize",()=>{if(nav==="dash")try{nepPack();}catch(e){}});
 .dgrid.npack{grid-auto-rows:4px;row-gap:0;grid-auto-flow:row}
 .dgrid.npack>.dtile{margin-bottom:16px}
 `;document.head.appendChild(s);}
+/* ============================================================================
+   2.48 (2026-11-05). Arp: "the page also does this glitch behavior when it's
+   open. It blinks." Cause: every refresh (each minute, every 30 s on game
+   nights, and each time the league server sends new data) rebuilt the whole
+   dashboard from scratch. That re-made every player photo (initials first,
+   then the photo faded back in), restarted every moving background and
+   border, replayed the hero court drawing and the alert slide-in, closed open
+   panels, and the Win-the-week planner went blank ("Planning your week…") for
+   a moment, which made the whole page below it jump up and back.
+   - Refreshes now patch the board in place: only text and numbers that
+     changed are touched; photos, animations and open panels stay put.
+   - The planner keeps showing its last plan while it works out the new one.
+   ============================================================================ */
+const DKEEP=["rv","in","dfirst","uihid","folded"];
+const dFaceKey=(fn,ft,cls)=>fn+"|"+(ft||"")+"|"+String(cls||"").replace(/\s+/g," ").trim();
+{const _af=arpFace;arpFace=function(name,team,cls){const s=_af.apply(this,arguments);try{s.dataset.afk=dFaceKey(name,team,cls);}catch(e){}return s;};}
+
+// make live node a look like fresh node b; returns the node that belongs in a's place
+function dMorph(a,b){
+  if(a.nodeType!==b.nodeType||a.nodeName!==b.nodeName)return b;
+  if(a.nodeType!==1){if(a.nodeValue!==b.nodeValue)a.nodeValue=b.nodeValue;return a;}
+  // a player photo already drawn for the same player: keep it (no reload, no fade)
+  if(a.dataset.afk&&b.classList.contains("dface")&&b.dataset.fn!=null)
+    return a.dataset.afk===dFaceKey(b.dataset.fn,b.dataset.ft,b.className.replace("dface","").trim())?a:b;
+  for(const at of [...b.attributes]){const v=at.value;
+    if(at.name==="class"){const keep=DKEEP.filter(c=>a.classList.contains(c)&&!b.classList.contains(c));const nv=keep.length?v+" "+keep.join(" "):v;if(a.getAttribute("class")!==nv)a.setAttribute("class",nv);continue;}
+    if(at.name==="style"){if(a.getAttribute("style")!==v){const gr=a.style.gridRowEnd,i=a.style.getPropertyValue("--i");a.setAttribute("style",v);if(gr&&!a.style.gridRowEnd)a.style.gridRowEnd=gr;if(i&&!a.style.getPropertyValue("--i"))a.style.setProperty("--i",i);}continue;}
+    if(a.getAttribute(at.name)!==v)a.setAttribute(at.name,v);}
+  for(const at of [...a.attributes]){const n=at.name;if(b.hasAttribute(n))continue;
+    if(n==="open"&&a.nodeName==="DETAILS")continue;
+    if(n==="class"){const keep=DKEEP.filter(c=>a.classList.contains(c));keep.length?a.setAttribute("class",keep.join(" ")):a.removeAttribute("class");continue;}
+    if(n==="style"&&(a.style.gridRowEnd||a.style.getPropertyValue("--i"))){const gr=a.style.gridRowEnd,i=a.style.getPropertyValue("--i");a.removeAttribute("style");if(gr)a.style.gridRowEnd=gr;if(i)a.style.setProperty("--i",i);continue;}
+    a.removeAttribute(n);}
+  dMorphKids(a,b);
+  if(/^(INPUT|SELECT|TEXTAREA)$/.test(a.nodeName)&&a!==document.activeElement){
+    if(a.type==="checkbox"||a.type==="radio")a.checked=b.checked;else if(a.value!==b.value)a.value=b.value;}
+  return a;}
+function dMorphKids(a,b){
+  const ac=[...a.childNodes],bc=[...b.childNodes],key=n=>n.nodeType===1?(n.dataset.dw||n.dataset.dwid||n.id||""):"";
+  const keyed=new Map();ac.forEach(n=>{const k=key(n);if(k&&!keyed.has(k))keyed.set(k,n);});
+  const used=new Set();let j=0;const out=[];
+  for(const nb of bc){const k=key(nb);let na=null;
+    if(k){na=keyed.get(k)||null;if(na&&used.has(na))na=null;}
+    else{while(j<ac.length&&(used.has(ac[j])||key(ac[j])))j++;if(j<ac.length)na=ac[j++];}
+    let r=nb;if(na){used.add(na);r=dMorph(na,nb);}out.push(r);}
+  out.forEach((n,i)=>{if(a.childNodes[i]!==n)a.insertBefore(n,a.childNodes[i]||null);});
+  while(a.childNodes.length>out.length)a.lastChild.remove();}
+
+let DPAINT={b:null,e:null};
+dashPaint=function(el,h){const b=dashCur(),same=el.dataset.view==="dash"&&DPAINT.b===b&&DPAINT.e===DASH_EDIT&&!DASH_EDIT&&el.firstElementChild;
+  DPAINT={b,e:DASH_EDIT};
+  if(!same){el.innerHTML=h;return;}
+  try{const t=document.createElement("div");t.innerHTML=h;dMorphKids(el,t);if(typeof uiCards==="function")uiCards();}
+  catch(e){console.warn(e);el.innerHTML=h;}};
+
+// planner: keep the last plan on screen while the new one is worked out
+{const _dp=dPlan;let last=null;dPlan=function(T,sync){const r=_dp.apply(this,arguments);
+  if(r!==undefined){last={T,r};return r;}
+  return last&&last.T===T&&!sync?last.r:r;};}
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
    Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with
