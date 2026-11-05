@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
+    ["298","New","Dashboard on an unfolded iPhone Duo held sideways: the right side now holds the dashboard's own buttons (your boards, Share, Edit and alerts), so the widgets start right at the top on the left."],
+    ["299","New","Dashboard on the Duo held sideways: a live score card on the right with every category, now and projected, that stays on screen while you scroll (tap it for Matchup). Below it, Jump to: tap a section (Today, Win the week and so on) to go straight there, and the one you're reading is lit up."],
+    ["300","Change","Dashboard on any unfolded Duo, upright or sideways: half-width widgets now pair up side by side within their section instead of leaving empty gaps, and one with no partner uses the full width."]]},
   {v:"2.51",date:"2026-11-05",title:"Planner tracks your moves",notes:[
     ["297","New","Win-the-week planner: Your planner moves. When you add a player the planner suggested (and drop the player it paired with him), it tracks how the move is paying off: his starts and stats for you, what the player you dropped did since, and the difference in each category. This matchup's moves show first, earlier ones fold below, and it keeps a season count. Tracking starts with the planner's suggestions from today on."]]},
   {v:"2.50",date:"2026-11-05",title:"Planner counts roster spots right",notes:[
