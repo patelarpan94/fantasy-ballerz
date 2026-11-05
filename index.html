@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261104223545"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261105004611"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,25 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.44",date:"2026-11-05",title:"Never drop",notes:[
+    ["283","New","Win-the-week planner: lock players you never want dropped. Tap 🔒 on a move to keep the player it would drop, or pick players under Never drop. The plan rebuilds around them and the lock is saved with your login."]]},
+  {v:"2.43",date:"2026-11-05",title:"Planner Pro",notes:[
+    ["280","New","Win-the-week planner: a smarter search that tries several plans side by side instead of one at a time, and shows what each move is worth on its own and which categories it helps."],
+    ["281","New","Win-the-week planner: your own controls. Tap a category to target it or punt it, set how many pickups to use, turn drops on or off, and skip any player you don't want (✕). The plan rebuilds right away."],
+    ["282","New","Win-the-week planner: a Who plays when grid for every day left (who starts, who sits, who has no game) and Add buttons that already pick the player to drop for you."]]},
+  {v:"2.42",date:"2026-11-04",title:"Right roster everywhere",notes:[
+    ["279","Fix","Win-the-week planner, Pulse, Roster wall, Scout, Playoff odds, Moves that win and Hot and cold now use only the players on your roster today. They were also counting players you'd dropped earlier in the season, so the planner could suggest dropping someone who was already gone."]]},
+  {v:"2.41",date:"2026-11-04",title:"Planner follows the pickup rules",notes:[
+    ["278","Fix","Win-the-week planner: a pickup now plays from the next day (as in our league), so each move shows the day to make it and the day he starts. It plans at most 6 pickups a week, or fewer if you have fewer left. Make each move after that day's games so the player you drop still plays."]]},
+  {v:"2.40",date:"2026-11-04",title:"Win-the-week planner",notes:[
+    ["276","New","Win-the-week planner: plans every pickup for the rest of your matchup, day by day, inside your pickup limit. It says who to add, who to drop and when to swap one streamer for the next, and only counts games where the player plays and fits an open lineup spot. Each plan is judged by how many categories it wins against this opponent. You see expected categories and win chance with no moves and with the plan, which categories it moves, a day-by-day grid of filled spots, and an Add button for today's moves."],
+    ["277","Change","The planner never suggests dropping a player ranked inside the league's starting pool, or anyone a pickup hasn't outplayed this season. It leads the Win the week section on New Era + (added once), and the Game plan's pickup line now points to it."]]},
+  {v:"2.39",date:"2026-11-04",title:"New Era + Pro",notes:[
+    ["271","New","Pulse: four big numbers under the matchup on New Era +: playoff odds, your standing, the games-left edge and pickups left, each with which way it is heading and a small trend graphic."],
+    ["272","New","Game plan: one to-do list for your matchup, most important first: lineup fixes, the pickup that helps most, the games-left gap, and which categories to fight for or let go. Each has a button to act."],
+    ["273","New","Playoff odds: plays out the rest of the regular season 2,000 times to show every team's chance to make the playoffs, your likely seed, and the playoff line."],
+    ["274","New","Scout your opponent: who's running hot for them, their games left by day next to yours, and the categories where they're soft."],
+    ["275","Change","Tap Hide on any section title to fold that section away (on every dashboard); it stays folded for your login. New Era + gets a cleaner order once: the numbers first, then Today, Win the week, Your squad and The race."]]},
   {v:"2.38",date:"2026-11-04",title:"New Era + Max",notes:[
     ["265","New","New Era + now plays on a dark arena stage with a dot-grid floor, a court that draws itself in, and a big animated NEW ERA+ title with your team, week and live game count. Sections are numbered."],
     ["266","New","Motion: tiles slide in as you scroll, catch light and tilt toward your finger or pointer, and the headline tiles get a slow neon border. Everything stays still if your phone is set to reduce motion."],
@@ -7986,7 +8005,7 @@ DW.pw={name:"Player of the week",desc:"Your best player over the last 7 days.",s
       <div class="dpst">${st.map(([l,i])=>`<span><b>${dCount(dRound(pg[i]),1)}</b><small>${l}</small></span>`).join("")}</div>`;}};
 /* ---- 10. hot and cold ---- */
 DW.hc={name:"Hot and cold",desc:"Your players beating or missing their ESPN projection over the last 7 days.",s:"s",
-  view(w,T){const xs=TEAMS[T].P.map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
+  view(w,T){const xs=TEAMS[T].P.filter(p=>ownerNow(p.n)===T).map(p=>{const r=recentPG(p.n,7),pj=pgLine(p.pj);return r&&pj?{p,d:zOf(r.pg)-zOf(pj),r}:null;}).filter(Boolean);if(!xs.length)return dashEmpty("Not enough games yet.");
     const hot=xs.slice().sort((a,b)=>b.d-a.d).filter(x=>x.d>0).slice(0,3),cold=xs.slice().sort((a,b)=>a.d-b.d).filter(x=>x.d<0).slice(0,3);
     const li=(x,up)=>`<li><span class="dhcz ${up?"up":"down"}">${up?"▲":"▼"}</span><span>${dashNm(x.p.n)}<br><small class="muted num">${pra(x.r.pg)}</small></span><b class="num ${up?"okc":"badc"}">${up?"+":""}${x.d.toFixed(1)}</b></li>`;
     return `<ol class="dhcl">${hot.map(x=>li(x,true)).join("")}${cold.map(x=>li(x,false)).join("")}</ol><p class="dsm muted">Value vs projection (z-score), last 7 days</p>`;}};
@@ -8935,6 +8954,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="dchIn
    All motion is transform/opacity only and stops under Reduce Motion.
    ============================================================================ */
 const NEP_ID="nep";
+const dNowP=T=>{if(!TEAMS[T])return [];const s=new Set(rosterNow(T));return TEAMS[T].P.filter(p=>s.has(p.n));};
 const dPct=v=>Math.round(v*100);
 const dCatV=(c,v)=>c[1]==="pct"?pct(v):Math.round(v);
 const dExpCats=(A,B)=>CATS.reduce((s,c)=>s+dLogit(val(A,c),val(B,c),c),0);
@@ -8979,7 +8999,7 @@ DW.lt={name:"Live ticker",desc:"A scrolling ticker of tonight's lines for your p
 /* ---- 3. moves that win (tool) ---- */
 let DMW_K="",DMW=null;
 function dMovesThatWin(T){const opp=dOpp(T);if(!opp)return null;const a=fcProj(T),b=fcProj(opp),base=dExpCats(a.fin,b.fin);
-  const act=TEAMS[T].P.filter(p=>slotOn(p,TODAY)!==13),full=TEAMS[T].P.length>=ROSTER_MAX||act.length>=13;
+  const act=dNowP(T).filter(p=>slotOn(p,TODAY)!==13),full=dNowP(T).length>=ROSTER_MAX||act.length>=13;
   const left=p=>DAYS.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)).length;
   let drop=null;if(full){drop=act.filter(p=>p.st!=="OUT").map(p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return {p,z:r?zOf(r.pg):pj?zOf(pj):-9,pj,g:left(p)};}).sort((x,y)=>x.z-y.z)[0]||null;}
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT").map(D=>{const r=recentPG(D.n,14);return r?{D,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((x,y)=>y.z-x.z).slice(0,40);
@@ -9160,7 +9180,7 @@ document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||dReduce(
 const nepOn=()=>nav==="dash"&&dashCur()===NEP_ID;
 const dBestOf=id=>{let best=null;TEAMS[id].P.forEach(p=>{let v=0,g=0;const tot=new Array(11).fill(0);DAYS.filter(sp=>sp<=TODAY).forEach(sp=>{const d=p.d&&p.d[sp];if(d&&startedOn(p,sp)){g++;v+=gscore(d);d.forEach((x,i)=>tot[i]+=+x||0);}});
   if(g&&(!best||v>best.v))best={p,v,g,pg:tot.map(x=>x/g)};});
-  if(!best){TEAMS[id].P.forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
+  if(!best){dNowP(id).forEach(p=>{const r=recentPG(p.n,7);if(r){const v=gscore(r.pg);if(!best||v>best.v)best={p,v,g:r.g,pg:r.pg,l7:1};}});}return best;};
 
 /* ---- star duel ---- */
 DW.sd={name:"Star duel",desc:"Your best player this matchup against your opponent's best, face to face, stat by stat.",s:"w",
@@ -9185,7 +9205,7 @@ DW.hb={name:"Matchup heartbeat",desc:"Your win chance through the matchup as a g
 
 /* ---- roster wall ---- */
 DW.rw={name:"Roster wall",desc:"Your whole team as photo cards: slot, last 7 days, and a warm glow for players running hot, cool for cold.",s:"f",
-  view(w,T){const sp=TODAY,P=TEAMS[T].P.slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
+  view(w,T){const sp=TODAY,P=dNowP(T).slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12));
     return `<div class="rw">${P.map((p,i)=>{const s=slotOn(p,sp),r=recentPG(p.n,7),ss=recentPG(p.n,400);let hc=null;try{hc=typeof arpHC==="function"?arpHC(p.n):null;}catch(e){}
       if(!hc&&r){const pj=pgLine(p.pj);if(pj){const d=zOf(r.pg)-zOf(pj);hc=d>=3?"hot":d<=-3?"cold":null;}}const g=gameOn(p.t,sp);
       return `<div class="rw-c${hc?" "+hc:""}${s===13?" ir":s===12?" be":""}" style="--d:${i*40}ms">${dFace(p.n,p.t,"xl")}<span class="rw-s">${s!=null?SLOT[s]:""}</span>${p.st&&p.st!=="ACTIVE"?`<span class="rw-st">${stTag(p.n,p.st)}</span>`:""}
@@ -9194,8 +9214,9 @@ DW.rw={name:"Roster wall",desc:"Your whole team as photo cards: slot, last 7 day
 
 /* ---- the board, take two ---- */
 NEP_DEF.splice(0,NEP_DEF.length,["xa","f"],["lt","f"],["hd","f",{t:"Win the week"}],["hb","w"],["ct","s"],["mw","w"],["ef","s"],["pf","f"],["hd","f",{t:"Your squad"}],["sd","w"],["cd","s"],["tl","w"],["hc","s"],["rw","f"],["hd","f",{t:"Around the league"}],["ls","w"],["tc","s"],["bw","s"],["sw","s"],["bp","w"]);
-function nepUpgrade(){if(!prefKey()||!UI.dash||(UI.dash.nep||0)>=2)return;const bs=dashBoards();
-  if(bs.some(b=>b.id===NEP_ID)){dashBoardSet({boards:bs.map(b=>b.id===NEP_ID?{...b,w:nepW()}:b),nep:2});}else if(UI.dash.nep)dashBoardSet({nep:2});}
+let NEP_VER=2;
+function nepUpgrade(){if(!prefKey()||!UI.dash||(UI.dash.nep||0)>=NEP_VER)return;const bs=dashBoards();
+  if(bs.some(b=>b.id===NEP_ID)){dashBoardSet({boards:bs.map(b=>b.id===NEP_ID?{...b,w:nepW()}:b),nep:NEP_VER});}else if(UI.dash.nep)dashBoardSet({nep:NEP_VER});}
 {const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{nepUpgrade();}catch(e){}const r=_rr.apply(this,arguments);document.body.classList.toggle("nepon",nepOn());try{nepAfter();}catch(e){}return r;};}
 // title, subtitle and numbered sections
 {const _dv=dashView;dashView=function(){let h=_dv.apply(this,arguments);if(dashCur()!==NEP_ID)return h;const T=dashT();let live=0;try{live=Object.values(LIVE&&LIVE.g||{}).filter(g=>g.s==="in").length/2;}catch(e){}
@@ -9290,6 +9311,450 @@ body.nepon .note{background:rgba(255,255,255,.06);color:#c9d2ee;border-color:rgb
 .dfirst .rw-c{animation:dpop .5s cubic-bezier(.3,1.4,.4,1) both;animation-delay:var(--d)}
 @media (max-width:640px){.rw{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rw-c{padding:10px 4px 8px}.rw-c .dface.xl,.rw-c .arpface.xl{width:48px;height:48px}.rw-c b{font-size:.74rem}.rw-l{font-size:.68rem}}
 @media (prefers-reduced-motion:reduce){.nep-title,.nep-title b,.nep-court path,.dash.dnep .dtile.dk-mw,.dash.dnep .dtile.dk-sd,.dash.dnep .dtile.dk-hb,.sd-vs,.hb-beat,.hb-pulse,.dfirst .rw-c{animation:none!important}.dash.dnep .dtile{transform:none!important;transition:none!important}.dash.dnep .dtile.rv{opacity:1;translate:none}}
+`;document.head.appendChild(s);}
+/* ============================================================================
+   NEW ERA + PRO (2.39, Arp 2026-11-04: "research into better designs for
+   dashboards and come up with meaningful tools. Create the best looking and
+   useful dashboard for this fantasy app").
+   What the research said, and what it changed here:
+   - Lead with the few numbers that drive decisions, each with a direction and
+     a trend  -> Pulse: 4 KPI cards the arena above does not already show
+     (playoff odds, standing, games-left edge, pickups left).
+   - Answer "what do I do now?" before showing detail -> Game plan: one ranked
+     to-do list built from every signal the app has, with one-tap actions.
+   - Progressive disclosure -> every section title folds its section away
+     (on every dashboard), remembered per login.
+   - New tools that matter in head-to-head categories: Playoff odds (a 2,000-
+     season simulation) and Scout your opponent.
+   ============================================================================ */
+NEP_VER=3;
+const dCurWk=()=>{const i=CAL.findIndex(c=>c[1]<=TODAY&&TODAY<=c[2]);return i<0?0:i+1;};
+const dLeft=(T,days)=>TEAMS[T].P.reduce((s,p)=>s+days.filter(sp=>upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)).length,0);
+const dSpk=(v,cls)=>{if(!v||v.length<2)return "";const W=96,H=28,mn=Math.min(...v),mx=Math.max(...v),r=mx-mn||1,x=i=>(i*W/(v.length-1)).toFixed(1),y=a=>(H-3-(a-mn)/r*(H-6)).toFixed(1);
+  const d=v.map((a,i)=>`${i?"L":"M"}${x(i)},${y(a)}`).join("");return `<svg class="kp-sp ${cls||""}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}L${W},${H}L0,${H}Z" class="kp-sa"/><path d="${d}" class="kp-sl"/><circle cx="${x(v.length-1)}" cy="${y(v[v.length-1])}" r="2.6"/></svg>`;};
+const dDelta=(d,unit,inv)=>{if(d==null||!isFinite(d)||Math.abs(d)<.5)return `<span class="kp-d flat">no change</span>`;const up=d>0;return `<span class="kp-d ${up!==!!inv?"up":"down"}">${up?"▲":"▼"} ${Math.abs(Math.round(d))}${unit||""}</span>`;};
+
+/* ---- playoff odds: simulate the rest of the regular season 2,000 times ---- */
+let DPO_K="",DPO=null;
+function dTeamStr(id){const xs=dNowP(id).filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
+function dPlayoffOdds(){const k=TODAY+":"+TXLOG.length+":"+Object.keys(STATS||{}).length;if(k===DPO_K&&DPO)return DPO;DPO_K=k;
+  const ids=Object.keys(TEAMS).map(Number).filter(x=>TEAMS[x].P.length);if(ids.length<2){DPO=null;return null;}
+  const reg=regWeeks(),P=Math.min(+L.playoffTeams||4,ids.length),cw=dCurWk(),NC=CATS.length,most=L.format==="most",N=2000;
+  const str=Object.fromEntries(ids.map(x=>[x,dTeamStr(x)]));
+  // each remaining matchup: chance to win each category
+  const games=[];for(let n=1;n<=reg;n++){if(weekDone(n))continue;(W[n]||[]).forEach(([a,b])=>{if(!TEAMS[a]||!TEAMS[b])return;let ps=null;
+      if(n===cw&&wk&&wk[0]===cw){try{const A=fcProj(a),B=fcProj(b);ps=CATS.map(c=>dLogit(val(A.fin,c),val(B.fin,c),c));}catch(e){ps=null;}}
+      if(!ps){const q=1/(1+Math.exp(-(str[a]-str[b])/22));ps=CATS.map(()=>q);}games.push([a,b,ps]);});}
+  const made={},top={},seed={};ids.forEach(x=>{made[x]=0;top[x]=0;seed[x]=new Array(ids.length).fill(0);});
+  for(let s=0;s<N;s++){const rec={};ids.forEach(x=>{const r=STAND[x]?.rec||[0,0,0];rec[x]=[r[0],r[1],r[2]];});
+    for(const [a,b,ps] of games){let w=0,l=0;for(let i=0;i<NC;i++){if(Math.random()<ps[i])w++;else l++;}
+      const r=most?(w>l?[1,0,0]:w<l?[0,1,0]:[0,0,1]):[w,l,0];rec[a][0]+=r[0];rec[a][1]+=r[1];rec[a][2]+=r[2];rec[b][0]+=r[1];rec[b][1]+=r[0];rec[b][2]+=r[2];}
+    const tb=Object.fromEntries(ids.map(x=>[x,Math.random()]));
+    const o=ids.slice().sort((x,y)=>pctW(rec[y])-pctW(rec[x])||rec[y][0]-rec[x][0]||tb[y]-tb[x]);
+    o.forEach((x,i)=>{seed[x][i]++;if(i<P)made[x]++;if(!i)top[x]++;});}
+  const rows=ids.map(x=>({id:x,p:made[x]/N,t:top[x]/N,seed:seed[x].map(v=>v/N),avg:seed[x].reduce((s,v,i)=>s+v*(i+1),0)/N})).sort((a,b)=>b.p-a.p||a.avg-b.avg);
+  let left=0;for(let n=1;n<=reg;n++)if(!weekDone(n))left++;DPO={rows,P,left,reg,cw};return DPO;}
+
+DW.po={name:"Playoff odds",desc:"Plays out the rest of the regular season 2,000 times from today's rosters and standings, then shows each team's chance to make the playoffs and where you're likely to finish.",s:"w",
+  view(w,T){let o=null;try{o=dPlayoffOdds();}catch(e){o=null;}if(!o)return dashEmpty("Playoff odds start once the league has a schedule.");
+    const me=o.rows.find(r=>r.id===T)||o.rows[0],pc=dPct(me.p),mxS=Math.max(...me.seed),best=me.seed.indexOf(mxS)+1,phone=PHONE();
+    const lab=r=>o.left>4?"":r.p>.995?`<i class="po-tag in">in</i>`:r.p<.005?`<i class="po-tag out">out</i>`:"";
+    return `<div class="po-top"><div class="po-big"><b class="num">${pc}<small>%</small></b><span>to make the playoffs<br><small class="muted">top ${o.P} of ${o.rows.length} · most likely ${ord(best)} seed</small></span></div>
+      <div class="po-seeds" role="img" aria-label="Chance of each finishing spot">${me.seed.map((v,i)=>`<span class="${i<o.P?"in":""}${i+1===best?" best":""}" style="--h:${Math.max(3,v/mxS*100).toFixed(0)}%" title="${ord(i+1)}: ${dPct(v)}%"><i></i><small>${i+1}</small></span>`).join("")}</div></div>
+      <ol class="po-l">${o.rows.map((r,i)=>`${i===o.P?`<li class="po-cut" aria-hidden="true"><span>playoff line</span></li>`:""}<li class="${r.id===T?"me":""}"><span class="po-n">${esc(phone?dShort(r.id):TEAMS[r.id].name)}${lab(r)}</span><span class="po-b"><i style="--w:${(r.p*100).toFixed(1)}%"></i></span><b class="num">${dPct(r.p)}%</b>${phone?"":`<small class="muted num" title="Chance to finish 1st">${dPct(r.t)}% 1st</small>`}</li>`).join("")}</ol>
+      <p class="dsm muted">${o.left>0?`${o.left} regular-season matchup${o.left>1?"s":""} left. `:""}Each simulation plays every remaining matchup category by category: this week from current projections, later weeks from each roster's strength. Ties are split at random.</p>`;}};
+
+/* ---- game plan: the one to-do list ---- */
+function dGamePlan(T){const out=[],opp=dOpp(T),ed=dCanEdit(T);
+  try{dashAlerts(T).forEach(a=>out.push({lv:a.lv==="bad"?3:2,ic:a.lv==="bad"?"!":"↻",t:a.t,act:a.act?`<button class="btn sm" data-dauto="${a.act}">Fix now</button>`:a.go?`<button class="btn ghost sm" data-dgo="${esc(a.go[0])}">Open</button>`:""}));}catch(e){}
+  if(!opp)return out;let A,B;try{A=fcProj(T);B=fcProj(opp);}catch(e){return out;}
+  const ps=CATS.map(c=>({c,p:dLogit(val(A.fin,c),val(B.fin,c),c)}));
+  try{const k=T+":"+TODAY+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0);if(k!==DMW_K){DMW_K=k;DMW=dMovesThatWin(T);}const m=DMW&&DMW.out&&DMW.out[0];
+    if(m)out.push({lv:2,ic:"+",t:`Add ${m.D.n}: he fills ${m.n} open spot${m.n>1?"s":""} and adds about ${m.gain.toFixed(1)} categor${m.gain>=1.05?"ies":"y"}${m.flips.length?`, flipping ${m.flips.join(" and ")}`:""}.`,imp:`+${m.gain.toFixed(1)}`,act:ed?`<button class="btn sm" data-add="${esc(m.D.n)}">Add</button>`:""});}catch(e){}
+  const days=DAYS.filter(sp=>sp>=TODAY),gm=dLeft(T,days),go=dLeft(opp,days),on=dShort(opp);
+  if(days.length&&gm-go<=-3)out.push({lv:2,ic:"⏱",t:`You have ${go-gm} fewer games left than ${on}. Stream players with games on the days you have open spots.`,imp:`−${go-gm} g`});
+  else if(days.length&&gm-go>=3)out.push({lv:1,ic:"⏱",t:`You have ${gm-go} more games left than ${on}. Keep every slot filled and the edge holds.`,imp:`+${gm-go} g`});
+  const toss=ps.filter(x=>x.p>.3&&x.p<.7).sort((a,b)=>Math.abs(a.p-.5)-Math.abs(b.p-.5));
+  if(toss.length)out.push({lv:1,ic:"⚖",t:`${toss.slice(0,3).map(x=>x.c[0]).join(", ")} ${toss.length>1?"are":"is a"} toss-up${toss.length>1?"s":""} and will decide the week. Pick adds and starters that help ${toss.length>1?"those":"it"}.`});
+  const lost=ps.filter(x=>x.p<.12),lock=ps.filter(x=>x.p>.9);
+  if(lost.length&&lost.length<=2)out.push({lv:0,ic:"✂",t:`${lost.map(x=>x.c[0]).join(" and ")} look${lost.length>1?"":"s"} out of reach. Don't chase ${lost.length>1?"them":"it"}; spend moves on the toss-ups.`});
+  if(lock.length)out.push({lv:0,ic:"✓",t:`${lock.map(x=>x.c[0]).join(", ")} look${lock.length>1?"":"s"} safe.`});
+  return out.sort((a,b)=>b.lv-a.lv).slice(0,6);}
+DW.gp={name:"Game plan",desc:"Your to-do list for this matchup, most important first: lineup fixes, the best pickup, the games-left gap, and which categories to fight for or let go. One tap to act.",s:"w",
+  view(w,T){const xs=dGamePlan(T),todo=xs.filter(x=>x.lv>=2).length;
+    const ring=`<div class="gp-ring ${todo?"":"ok"}" style="--p:${todo?Math.max(8,100-todo*25):100}"><b class="num">${todo||"✓"}</b><small>${todo?`to do`:"all set"}</small></div>`;
+    if(!xs.length)return `<div class="gp-h">${ring}<p>Nothing to do right now. Your lineup is set and no pickup changes the week.</p></div>`;
+    return `<div class="gp-h">${ring}<p><b>${todo?`${todo} thing${todo>1?"s":""} to do`:"You're set"}</b><br><small class="muted">${todo?"Do these first, top to bottom.":"Nothing urgent. Here's how the week looks."}</small></p></div>
+      <ol class="gp-l">${xs.map((x,i)=>`<li class="lv${x.lv}" style="--d:${i*70}ms"><span class="gp-ic" aria-hidden="true">${x.ic}</span><span class="gp-t">${esc(x.t)}</span>${x.imp?`<b class="gp-imp num">${esc(x.imp)}</b>`:""}${x.act||""}</li>`).join("")}</ol>`;}};
+
+/* ---- pulse: the four numbers that matter, with direction and trend ---- */
+DW.kp={name:"Pulse",desc:"Four numbers the matchup hero doesn't show, each with direction and trend: playoff odds, your standing, the games-left edge and pickups left.",s:"f",
+  view(w,T){const opp=dOpp(T);let po=null;try{po=dPlayoffOdds();}catch(e){}const mr=po&&po.rows.find(r=>r.id===T);
+    const card=(cls,lab,big,sub,extra)=>`<div class="kp-c ${cls}"><span class="kp-l">${lab}</span><b class="kp-v num">${big}</b><span class="kp-s">${sub}</span>${extra||""}</div>`;
+    const order=standOrder(),rk=order.indexOf(T)+1,r=STAND[T]?.rec||[0,0,0],stk=typeof streakOf==="function"?streakOf(T):"",n=order.length;
+    const wr=[];for(let k=1;k<=regWeeks();k++){if(!weekDone(k))break;const pr=(W[k]||[]).find(([a,b])=>a===T||b===T);if(!pr)continue;const o=pr[0]===T?pr[1]:pr[0];const x=h2h(wt(T,k),wt(o,k));wr.push(x[0]-x[1]);}
+    const days=DAYS.filter(sp=>sp>=TODAY),gm=opp?dLeft(T,days):0,go=opp?dLeft(opp,days):0,gs=days.map((sp,i)=>dLeft(T,days.slice(i))-(opp?dLeft(opp,days.slice(i)):0)).reverse();
+    const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-dNowP(T).length);
+    return `<div class="kp">${card(mr?(mr.p>=.5?"good":"bad"):"","Playoff odds",mr?`${dPct(mr.p)}<small>%</small>`:"–",mr?`<small class="muted">likely ${ord(Math.max(1,Math.round(mr.avg)))} of ${po.rows.length} · top ${po.P} get in</small>`:`<small class="muted">no schedule yet</small>`,mr?`<div class="kp-mini">${mr.seed.map((v,i)=>`<i class="${i<po.P?"in":""}" style="--h:${Math.max(6,v/Math.max(...mr.seed)*100).toFixed(0)}%"></i>`).join("")}</div>`:"")}
+      ${card(rk&&rk<=(po?po.P:4)?"good":"bad","Standing",rk?`${ord(rk)}<small> of ${n}</small>`:"–",`<small class="muted">${r.join("-")}${stk?` · ${esc(stk)}`:""}</small>`,dSpk(wr.length>1?wr:null,"acc"))}
+      ${opp?card(gm>=go?"good":"bad","Games left",`${gm}<small> vs ${go}</small>`,gm===go?`<span class="kp-d flat">even</span>`:`<span class="kp-d ${gm>go?"up":"down"}">${gm>go?"▲ +":"▼ −"}${Math.abs(gm-go)}</span><small class="muted"> starter games</small>`,dSpk(gs.length>1?gs:null,gm>=go?"good":"bad")):card("","Games left","–",`<small class="muted">no matchup</small>`)}
+      ${lim?card(pl>0?"good":"bad","Pickups left",`${pl}<small> of ${lim}</small>`,`<small class="muted">${esc(addWhen())}</small>`,`<div class="kp-pips">${Array.from({length:lim},(_,i)=>`<i class="${i<lim-pl?"used":""}"></i>`).join("")}</div>`)
+        :card(open?"good":"","Open roster spots",`${open}<small> of ${ROSTER_MAX}</small>`,`<small class="muted">${dNowP(T).length} players on the roster</small>`)}</div>`;}};
+
+/* ---- scout your opponent ---- */
+DW.op={name:"Scout your opponent",desc:"This week's opponent at a glance: who's hot for them, their games left by day next to yours, and where they're soft.",s:"s",
+  view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const a=fcProj(T),b=fcProj(opp),r=STAND[opp]?.rec||[0,0,0],rk=standOrder().indexOf(opp)+1;
+    const hot=dNowP(opp).map(p=>{const x=recentPG(p.n,7),pj=pgLine(p.pj);return x&&pj?{p,d:zOf(x.pg)-zOf(pj),x}:null;}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
+    const days=DAYS.filter(sp=>sp>=TODAY),mx=Math.max(1,...days.map(sp=>Math.max(dLeft(T,[sp]),dLeft(opp,[sp]))));
+    const soft=CATS.map(c=>({c,p:dLogit(val(a.fin,c),val(b.fin,c),c)})).sort((x,y)=>y.p-x.p).slice(0,2);
+    return `<div class="op-h"><span class="op-cr">${esc(tmInit(opp))}</span><span><b>${esc(TEAMS[opp].name)}</b><small class="muted">${r.join("-")}${rk?` · ${ord(rk)}`:""}</small></span></div>
+      ${hot.length?`<p class="op-k">Running hot</p><ul class="op-hot">${hot.map(x=>`<li>${dFace(x.p.n,x.p.t,"sm")}<span>${dashNm(dashLast(x.p.n))}<small class="muted num">${pra(x.x.pg)}</small></span><b class="num ${x.d>0?"badc":"okc"}">${x.d>0?"+":""}${x.d.toFixed(1)}</b></li>`).join("")}</ul>`:""}
+      ${days.length?`<p class="op-k">Games left by day</p><div class="op-days">${days.map(sp=>{const m=dLeft(T,[sp]),o=dLeft(opp,[sp]);return `<span title="${dow(sp)}: you ${m}, them ${o}"><i class="me" style="--h:${(m/mx*100).toFixed(0)}%"></i><i class="op" style="--h:${(o/mx*100).toFixed(0)}%"></i><small>${esc(dow(sp).slice(0,2))}</small></span>`;}).join("")}</div>`:""}
+      <p class="op-k">Where they're soft</p><p class="op-soft">${soft.map(x=>`<b>${esc(x.c[0])}</b> <small class="muted">${dPct(x.p)}% yours</small>`).join(" · ")}</p>`;}};
+
+/* ---- the board, take three: hierarchy first ---- */
+NEP_DEF.splice(0,NEP_DEF.length,["xa","f"],["kp","f"],["hd","f",{t:"Today"}],["gp","w"],["cd","s"],["tl","w"],["hc","s"],["lt","f"],
+  ["hd","f",{t:"Win the week"}],["hb","w"],["ct","s"],["mw","w"],["op","s"],["pf","f"],
+  ["hd","f",{t:"Your squad"}],["sd","w"],["ef","s"],["rw","f"],
+  ["hd","f",{t:"The race"}],["po","w"],["tc","s"],["ls","w"],["bw","s"],["bp","f"]);
+
+/* ---- fold any section (every dashboard): tap a section title ---- */
+const dFoldOf=()=>((UI.dash&&UI.dash.fold)||{})[dashCur()]||{};
+function dFoldApply(){const g=document.getElementById("dgrid");if(!g||DASH_EDIT)return;const F=dFoldOf();let on=false;
+  [...g.children].forEach(t=>{if(!t.classList.contains("dtile"))return;if(t.classList.contains("dk-hd")){const id=t.dataset.dw;on=!!F[id];t.classList.toggle("folded",on);
+      let b=t.querySelector(".dfoldb");if(!b){b=document.createElement("button");b.className="dfoldb";b.dataset.dfold=id;const h=t.querySelector(".dth");if(h)h.appendChild(b);}
+      b.setAttribute("aria-expanded",String(!on));b.setAttribute("aria-label",(on?"Show ":"Hide ")+(t.getAttribute("aria-label")||"section"));b.innerHTML=`<span aria-hidden="true">${on?"Show":"Hide"}</span>`;return;}
+    t.classList.toggle("dfolded",on);});}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-dfold]");if(!b||nav!=="dash")return;e.stopPropagation();const c=dashCur(),all={...((UI.dash&&UI.dash.fold)||{})},F={...(all[c]||{})};
+  if(F[b.dataset.dfold])delete F[b.dataset.dfold];else F[b.dataset.dfold]=1;all[c]=F;if(prefKey())dashBoardSet({fold:all});else UI={...UI,dash:{...(UI.dash||{}),fold:all}};dFoldApply();},true);
+{const _rr=renderRosters;renderRosters=function(){const r=_rr.apply(this,arguments);if(nav==="dash")try{dFoldApply();}catch(e){}return r;};}
+// the Game plan already lists the alerts, so the board doesn't repeat them above it
+{const _dv=dashView;dashView=function(){const h=_dv.apply(this,arguments);return dashCur()===NEP_ID&&!DASH_EDIT&&dashW().some(w=>w.k==="gp")?h.replace('<div class="dash dnep','<div class="dash dnep hasgp'):h;};}
+
+{const s=document.createElement("style");s.textContent=`
+.dash.hasgp .dalerts{display:none}
+/* pulse */
+.kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kp-c{position:relative;overflow:hidden;border-radius:16px;padding:14px 14px 10px;background:color-mix(in srgb,var(--ink) 4%,transparent);border:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-height:118px}
+.kp-c::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--muted);opacity:.5}.kp-c.good::before{background:linear-gradient(90deg,#22c55e,#4ade80);opacity:1}.kp-c.bad::before{background:linear-gradient(90deg,#ef4444,#f97316);opacity:1}
+.kp-l{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kp-v{font-size:2rem;font-weight:800;line-height:1.05;letter-spacing:-.02em}.kp-v small{font-size:.9rem;font-weight:700;color:var(--muted);margin-left:2px}
+.kp-s{font-size:.78rem}.kp-d{font-weight:800;font-size:.78rem}.kp-d.up{color:#22c55e}.kp-d.down{color:#ef4444}.kp-d.flat{color:var(--muted)}
+.kp-sp{position:absolute;right:8px;bottom:8px;width:44%;max-width:120px;height:30px;opacity:.9}.kp-sl{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.kp-sa{fill:color-mix(in srgb,var(--accent) 16%,transparent)}.kp-sp circle{fill:var(--accent)}
+.kp-sp.good .kp-sl{stroke:#22c55e}.kp-sp.good .kp-sa{fill:rgba(34,197,94,.14)}.kp-sp.good circle{fill:#22c55e}.kp-sp.bad .kp-sl{stroke:#ef4444}.kp-sp.bad .kp-sa{fill:rgba(239,68,68,.12)}.kp-sp.bad circle{fill:#ef4444}
+.kp-mini{position:absolute;right:10px;bottom:10px;display:flex;align-items:flex-end;gap:2px;height:28px;width:44%;max-width:120px}.kp-mini i{flex:1;height:var(--h);background:color-mix(in srgb,var(--muted) 45%,transparent);border-radius:2px 2px 0 0}.kp-mini i.in{background:var(--accent)}
+.kp-pips{position:absolute;right:12px;bottom:14px;display:flex;gap:4px;flex-wrap:wrap;max-width:45%;justify-content:flex-end}.kp-pips i{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px -1px var(--accent)}.kp-pips i.used{background:color-mix(in srgb,var(--muted) 30%,transparent);box-shadow:none}
+.dtile.dk-kp{background:none!important;border:0!important;box-shadow:none!important;padding:0}.dtile.dk-kp>.dth{display:none}.dash.editing .dtile.dk-kp>.dth{display:flex}
+.dfirst .kp-c{animation:drise .55s cubic-bezier(.3,.7,.2,1) both}.dfirst .kp-c:nth-child(2){animation-delay:.06s}.dfirst .kp-c:nth-child(3){animation-delay:.12s}.dfirst .kp-c:nth-child(4){animation-delay:.18s}
+.dfirst .kp-sl{stroke-dasharray:400;animation:kpdraw 1.2s ease-out both .2s}@keyframes kpdraw{from{stroke-dashoffset:400}to{stroke-dashoffset:0}}
+.dash.dnep .kp-c{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border-color:rgba(255,255,255,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+/* game plan */
+.gp-h{display:flex;align-items:center;gap:14px;margin-bottom:10px}.gp-h p{margin:0}
+.gp-ring{--c:#f59e0b;flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(closest-side,var(--surface) 76%,transparent 78%),conic-gradient(var(--c) calc(var(--p)*1%),color-mix(in srgb,var(--muted) 22%,transparent) 0)}
+.gp-ring.ok{--c:#22c55e}.gp-ring b{font-size:1.35rem;line-height:1}.gp-ring small{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.gp-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.gp-l li{display:grid;grid-template-columns:30px 1fr auto auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,transparent);border:1px solid var(--line);font-size:.88rem;line-height:1.35}
+.gp-l li.lv3{border-color:color-mix(in srgb,#ef4444 55%,var(--line));background:color-mix(in srgb,#ef4444 8%,transparent)}.gp-l li.lv2{border-color:color-mix(in srgb,#f59e0b 45%,var(--line))}
+.gp-ic{width:30px;height:30px;border-radius:9px;display:grid;place-content:center;font-weight:800;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.lv3 .gp-ic{background:rgba(239,68,68,.16);color:#ef4444}.lv2 .gp-ic{background:rgba(245,158,11,.16);color:#f59e0b}.lv0 .gp-ic{background:rgba(34,197,94,.14);color:#22c55e}
+.gp-imp{font-size:.85rem;color:#22c55e;white-space:nowrap}.gp-l li:not(:has(.btn)) .gp-imp{grid-column:3/5}.gp-l li:not(:has(.btn)):not(:has(.gp-imp)) .gp-t{grid-column:2/5}
+.dfirst .gp-l li{animation:drise .45s cubic-bezier(.3,.7,.2,1) both;animation-delay:var(--d)}
+/* playoff odds */
+.po-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.po-big{display:flex;align-items:center;gap:12px}.po-big b{font-size:2.6rem;line-height:1;font-weight:800;letter-spacing:-.03em;background:linear-gradient(90deg,var(--accent),#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent}.po-big b small{font-size:1.1rem}.po-big span{font-size:.88rem;line-height:1.35}
+.po-seeds{display:flex;align-items:flex-end;gap:4px;height:64px;flex:1;min-width:180px;max-width:340px}.po-seeds span{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}
+.po-seeds i{display:block;width:100%;height:var(--h);border-radius:4px 4px 1px 1px;background:color-mix(in srgb,var(--muted) 35%,transparent)}.po-seeds .in i{background:color-mix(in srgb,var(--accent) 55%,transparent)}.po-seeds .best i{background:linear-gradient(180deg,#8b5cf6,var(--accent));box-shadow:0 0 14px -2px var(--accent)}
+.po-seeds small{font-size:.62rem;color:var(--muted)}
+.po-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}.po-l li{display:grid;grid-template-columns:minmax(0,1.3fr) 2fr 44px 64px;align-items:center;gap:10px;font-size:.84rem;padding:3px 6px;border-radius:8px}
+.po-l li.me{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:700}.po-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.po-b{height:8px;border-radius:5px;background:color-mix(in srgb,var(--muted) 18%,transparent);overflow:hidden}.po-b i{display:block;height:100%;width:var(--w);border-radius:5px;background:linear-gradient(90deg,var(--accent),#8b5cf6)}
+.po-l li b{text-align:right}.po-l li.po-cut{display:flex;padding:0;gap:8px;align-items:center;color:#f59e0b;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.po-cut::before,.po-cut::after{content:"";flex:1;border-top:1px dashed currentColor;opacity:.6}
+.po-tag{font-style:normal;font-size:.62rem;font-weight:800;text-transform:uppercase;margin-left:6px;padding:1px 5px;border-radius:5px}.po-tag.in{background:rgba(34,197,94,.16);color:#22c55e}.po-tag.out{background:rgba(239,68,68,.14);color:#ef4444}
+.dfirst .po-b i{animation:dbarin .9s cubic-bezier(.3,.7,.2,1) both}.dfirst .po-seeds i{animation:posg .8s cubic-bezier(.3,.7,.2,1) both;transform-origin:bottom}@keyframes posg{from{transform:scaleY(0)}}
+/* scout */
+.op-h{display:flex;align-items:center;gap:10px}.op-h>span:last-child{display:flex;flex-direction:column;min-width:0}.op-h b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op-cr{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-content:center;font-weight:800;color:#fff;background:linear-gradient(140deg,#f97316,#c2410c);box-shadow:0 6px 18px -8px #f97316}
+.op-k{margin:12px 0 6px;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.op-hot{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.op-hot li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;font-size:.84rem}.op-hot li>span:nth-child(2){display:flex;flex-direction:column;line-height:1.2}
+.op-days{display:flex;gap:6px;height:58px;align-items:flex-end}.op-days span{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:2px;height:100%;align-items:end}
+.op-days i{display:block;height:var(--h);min-height:2px;border-radius:3px 3px 0 0}.op-days i.me{background:var(--accent)}.op-days i.op{background:#f97316}.op-days small{grid-column:1/3;text-align:center;font-size:.62rem;color:var(--muted)}
+.op-soft{margin:0;font-size:.86rem}
+/* section folding */
+.dfoldb{margin-left:auto;font:inherit;font-size:.7rem;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.dfoldb:hover{color:var(--ink);border-color:var(--accent)}.dtile.dk-hd .dth{display:flex;align-items:center}.dtile.dk-hd.folded .dth h3{opacity:.6}
+.dgrid .dtile.dfolded{display:none!important}
+@media (max-width:760px){.kp{grid-template-columns:1fr 1fr;gap:10px}.kp-c{min-height:108px;padding:12px 12px 10px}.kp-v{font-size:1.6rem}.kp-sp,.kp-mini,.kp-pips{position:static;width:100%;max-width:none;margin-top:auto;padding-top:6px}.kp-sp{height:26px}.kp-mini{height:24px}.kp-pips{justify-content:flex-start}
+  .gp-l li{grid-template-columns:28px 1fr auto;font-size:.85rem}.gp-l li .btn{grid-column:2/4;justify-self:start}.gp-l li:has(.btn) .gp-imp{grid-column:3}
+  .po-l li{grid-template-columns:minmax(0,1.2fr) 1.4fr 40px}.po-big b{font-size:2.2rem}.po-seeds{max-width:none;min-width:100%}}
+@media (prefers-reduced-motion:reduce){.dfirst .kp-c,.dfirst .kp-sl,.dfirst .gp-l li,.dfirst .po-b i,.dfirst .po-seeds i{animation:none!important}}
+`;document.head.appendChild(s);}
+/* ============================================================================
+   WIN-THE-WEEK PLANNER (2.40, Arp 2026-11-04: "think of the one BEST feature
+   ... research into the one most important tool and build it").
+   Research: in head-to-head categories the easiest edge is games played,
+   won by streaming free agents into open lineup spots inside the pickup
+   limit (RotoWire, Hashtag Basketball, Razzball). The public tools only show
+   schedules; none plans the actual moves against your opponent. This does:
+   - Baseline: the rest of your matchup with your best lineup each day
+     (players matched to real slots by value, OUT players skipped).
+   - Search: greedy, one pickup at a time, up to the pickups you have left.
+     Each candidate = (spot, free agent, start day). A spot is an open roster
+     spot, a low-value player you'd drop, or a streamer already in the plan
+     (swapping him out on a later day chains streams). A free agent only
+     counts on days he has a game AND fits an open slot after your regulars.
+   - Score: expected categories won against this opponent's projected
+     finish (same per-category odds as the rest of the dashboard).
+   ============================================================================ */
+let DPL_K="",DPL=null;
+// Arp 2026-11-04: "i can only pickup 6 players a week ... players i pickup only show up next day"
+const PL_MAX=6,PL_LAG=1;
+function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
+  const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
+  const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
+  let budget=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):PL_MAX;budget=Math.min(budget,PL_MAX);
+  const perDay=mode==="day"&&lim?lim:99;
+  const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
+  // regulars: everyone not on IR. Each brings his projected line on days he plays and fits.
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"})).filter(x=>!x.ir);
+  const fits=(el,slot)=>slot===11||el.includes(slot);
+  // who plays on a day: match players (best first) to lineup slots; returns totals
+  const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
+    const tryA=(x,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!fits(x.el,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=x;return true;}}return false;};
+    xs.slice().sort((a,b)=>b.z-a.z).forEach(x=>{if(tryA(x,[])&&x.pj)x.pj.forEach((v,i)=>tot[i]+=+v||0);});
+    const used=new Set(owner.filter(Boolean));const out={tot,used,free:owner.filter(v=>v==null).length};MEMO.set(mk,out);return out;};
+  const plays=(x,sp)=>!x.out&&gameOn(x.t,sp)&&(sp>TODAY||!locked({t:x.t},sp));
+  // plan = {drops:{name:day}, adds:[{x,from,to,spot}]}
+  const evalPlan=pl=>{const tot=now.slice(),perDayUse={};const slotsUsed={};
+    days.forEach(sp=>{const xs=regs.filter(r=>!(pl.drops[r.n]!=null&&sp>=pl.drops[r.n])&&plays(r,sp));
+      pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to&&plays(a.x,sp))xs.push(a.x);});
+      const r=dayLine(sp,xs);r.tot.forEach((v,i)=>tot[i]+=v);
+      slotsUsed[sp]={g:pl.adds.filter(a=>sp>=a.from&&sp<=a.to&&r.used.has(a.x)).map(a=>a.x.n),reg:[...r.used].filter(x=>!pl.adds.some(a=>a.x===x)).length,free:r.free};});
+    return {tot,exp:dExpCats(tot,B),slotsUsed};};
+  const base={drops:{},adds:[]},b0=evalPlan(base);
+  // free agents worth a look: best value lately, healthy, with a game left
+  const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
+      return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,22);
+  // spots: open roster spots + the 3 lowest-value regulars you could drop
+  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  // never a player ranked inside the league's starting pool (teams x 13); only ones a pickup already beats on the season
+  const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
+  const dropC=regs.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
+  let plan={drops:{},adds:[]},cur=b0,openLeft=openN;const steps=[];
+  for(let k=0;k<budget;k++){let best=null;
+    const tryPlan=(pl,meta)=>{const r=evalPlan(pl);const g=r.exp-cur.exp;if(g>.04&&(!best||g>best.g+1e-9))best={pl,r,g,meta};};
+    for(const x of fa){if(plan.adds.some(a=>a.x.n===x.n))continue;
+      const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&plan.adds.filter(a=>a.from===d).length<perDay;
+      const d0=days.find(ok);if(d0==null)continue;const end=days[days.length-1];
+      // a new spot: start on his first playable day (a later start only loses games)
+      if(openLeft>0)tryPlan({drops:plan.drops,adds:[...plan.adds,{x,from:d0,to:end,spot:"open"+openLeft}]},{kind:"open",d:d0});
+      for(const p of dropC){if(plan.drops[p.n]!=null||p.zs>=zs(x.n))continue;tryPlan({drops:{...plan.drops,[p.n]:d0},adds:[...plan.adds,{x,from:d0,to:end,spot:p.n}]},{kind:"drop",p,d:d0});}
+      // chain: take over a planned streamer's spot on a later day
+      plan.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;const na=plan.adds.map((b,j)=>j===i?{...b,to:d-1}:b);tryPlan({drops:plan.drops,adds:[...na,{x,from:d,to:end,spot:a.spot}]},{kind:"swap",a,d});}));}
+    if(!best)break;plan=best.pl;cur=best.r;if(best.meta.kind==="open")openLeft--;steps.push(best.meta);}
+  // the moves, in day order, with what each player gives
+  const moves=plan.adds.map(a=>{const g=days.filter(sp=>sp>=a.from&&sp<=a.to&&cur.slotsUsed[sp].g.includes(a.x.n));
+    const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),drop=prev?prev.x.n:String(a.spot).startsWith("open")?null:a.spot;
+    return {x:a.x,from:a.from,to:a.to,games:g,drop};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
+  const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
+  const wp=(tot)=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
+  return {opp,days,budget,lim,mode,moves,b0,cur,pB,pA,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0)};}
+function dPlan(T){const k=T+":"+TODAY+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"");if(k!==DPL_K){DPL_K=k;try{DPL=dPlanBuild(T);}catch(e){console.warn(e);DPL=null;}}return DPL;}
+
+DW.pl={name:"Win-the-week planner",desc:"Plans every pickup for the rest of this matchup, day by day, inside your pickup limit: who to add, who to drop, when to swap streamers. Picks the moves that win the most categories against this opponent.",s:"f",
+  view(w,T){const r=dPlan(T);if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
+    const ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp);
+    const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
+      <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">${r.lim?`Uses up to ${r.budget} of your pickups ${esc(addWhen())}.`:"The plan uses at most ${PL_MAX} pickups."} A pickup plays from the next day, and only counts on days he has a game and fits an open spot.</small></p></div>`;
+    if(!r.moves.length)return head+`<p class="dempty okc">✓ No pickup helps this week. Your lineup already covers your open spots${r.budget?"":", or you've used your pickups"}.</p>`;
+    const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
+    const cats=`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`;
+    const mv=`<ol class="pl-m">${r.moves.map((m,i)=>`<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from-PL_LAG))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"} · plays from ${esc(dow(m.from))}${m.x.w?" · on waivers, claim now":""}</small></span>
+      <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
+      ${ed&&m.from-PL_LAG===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:m.from-PL_LAG===TODAY?"":`<small class="pl-when muted">${esc(dn(m.from-PL_LAG))}</small>`}</li>`).join("")}</ol>`;
+    const grid=`<div class="pl-grid" role="img" aria-label="Lineup spots filled each day">${r.days.map(sp=>{const u=r.cur.slotsUsed[sp]||{g:[],reg:0,free:0},tot=LINEUP.length;
+      return `<span><i class="pl-bar">${Array.from({length:tot},(_,j)=>`<b class="${j<u.reg?"r":j<u.reg+u.g.length?"s":"e"}"></b>`).join("")}</i><small class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</small></span>`;}).join("")}</div>
+      <p class="dsm muted pl-key"><i class="r"></i>your players <i class="s"></i>planned pickups <i class="e"></i>empty spot</p>`;
+    return head+cats+mv+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Tap Add for today's moves and you pick who to drop. Later moves update as the week plays out.</p>`;}};
+
+// New Era +: the planner leads "Win the week" (applied once)
+NEP_VER=4;
+{const i=NEP_DEF.findIndex(x=>x[0]==="hd"&&x[2]&&x[2].t==="Win the week");if(i>=0){NEP_DEF.splice(i+1,0,["pl","f"]);const m=NEP_DEF.findIndex(x=>x[0]==="mw");if(m>=0)NEP_DEF.splice(m,1);}}
+// the Game plan's pickup line points at the planner when it's on the board
+{const _gp=dGamePlan;dGamePlan=function(T){const xs=_gp.apply(this,arguments);if(!dashW().some(w=>w.k==="pl"))return xs;let r=null;try{r=dPlan(T);}catch(e){}
+  const i=xs.findIndex(x=>x.ic==="+");if(i<0||!r||!r.moves||!r.moves.length)return xs;const m=r.moves[0],ed=dCanEdit(T);
+  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: add ${m.x.n} ${m.from-PL_LAG===TODAY?"today":"on "+dow(m.from-PL_LAG)} (he plays from ${dow(m.from)}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&m.from-PL_LAG===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
+
+{const s=document.createElement("style");s.textContent=`
+.pl-h{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:12px}
+.pl-ba{display:flex;align-items:center;gap:12px}.pl-ba>span:not(.pl-arr){display:flex;flex-direction:column;align-items:center;padding:10px 16px;border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent);border:1px solid var(--line);min-width:92px}
+.pl-ba small{font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pl-ba b{font-size:1.9rem;line-height:1.1;font-weight:800}.pl-ba i{font-style:normal;font-size:.74rem;color:var(--muted);font-weight:700}
+.pl-ba .pl-after{border-color:color-mix(in srgb,#22c55e 55%,var(--line));background:color-mix(in srgb,#22c55e 10%,transparent);box-shadow:0 10px 30px -18px #22c55e}.pl-after b{color:#22c55e}.pl-after i{color:#22c55e!important}
+.pl-arr{font-size:1.4rem;color:var(--muted)}.pl-sum{margin:0;flex:1;min-width:220px;font-size:.9rem;line-height:1.4}
+.pl-cats{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.pl-cats span{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:99px;border:1px solid var(--line);font-size:.78rem}.pl-cats i{font-style:normal;color:var(--muted)}
+.pl-cats span.flip{border-color:#22c55e;background:rgba(34,197,94,.12)}.pl-cats span.flip i{color:#22c55e;font-weight:800}
+.pl-m{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.pl-m li{display:grid;grid-template-columns:62px 30px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,transparent);border:1px solid var(--line)}
+.pl-day{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}.pl-who{display:flex;flex-direction:column;min-width:0;line-height:1.25}.pl-who b{font-size:.9rem}.pl-who small{font-size:.75rem}
+.pl-g{display:flex;align-items:center;gap:3px}.pl-g i{width:10px;height:10px;border-radius:3px;background:color-mix(in srgb,var(--muted) 18%,transparent)}.pl-g i.on{background:#22c55e;box-shadow:0 0 8px -1px #22c55e}.pl-g i.no{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 40%,transparent) 0 2px,transparent 2px 4px)}
+.pl-g small{margin-left:6px;font-weight:800;font-size:.75rem}.pl-when{font-size:.74rem;white-space:nowrap}
+.pl-grid{display:flex;gap:8px;align-items:flex-end}.pl-grid>span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.pl-bar{display:flex;flex-direction:column-reverse;gap:2px;width:100%;max-width:40px}
+.pl-bar b{display:block;height:7px;border-radius:2px}.pl-bar b.r{background:color-mix(in srgb,var(--accent) 70%,transparent)}.pl-bar b.s{background:#22c55e;box-shadow:0 0 6px -1px #22c55e}.pl-bar b.e{background:color-mix(in srgb,var(--muted) 16%,transparent)}
+.pl-grid small{font-size:.66rem;color:var(--muted);font-weight:700}.pl-grid small.tdy{color:var(--accent)}
+.pl-key{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.pl-key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:-6px}.pl-key i.r{background:color-mix(in srgb,var(--accent) 70%,transparent)}.pl-key i.s{background:#22c55e}.pl-key i.e{background:color-mix(in srgb,var(--muted) 25%,transparent)}
+.dfirst .pl-m li{animation:drise .45s cubic-bezier(.3,.7,.2,1) both;animation-delay:var(--d)}.dfirst .pl-bar b.s{animation:dpop .5s cubic-bezier(.3,1.4,.4,1) both .3s}
+.dash.dnep .pl-ba>span:not(.pl-arr),.dash.dnep .pl-m li{background:rgba(255,255,255,.05)}
+@media (max-width:760px){.pl-h{gap:12px}.pl-ba{width:100%;justify-content:space-between}.pl-ba>span:not(.pl-arr){flex:1}
+  .pl-m li{grid-template-columns:28px minmax(0,1fr) auto;row-gap:6px}.pl-day{grid-column:1/4}.pl-g{grid-column:2/3}.pl-m li .btn{grid-column:3;grid-row:2/4;align-self:center}.pl-when{display:none}}
+@media (prefers-reduced-motion:reduce){.dfirst .pl-m li,.dfirst .pl-bar b.s{animation:none!important}}
+`;document.head.appendChild(s);}
+/* ============================================================================
+   PLANNER PRO (2.43, Arp 2026-11-05: "we should be able to do more, show me
+   the best you can do").
+   - Smarter search: a beam search keeps the 3 best partial plans at every
+     step instead of one, so a weaker first move that sets up a better chain
+     can still win.
+   - Your controls (saved per login): skip any suggested player, mark each
+     category Target (counts 1.5x) or Punt (ignored), allow or forbid drops,
+     and how many pickups to use.
+   - Each move shows what it is worth on its own and which categories it moves.
+   - A who-plays-when grid: every player on your roster plus the planned
+     pickups, each remaining day: starts, sits (no open slot), no game, gone.
+   - Add pre-picks the planned drop in the add sheet.
+   - The search runs after the page paints, so the dashboard never waits on it.
+   ============================================================================ */
+const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],k:o.k||[],c:o.c||{},drops:o.drops!==false,n:o.n||0};};
+function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
+function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
+  const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
+  const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
+  let cap=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):PL_MAX;cap=Math.max(0,Math.min(cap,PL_MAX));
+  const budget=o.n?Math.min(o.n,cap):cap,perDay=mode==="day"&&lim?lim:99;
+  const W=CATS.map(c=>o.c[c[0]]==="p"?0:o.c[c[0]]==="t"?1.5:1);
+  const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
+  const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"}));
+  const act=regs.filter(x=>!x.ir);
+  const fits=(el,slot)=>slot===11||el.includes(slot);
+  const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
+    const tryA=(x,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!fits(x.el,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=x;return true;}}return false;};
+    xs.slice().sort((a,b)=>b.z-a.z).forEach(x=>{if(tryA(x,[])&&x.pj)x.pj.forEach((v,i)=>tot[i]+=+v||0);});
+    const out={tot,used:new Set(owner.filter(Boolean).map(x=>x.n)),free:owner.filter(v=>v==null).length};MEMO.set(mk,out);return out;};
+  const plays=(x,sp)=>!x.out&&gameOn(x.t,sp)&&(sp>TODAY||!locked({t:x.t},sp));
+  const evalPlan=pl=>{const tot=now.slice(),use={};
+    days.forEach(sp=>{const xs=act.filter(r=>!(pl.drops[r.n]!=null&&sp>=pl.drops[r.n])&&plays(r,sp));
+      pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to&&plays(a.x,sp))xs.push(a.x);});
+      const r=dayLine(sp,xs);r.tot.forEach((v,i)=>tot[i]+=v);use[sp]={used:r.used,free:r.free,on:new Set(xs.map(x=>x.n))};});
+    return {tot,exp:dExpCats(tot,B),s:score2(tot),use};};
+  const b0=evalPlan({drops:{},adds:[]});
+  const skip=new Set(o.x);
+  const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&!skip.has(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
+      return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,18);
+  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
+  const keep=new Set(o.k);
+  const dropC=o.drops?act.filter(r=>!r.out&&!skip.has(r.n)&&!keep.has(r.n)&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3):[];
+  const end=days[days.length-1];
+  // every next move from a plan, scored
+  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
+    for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
+      const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
+      if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
+      for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;push({drops:{...pl.drops,[p.n]:d0},adds:[...pl.adds,{x,from:d0,to:end,spot:p.n}]},"drop");}
+      pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
+    return out.sort((a,b)=>b.r.s-a.r.s).slice(0,4);};
+  const sig=pl=>pl.adds.map(a=>a.x.n+"@"+a.from+"-"+a.to).sort().join("|");
+  let beam=[{pl:{drops:{},adds:[]},r:b0,open:openN}],best=beam[0];
+  for(let k=0;k<budget;k++){const pool=[],seen=new Set();beam.forEach(st=>kids(st).forEach(c=>{const s=sig(c.pl);if(!seen.has(s)){seen.add(s);pool.push(c);}}));
+    if(!pool.length)break;pool.sort((a,b)=>b.r.s-a.r.s);beam=pool.slice(0,3);if(beam[0].r.s>best.r.s+1e-9)best=beam[0];}
+  const plan=best.pl,cur=best.r;
+  // the moves, with what each is worth on its own (plan without it)
+  const without=a=>{const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),next=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.from===a.to+1);
+    const adds=plan.adds.filter(b=>b!==a&&b!==next).map(b=>b===prev?{...b,to:a.to}:b);if(next)adds.push(prev?{...next}:{...next});
+    const drops={...plan.drops};if(!prev&&!next&&!String(a.spot).startsWith("open"))delete drops[a.spot];return evalPlan({drops,adds});};
+  const moves=plan.adds.map(a=>{const g=days.filter(sp=>sp>=a.from&&sp<=a.to&&cur.use[sp].used.has(a.x.n));
+    const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),drop=prev?prev.x.n:String(a.spot).startsWith("open")?null:a.spot;
+    let wo=null;try{wo=without(a);}catch(e){}const dc=wo?CATS.map(c=>({c,d:dLogit(val(cur.tot,c),val(B,c),c)-dLogit(val(wo.tot,c),val(B,c),c)})).filter(x=>x.d>=.04).sort((x,y)=>y.d-x.d):[];
+    return {x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
+  const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
+  const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
+  return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
+let DPL_BUSY=false;
+dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
+  if(k===DPL_K)return DPL;if(!sync){if(!DPL_BUSY){DPL_BUSY=true;setTimeout(()=>{DPL_BUSY=false;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}DPL_K=k;if(nav==="dash")dashDraw();},30);}return undefined;}
+  DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
+
+DW.pl.desc="Plans every pickup for the rest of this matchup inside your pickup limit, looking several moves ahead: who to add, who to drop, when to swap streamers. Skip players, lock players you never want dropped, target or punt categories, and see who plays each day.";
+DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="pl-wait"><i></i><i></i><i></i><span>Planning your week…</span></div>`;
+  if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
+  const o=r.o,ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp),who=prefKey();
+  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
+    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">A pickup plays from the next day, and only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
+  // controls
+  const cc=c=>o.c[c[0]]||"";const ctl=`<div class="pl-ctl"><div class="pl-row"><span class="pl-lab">Categories</span>${CATS.map((c,i)=>`<button class="pl-cat ${cc(c)}" data-plc="${esc(c[0])}" title="Tap: normal → target → punt"><b>${esc(c[0])}</b><i class="num">${dPct(r.pA[i])}%</i>${cc(c)==="t"?"<em>★</em>":cc(c)==="p"?"<em>✕</em>":""}</button>`).join("")}</div>
+    <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
+      <label class="pl-tog"><input type="checkbox" data-pld${o.drops?" checked":""}><span>Allow drops</span></label>${o.x.length||o.k.length||Object.keys(o.c).length||o.n||!o.drops?`<button class="pl-reset" data-plreset>Reset</button>`:""}</div>
+    ${(()=>{const kn=new Set(o.k),mine=r.regs.filter(x=>!kn.has(x.n)).sort((a,b)=>b.z-a.z);
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Never drop</span>${o.k.filter(n=>r.regs.some(x=>x.n===n)).map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to unlock">🔒 ${esc(dashLast(n))}</button>`).join("")||`<small class="muted">Nobody locked yet.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Lock a player"><option value="">+ Lock a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}</div>`;})()}
+    ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
+    <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. 🔒 locks a player so the plan never drops him.${who?"":" Log in to keep your settings."}</p></div>`;
+  if(!r.moves.length)return head+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
+  const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
+  const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
+  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const today=m.from-PL_LAG===TODAY;
+    const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(m.from-PL_LAG))}</small>`;
+    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from-PL_LAG))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"} · plays from ${esc(dow(m.from))}${m.x.w?" · on waivers":""}</small>
+      ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
+      <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
+      ${btn}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Never drop ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: never drop him">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
+  // who plays when
+  const rows=[...r.regs.map(x=>({x,k:"reg"})),...r.moves.map(m=>({x:m.x,k:"add",m}))];
+  const cell=(row,sp)=>{const u=r.cur.use[sp];const n=row.x.n;
+    if(row.k==="reg"){if(row.x.ir)return `<td class="ir" title="IR">IR</td>`;const gone=r.plan.drops[n]!=null&&sp>=r.plan.drops[n];if(gone)return `<td class="gone" title="Dropped">✕</td>`;
+      if(!gameOn(row.x.t,sp))return `<td class="ng"></td>`;if(row.x.out)return `<td class="out" title="Out">OUT</td>`;return u.used.has(n)?`<td class="st" title="Starts">●</td>`:`<td class="sit" title="Game, but no open spot">○</td>`;}
+    const m=row.m;if(sp<m.from||sp>m.to)return `<td class="na"></td>`;if(!gameOn(row.x.t,sp))return `<td class="ng"></td>`;return u.used.has(n)?`<td class="st add" title="Starts">●</td>`:`<td class="sit" title="Game, but no open spot">○</td>`;};
+  const filled=sp=>{const u=r.cur.use[sp];return `${LINEUP.length-u.free}/${LINEUP.length}`;};
+  const grid=`<details class="pl-wg"${phone?"":" open"}><summary>Who plays when <small class="muted">● starts · ○ has a game but no open spot · ✕ dropped</small></summary><div class="pl-wgw"><table class="pl-tab"><thead><tr><th></th>${r.days.map(sp=>`<th class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(row=>`<tr class="${row.k}"><th>${row.k==="add"?'<i class="pl-new">+</i>':""}${row.k==="reg"&&o.k.includes(row.x.n)?'<i class="pl-lk" title="Never drop">🔒</i>':""}${esc(dashLast(row.x.n))}</th>${r.days.map(sp=>cell(row,sp)).join("")}</tr>`).join("")}</tbody>
+    <tfoot><tr><th>Spots filled</th>${r.days.map(sp=>`<td class="num">${filled(sp)}</td>`).join("")}</tr></tfoot></table></div></details>`;
+  return head+cats+mv+ctl+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Add opens the add sheet with the planned drop already picked.</p>`;};
+
+// controls
+document.addEventListener("click",e=>{if(nav!=="dash")return;let b;const o=PLO();
+  if((b=e.target.closest("[data-plc]"))){e.stopPropagation();const c={...o.c},k=b.dataset.plc;c[k]=!c[k]?"t":c[k]==="t"?"p":undefined;if(!c[k])delete c[k];dPlanSave({...o,c});dashDraw();return;}
+  if((b=e.target.closest("[data-pln]"))){e.stopPropagation();const cap=(DPL&&DPL.cap)||PL_MAX,n=Math.max(1,Math.min(cap,(o.n||cap)+(+b.dataset.pln)));dPlanSave({...o,n:n>=cap?0:n});dashDraw();return;}
+  if((b=e.target.closest("[data-plx]"))){e.stopPropagation();dPlanSave({...o,x:[...new Set([...o.x,b.dataset.plx])]});dashDraw();return;}
+  if((b=e.target.closest("[data-plux]"))){e.stopPropagation();dPlanSave({...o,x:o.x.filter(n=>n!==b.dataset.plux)});dashDraw();return;}
+  if((b=e.target.closest("[data-plk1]"))){e.stopPropagation();dPlanSave({...o,k:[...new Set([...o.k,b.dataset.plk1])]});dashDraw();return;}
+  if((b=e.target.closest("[data-plunk]"))){e.stopPropagation();dPlanSave({...o,k:o.k.filter(n=>n!==b.dataset.plunk)});dashDraw();return;}
+  if((b=e.target.closest("[data-plreset]"))){e.stopPropagation();dPlanSave({});dashDraw();return;}
+  if((b=e.target.closest("[data-pladd]"))){e.stopPropagation();sheetAdd(b.dataset.pladd);const d=b.dataset.pldrop;if(d)setTimeout(()=>{const i=[...document.querySelectorAll('#sheetBody input[name="drop"]')].find(x=>x.value===d);if(i){i.checked=true;i.dispatchEvent(new Event("change",{bubbles:true}));i.closest("label")?.scrollIntoView({block:"nearest"});}},0);return;}
+},true);
+document.addEventListener("change",e=>{if(nav!=="dash")return;const k=e.target.closest("[data-plk]");if(k){if(k.value){const o=PLO();dPlanSave({...o,k:[...new Set([...o.k,k.value])]});dashDraw();}return;}
+  const b=e.target.closest("[data-pld]");if(!b)return;dPlanSave({...PLO(),drops:b.checked});dashDraw();},true);
+
+{const s=document.createElement("style");s.textContent=`
+.pl-wait{display:flex;align-items:center;gap:6px;padding:24px 4px;color:var(--muted);font-size:.9rem}.pl-wait i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:plw 1s ease-in-out infinite}.pl-wait i:nth-child(2){animation-delay:.15s}.pl-wait i:nth-child(3){animation-delay:.3s}.pl-wait span{margin-left:6px}
+@keyframes plw{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.pl-ctl{margin:4px 0 14px;padding:12px;border-radius:14px;border:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.pl-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.pl-lab{font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:78px}
+.pl-cat{position:relative;display:inline-flex;gap:5px;align-items:center;font:inherit;font-size:.78rem;padding:5px 10px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}.pl-cat i{font-style:normal;color:var(--muted)}
+.pl-cat.t{border-color:#f59e0b;background:rgba(245,158,11,.14)}.pl-cat.t em{color:#f59e0b}.pl-cat.p{opacity:.55;text-decoration:line-through}.pl-cat em{font-style:normal;font-weight:800}
+.pl-step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;overflow:hidden}.pl-step button{font:inherit;width:30px;height:28px;border:0;background:transparent;color:var(--ink);cursor:pointer;font-size:1rem}.pl-step button:disabled{opacity:.3}.pl-step b{min-width:22px;text-align:center}
+.pl-lock{font:inherit;font-size:.76rem;padding:4px 10px;border-radius:99px;border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--ink);cursor:pointer}.pl-add{font:inherit;font-size:.76rem;padding:4px 8px;border-radius:99px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;max-width:170px}.pl-add option{color:#111}.pl-lk{font-style:normal;font-size:.7em;margin-right:3px}.pl-kp{font-size:.8rem}
+.pl-tog{display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-size:.84rem;cursor:pointer}.pl-reset,.pl-skip{font:inherit;font-size:.76rem;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.pl-reset{margin-left:auto}
+.pl-hint{margin:0}
+.pl-imp{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pl-imp b{font-size:.74rem;color:#22c55e;margin-right:2px}.pl-imp i{font-style:normal;font-size:.68rem;padding:1px 6px;border-radius:6px;background:rgba(34,197,94,.12);color:#22c55e;font-weight:700}
+.pl-m li{grid-template-columns:62px 30px minmax(0,1fr) auto auto auto}
+.pl-acts{display:flex;gap:6px}.pl-acts:empty{display:none}.pl-x{font:inherit;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.pl-x:hover{color:#ef4444;border-color:#ef4444}
+.pl-wg{margin:6px 0 10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.pl-wg summary{cursor:pointer;font-weight:700;font-size:.9rem}.pl-wg summary small{font-weight:500;margin-left:8px}
+.pl-wgw{overflow-x:auto;margin-top:10px}.pl-tab{border-collapse:separate;border-spacing:3px;width:100%;font-size:.8rem}
+.pl-tab th{text-align:left;font-weight:600;white-space:nowrap;padding:2px 8px 2px 0;color:var(--ink)}.pl-tab thead th{text-align:center;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.pl-tab thead th.tdy{color:var(--accent)}
+.pl-tab td{text-align:center;height:26px;min-width:34px;border-radius:7px;background:color-mix(in srgb,var(--muted) 8%,transparent);font-size:.8rem}
+.pl-tab td.st{background:color-mix(in srgb,var(--accent) 26%,transparent);color:var(--accent)}.pl-tab td.st.add{background:rgba(34,197,94,.22);color:#22c55e;box-shadow:0 0 10px -3px #22c55e}
+.pl-tab td.sit{color:#f59e0b;background:rgba(245,158,11,.10)}.pl-tab td.gone{color:#ef4444;background:rgba(239,68,68,.10)}.pl-tab td.ir,.pl-tab td.out{font-size:.6rem;font-weight:800;color:#ef4444}.pl-tab td.na{background:transparent}
+.pl-tab tr.add th{color:#22c55e}.pl-new{font-style:normal;font-weight:800;margin-right:4px}.pl-tab tfoot th{font-size:.7rem;color:var(--muted);text-transform:uppercase}.pl-tab tfoot td{background:transparent;font-weight:800;font-size:.75rem}
+@media (max-width:760px){.pl-m li{grid-template-columns:28px minmax(0,1fr) auto auto}.pl-day{grid-column:1/5}.pl-g{grid-column:2/3}.pl-m li .btn{grid-column:3;grid-row:2/4;align-self:center}.pl-acts{grid-column:4;grid-row:2/4;align-self:center;flex-direction:column}.pl-lab{min-width:100%}.pl-tog{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.pl-wait i{animation:none}}
 `;document.head.appendChild(s);}
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
