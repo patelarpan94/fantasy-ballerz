@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.51",date:"2026-11-05",title:"Planner tracks your moves",notes:[
+    ["297","New","Win-the-week planner: Your planner moves. When you add a player the planner suggested (and drop the player it paired with him), it tracks how the move is paying off: his starts and stats for you, what the player you dropped did since, and the difference in each category. This matchup's moves show first, earlier ones fold below, and it keeps a season count. Tracking starts with the planner's suggestions from today on."]]},
   {v:"2.50",date:"2026-11-05",title:"Planner counts roster spots right",notes:[
     ["296","Fix","The Win-the-week planner no longer says you have an open roster spot when you don't. It counted the 3 IR slots as open spots, so a full roster with an empty IR slot looked like it had room. Now it only counts a spot as open if you're under both the roster max and the max off IR, and a pending waiver claim with no drop takes up a spot too."]]},
   {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
