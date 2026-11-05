@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261105025241"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261105133814"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,24 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.56",date:"2026-11-05",title:"Pickups this matchup",notes:[
+    ["305","New","Your pickups (under the Win-the-week planner) now starts with how many pickups you've made this matchup and how many you have left, for example 3 pickups this matchup · 3 left of 6."],
+    ["306","Fix","Win-the-week planner: pickups you already made this matchup now count against your limit while the league mirrors ESPN. Before, the planner could plan up to 6 more no matter how many you'd used."]]},
+  {v:"2.55",date:"2026-11-05",title:"Your pickups, for every login",notes:[
+    ["303","Fix","Win-the-week planner: the move tracker now works when you're logged in as the commissioner. Before, it only logged and showed moves for a team login, so the commissioner saw nothing."],
+    ["304","Change","Win-the-week planner: Your planner moves is now Your pickups. It shows every pickup you made this matchup, not only the planner's, each with his starts and stats for you, what the player you dropped did since and the difference in each category. Pickups the planner suggested are tagged Planner pick, and earlier matchups' planner picks still fold below."]]},
+  {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
+    ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
+  {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
+    ["301","Change","Win-the-week planner: when you add a player it suggested, he goes on your Willing to drop list on his own (marked planner pickup), so the plan can swap him out for a better streamer later. Tap him to keep him; he won't be added back. Reset all keeps your planner pickups on the list."]]},
+  {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
+    ["298","New","Dashboard on an unfolded iPhone Duo held sideways: the right side now holds the dashboard's own buttons (your boards, Share, Edit and alerts), so the widgets start right at the top on the left."],
+    ["299","New","Dashboard on the Duo held sideways: a live score card on the right with every category, now and projected, that stays on screen while you scroll (tap it for Matchup). Below it, Jump to: tap a section (Today, Win the week and so on) to go straight there, and the one you're reading is lit up."],
+    ["300","Change","Dashboard on any unfolded Duo, upright or sideways: half-width widgets now pair up side by side within their section instead of leaving empty gaps, and one with no partner uses the full width."]]},
+  {v:"2.51",date:"2026-11-05",title:"Planner tracks your moves",notes:[
+    ["297","New","Win-the-week planner: Your planner moves. When you add a player the planner suggested (and drop the player it paired with him), it tracks how the move is paying off: his starts and stats for you, what the player you dropped did since, and the difference in each category. This matchup's moves show first, earlier ones fold below, and it keeps a season count. Tracking starts with the planner's suggestions from today on."]]},
+  {v:"2.50",date:"2026-11-05",title:"Planner counts roster spots right",notes:[
+    ["296","Fix","The Win-the-week planner no longer says you have an open roster spot when you don't. It counted the 3 IR slots as open spots, so a full roster with an empty IR slot looked like it had room. Now it only counts a spot as open if you're under both the roster max and the max off IR, and a pending waiver claim with no drop takes up a spot too."]]},
   {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
     ["295","New","Their lineup today: a dashboard widget that shows your opponent's lineup for today, with who starts, who sits, game times, live stat lines as games go on and any open spots they left empty. On a computer it sits side by side with Today's lineup on New Era +, and you can add it to any dashboard with + Add widget."]]},
   {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
@@ -9553,7 +9571,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,22);
   // spots: open roster spots + the 3 lowest-value regulars you could drop
-  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  const openN=typeof plOpen==="function"?plOpen(T):Math.max(0,ROSTER_MAX-dNowP(T).length);
   // never a player ranked inside the league's starting pool (teams x 13); only ones a pickup already beats on the season
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   const dropC=regs.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
@@ -9640,17 +9658,30 @@ NEP_VER=4;
    - Add pre-picks the planned drop in the add sheet.
    - The search runs after the page paints, so the dashboard never waits on it.
    ============================================================================ */
-const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0};};
+// open roster spots (BUG-296): ROSTER_MAX counts the IR slots, but only activeMax() players may be off IR,
+// so a full active roster has no open spot even with an empty IR slot. Pending claims with no drop use a spot too.
+const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=sl?Object.keys(sl):rosterNow(T),act=sl?ns.filter(n=>sl[n]!==13).length:ns.length;
+  const aMax=typeof activeMax==="function"?activeMax():ROSTER_MAX,cl=!mirror()&&typeof myClaims==="function"?myClaims(T).filter(c=>c.season===SEASON&&!c.drop).length:0;
+  return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
+// BUG-302 (Arp 2026-11-05): a player you picked up can't be dropped on the day you picked him up.
+// Pickup day = the add's day in the move log (mirror mode: the first day ESPN listed him). A planned drop is
+// made after day d0-PL_LAG's games, so it has to be later than the pickup day: d0 >= pickup day + 1 + PL_LAG.
+function plPickDay(T,n){for(let i=TXLOG.length-1;i>=0;i--){const t=TXLOG[i];if(t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade")return t.day??t.addDay??null;}
+  const iv=(OWN[n]||[]).find(i=>i.team===T&&i.to===Infinity);return iv?iv.from:null;}
+const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1+PL_LAG;};
+const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0,ad:o.ad||[]};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
   const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
-  let cap=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):PL_MAX;cap=Math.max(0,Math.min(cap,PL_MAX));
+  // BUG-306: pickups already made this matchup count against the limit in mirror mode too (the move log is empty there)
+  const usedWk=typeof plUsedWk==="function"?plUsedWk(T):0;
+  let cap=mode==="day"&&lim?lim*days.length:Math.max(0,(lim||PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
   const budget=o.n?Math.min(o.n,cap):cap,perDay=mode==="day"&&lim?lim:99;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
-  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"}));
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",minD:plMinDrop(T,p.n)}));
   const act=regs.filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
@@ -9672,19 +9703,21 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const skip=new Set(o.x);
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&!skip.has(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,18);
-  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  const openN=plOpen(T);
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
-  const dAuto=!o.d,dl=dAuto?sugg.map(r=>r.n):o.d.filter(n=>act.some(r=>r.n===n));
-  const dropC=dAuto?sugg:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
+  // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
+  const adA=(o.ad||[]).filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
+  const dAuto=!o.d,dl=dAuto?[...sugg.map(r=>r.n),...adA]:o.d.filter(n=>act.some(r=>r.n===n));
+  const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored
   const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
       const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
-      for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;push({drops:{...pl.drops,[p.n]:d0},adds:[...pl.adds,{x,from:d0,to:end,spot:p.n}]},"drop");}
+      for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;const dd=(p.minD||0)>d0?days.find(d=>d>=p.minD&&ok(d)):d0;if(dd==null)continue;push({drops:{...pl.drops,[p.n]:dd},adds:[...pl.adds,{x,from:dd,to:end,spot:p.n}]},"drop");}
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
     return out.sort((a,b)=>b.r.s-a.r.s).slice(0,4);};
   const sig=pl=>pl.adds.map(a=>a.x.n+"@"+a.from+"-"+a.to).sort().join("|");
@@ -9721,7 +9754,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
       ${o.x.length||o.d||Object.keys(o.c).length||o.n?`<button class="pl-reset" data-plreset>Reset all</button>`:""}</div>
     ${(()=>{const dn2=new Set(r.dl),mine=r.regs.filter(x=>!x.ir&&!dn2.has(x.n)).sort((a,b)=>a.z-b.z);
-      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+PL_LAG?` <small class="pl-pk">drop from ${esc(dow(x.minD-PL_LAG))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
@@ -9753,12 +9786,13 @@ document.addEventListener("click",e=>{if(nav!=="dash")return;let b;const o=PLO()
   if((b=e.target.closest("[data-plux]"))){e.stopPropagation();dPlanSave({...o,x:o.x.filter(n=>n!==b.dataset.plux)});dashDraw();return;}
   if((b=e.target.closest("[data-plk1]"))){e.stopPropagation();dPlanSave({...o,d:((DPL&&DPL.dl)||[]).filter(n=>n!==b.dataset.plk1)});dashDraw();return;}
   if((b=e.target.closest("[data-plunk]"))){e.stopPropagation();dPlanSave({...o,d:((DPL&&DPL.dl)||[]).filter(n=>n!==b.dataset.plunk)});dashDraw();return;}
-  if((b=e.target.closest("[data-plreset]"))){e.stopPropagation();dPlanSave({});dashDraw();return;}
+  if((b=e.target.closest("[data-plreset]"))){e.stopPropagation();dPlanSave(o.ad&&o.ad.length?{ad:o.ad}:{});dashDraw();return;}
   if((b=e.target.closest("[data-pladd]"))){e.stopPropagation();sheetAdd(b.dataset.pladd);const d=b.dataset.pldrop;if(d)setTimeout(()=>{const i=[...document.querySelectorAll('#sheetBody input[name="drop"]')].find(x=>x.value===d);if(i){i.checked=true;i.dispatchEvent(new Event("change",{bubbles:true}));i.closest("label")?.scrollIntoView({block:"nearest"});}},0);return;}
 },true);
 document.addEventListener("change",e=>{if(nav!=="dash")return;const k=e.target.closest("[data-plk]");if(k){if(k.value){const o=PLO();dPlanSave({...o,d:[...new Set([...((DPL&&DPL.dl)||[]),k.value])]});dashDraw();}return;}},true);
 
 {const s=document.createElement("style");s.textContent=`
+.pl-pk{font-size:.65rem;opacity:.75;font-weight:600}
 .pl-wait{display:flex;align-items:center;gap:6px;padding:24px 4px;color:var(--muted);font-size:.9rem}.pl-wait i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:plw 1s ease-in-out infinite}.pl-wait i:nth-child(2){animation-delay:.15s}.pl-wait i:nth-child(3){animation-delay:.3s}.pl-wait span{margin-left:6px}
 @keyframes plw{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
 .pl-ctl{margin:4px 0 14px;padding:12px;border-radius:14px;border:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
@@ -10202,6 +10236,222 @@ function otlAdd(){if(!prefKey()||!UI.dash||UI.dash.otl)return;const bs=dashBoard
 .dgrid.npack>.dtile.sz-s{grid-column:span 2}.dgrid.npack>.dtile.sz-w{grid-column:span 4}.dgrid.npack>.dtile.sz-f{grid-column:1/-1}
 `;document.head.appendChild(s);}
 DKEEP.push("dpl","dpr");
+/* ============================================================================
+   2.51 (2026-11-05). Arp: "Tool should track anyone I dropped or added per its
+   suggestion." The Win-the-week planner remembers every add/drop it suggests
+   to your own team (per login, UI.dash.plh), then matches them to the moves
+   you really made (roster history in OWN, so it works in mirror mode too) and
+   shows how each one paid off: games he started for you and his stats, and
+   what the player you dropped did over the same days.
+   ============================================================================ */
+const PLH_MAX=80;
+const plhList=()=>(UI.dash&&Array.isArray(UI.dash.plh))?UI.dash.plh:[];
+// whose moves this login tracks: a team login its own team, the commissioner the team the dashboard shows (BUG-303:
+// the commissioner login was skipped, so nothing was logged or shown). Each entry carries its team (T).
+const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||(isCommish()&&dCanEdit(T))));
+const plhFor=T=>plhList().filter(e=>(e.T||myTeamNum()||T)===T);
+// remember the moves the planner suggests to your own team (first day suggested, every drop it paired)
+function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!plhOn(T)||!DAYS.length)return;
+  const wk=DAYS[0],list=plhList().map(e=>({...e,ds:[...(e.ds||[])]}));let ch=false;
+  r.moves.forEach(m=>{let e=list.find(x=>x.a===m.x.n&&x.wk===wk&&(x.T||T)===T);
+    if(!e){e={a:m.x.n,t:m.x.t,ds:[],sp:TODAY,wk,T};list.push(e);ch=true;}
+    if(m.drop&&!e.ds.includes(m.drop)){e.ds.push(m.drop);ch=true;}});
+  if(ch)dashBoardSet({plh:list.slice(-PLH_MAX)});}
+// Arp 2026-11-05: pickups you made from a suggestion go on your Willing to drop list (once, so taking one off sticks)
+function plhSyncDrop(T){if(!plhOn(T))return;const list=plhList();let ch=false;const add=[];
+  const nl=list.map(e=>{if(e.dl||(e.T||T)!==T)return e;const m=plhMatch(T,e);if(!m||m.gone!=null||ownerNow(e.a)!==T)return e;ch=true;add.push(e.a);return {...e,dl:1};});
+  if(!ch)return;const o=PLO();
+  const np=o.d?{...o,d:[...new Set([...o.d,...add])]}:{...o,ad:[...new Set([...(o.ad||[]),...add])]};
+  dashBoardSet({plh:nl,plan:np});DPL_K="";}
+{const _dp=dPlan;dPlan=function(T,sync){try{plhSyncDrop(T);}catch(e){}const r=_dp.apply(this,arguments);try{if(r&&!r.done)plhLog(T,r);}catch(e){}return r;};}
+
+// a logged suggestion you acted on: he joined your team on/after the day it was suggested (within a week)
+function plhMatch(T,e){const iv=(OWN[e.a]||[]).find(i=>i.team===T&&i.from>=e.sp&&i.from<=e.sp+7);if(!iv)return null;
+  let drop=null;for(const d of e.ds||[]){const dv=(OWN[d]||[]).find(i=>i.team===T&&i.to!==Infinity&&i.to>=e.sp&&i.to<=iv.from+1);if(dv){drop={n:d,day:dv.to};break;}}
+  const end=Math.min(iv.to===Infinity?TODAY:iv.to-1,TODAY,SEASON_END),days=[];for(let sp=iv.from;sp<=end;sp++)days.push(sp);
+  const p=TEAMS[T]&&TEAMS[T].P.find(q=>q.n===e.a);
+  const sum=(n,f)=>{const a=new Array(11).fill(0);let g=0;days.forEach(sp=>{const l=DAYLINES[n]&&DAYLINES[n][sp];if(!l||!f(sp))return;g++;l.forEach((v,i)=>{if(i<11)a[i]+=v;});});return {a,g};};
+  const st=sum(e.a,sp=>p&&p.sl[sp]!=null&&p.sl[sp]<12),pl=sum(e.a,()=>true),dr=drop?sum(drop.n,()=>true):null;
+  return {e,from:iv.from,gone:iv.to!==Infinity?iv.to:null,drop,days,st,pl,dr};}
+const plhCats=x=>{if(!x)return "";return CATS.map(c=>c[1]==="pct"?`${esc(c[0])} ${x.a[c[2]]}/${x.a[c[3]]}`:`${x.a[c[2]]} ${esc(c[0])}`).join(" · ");};
+function plhNet(m){if(!m.dr)return [];return CATS.filter(c=>c[1]!=="pct").map(c=>({c,d:m.st.a[c[2]]-m.dr.a[c[2]]})).filter(x=>x.d);}
+function plhRow(m){const e=m.e,net=plhNet(m),up=net.filter(x=>x.d>0).length,dn=net.filter(x=>x.d<0).length;
+  const verdict=!m.st.g&&!(m.dr&&m.dr.g)?`<i class="plh-v">no games yet</i>`:m.dr?`<i class="plh-v ${up>dn?"ok":dn>up?"bad":""}">${up>dn?"paying off":dn>up?"behind":"even"} · ${up} up, ${dn} down</i>`:(m.st.g?`<i class="plh-v ok">+${m.st.g} game${m.st.g>1?"s":""}</i>`:"");
+  return `<li>${dFace(e.a,e.t||(DIR[e.a]&&DIR[e.a].t)||"","sm")}<span class="plh-who"><span><b>Added ${dashNm(e.a)}</b>${e.mine?"":`<i class="plh-v pp">planner pick</i>`}${verdict}</span>
+    <small class="muted">${esc(dow(m.from))}${m.drop?` · dropped ${dashNm(m.drop.n)}`:" · open spot"}${m.gone!=null?` · gone ${esc(dow(m.gone))}`:""}</small>
+    <small>For you: <b class="num">${m.st.g}</b> start${m.st.g===1?"":"s"}${m.pl.g>m.st.g?` <span class="muted">(${m.pl.g-m.st.g} on bench)</span>`:""}${m.st.g?` · <span class="num">${plhCats(m.st)}</span>`:""}</small>
+    ${m.dr?`<small class="muted">${esc(dashLast(m.drop.n))} since: <b class="num">${m.dr.g}</b> game${m.dr.g===1?"":"s"}${m.dr.g?` · <span class="num">${plhCats(m.dr)}</span>`:""}</small>`:""}
+    ${net.length?`<span class="plh-net">${net.map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":""}${x.d}</i>`).join("")}</span>`:""}</span></li>`;}
+// every pickup this matchup, not only the planner's (Arp 2026-11-05 picked up Zaire Williams and Jrue Holiday and saw nothing):
+// adds from the move log (with the drop paired in the same move) or, in mirror mode, players who joined the roster this week
+function plhAuto(T){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set();
+  const tradeIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
+  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n))return;
+    const tx=[...TXLOG].reverse().find(t=>t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade");
+    let ds=tx&&tx.drop?[tx.drop]:[];
+    if(!tx){ds=Object.entries(OWN).filter(([d,dv])=>d!==n&&!usedDrop.has(d)&&dv.some(i=>i.team===T&&i.to!==Infinity&&i.to>=iv.from-1&&i.to<=iv.from+1)).map(([d])=>d).slice(0,1);}
+    ds.forEach(d=>usedDrop.add(d));
+    out.push({a:n,t:DIR[n]&&DIR[n].t,ds,sp:Math.max(0,(tx?tx.day:iv.from)-1),wk:lo,T,mine:1});}));
+  return out;}
+// pickups made this matchup: the move log's count (app mode), or the roster joins this week (mirror mode), whichever is more
+function plUsedWk(T){if(!TEAMS[T])return 0;const m=L&&(L.addMode||"matchup");let a=0;try{a=plhAuto(T).length;}catch(e){}
+  const b=m==="matchup"&&typeof pickupsUsed==="function"?pickupsUsed(T,TODAY):0;return Math.max(a,b);}
+function plhView(T){if(!plhOn(T))return "";
+  const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
+  const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
+  const auto=plhAuto(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
+  const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
+  const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
+  const lim=+L.addLimit||PL_MAX,used=plUsedWk(T),wkOnly=!(L.addMode&&L.addMode!=="matchup");
+  return `<div class="plh"><p class="plh-h"><b>Your pickups</b>${wkOnly?`<span class="plh-cnt"><b class="num">${used}</b> pickup${used===1?"":"s"} this matchup · <b class="num">${Math.max(0,lim-used)}</b> left of ${lim}</span>`:""}<small class="muted">${pm} planner pick${pm===1?"":"s"} this season${pm?` · ${starts} start${starts===1?"":"s"} from them`:""}</small></p>
+    ${now.length?`<ol class="plh-l">${now.map(plhRow).join("")}</ol>`:`<p class="dsm muted">No pickups this matchup yet. When you add someone, he shows up here with his starts and stats for you, what the player you dropped did since, and the difference in each category.</p>`}
+    ${old.length?`<details class="plh-old"><summary>Planner picks in earlier matchups (${old.length})</summary><ol class="plh-l">${old.map(plhRow).join("")}</ol></details>`:""}
+    <p class="dsm muted"><b>Planner pick</b> = a player the planner suggested and you added. Stats for him are from games he started for you; stats for the player you dropped are from all his games since. A pickup made today shows numbers once his first game starts.</p></div>`;}
+{const _v=DW.pl.view;DW.pl.view=function(w,T){const h=_v.apply(this,arguments);let t="";try{t=plhView(T);}catch(e){console.warn(e);}return h+t;};}
+
+{const s=document.createElement("style");s.textContent=`
+.plh{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.plh-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0 0 8px}.plh-h small{font-size:.75rem}
+.plh-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.plh-l li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,transparent);border:1px solid var(--line)}
+.plh-who{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.3;font-size:.8rem}.plh-who b{font-size:.88rem}
+.plh-v{display:inline-block;margin-left:6px;font-style:normal;font-size:.7rem;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--chip);color:var(--muted);vertical-align:middle}
+.plh-v.ok{background:color-mix(in srgb,var(--win) 18%,transparent);color:var(--win)}.plh-v.bad{background:color-mix(in srgb,var(--loss) 16%,transparent);color:var(--loss)}
+.plh-net{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}.plh-net i{font-style:normal;font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:6px}
+.plh-net i.up{color:var(--win);background:color-mix(in srgb,var(--win) 12%,transparent)}.plh-net i.dn{color:var(--loss);background:color-mix(in srgb,var(--loss) 10%,transparent)}
+.plh-v.pp{background:var(--accent-wash);color:var(--accent)}
+.plh-cnt{font-size:.8rem;padding:2px 9px;border-radius:99px;background:var(--chip)}
+.plh-old{margin-top:8px}.plh-old summary{cursor:pointer;font-size:.8rem;color:var(--muted);margin-bottom:6px}
+`;document.head.appendChild(s);}
+/* ============================================================================
+   DASHBOARD ON THE iPHONE DUO (2.52, Arp 2026-11-05: "for the duo ui, we need to
+   optimise the dashboard").
+   Two-pane (unfolded, held wide): the right rail was half empty on the dashboard
+   while the left side scrolled ~9,000px. Now the rail carries
+   - the dashboard's own controls (board chips, Edit/Share, Live line, alerts),
+     so the widgets start at the top of the left pane
+   - a live score card (now and projected, every category) that stays on screen
+     while the hero scrolls away
+   - a section list (Today, Win the week, ...) that jumps the left pane and
+     shows which section you're in
+   Any unfolded Duo (two-pane or upright): half-width widgets stack beside each
+   other instead of leaving gaps, like the computer layout (nepPack).
+   ============================================================================ */
+const dDuo=()=>typeof duoOn==="function"&&duoOn()&&nav==="dash"&&!!L;
+let DDR_HTML="",DDR_ACT="";
+function dDuoScore(){
+  const T=dashT(),O=TEAMS[T]?dOpp(T):0;if(!T||!O)return "";
+  let a,b;try{a=fcProj(T);b=fcProj(O);}catch(e){return "";}
+  const r=h2h(a.now,b.now),pr=h2h(a.fin,b.fin),f=(v,c)=>c[1]==="pct"?pct(v):Math.round(v),rec=x=>`${x[0]}-${x[1]}${x[2]?`-${x[2]}`:""}`;
+  const cells=CATS.map(c=>{const x=val(a.now,c),y=val(b.now,c),px=val(a.fin,c),py=val(b.fin,c),
+      l=Math.abs(x-y)<1e-9?"":x>y?"me":"op",pl=Math.abs(px-py)<1e-9?"":px>py?"me":"op";
+    return `<div class="ddc ${l}${pl&&pl!==l?" flip":""}" title="${c[0]}: now ${f(x,c)} to ${f(y,c)}, projected ${f(px,c)} to ${f(py,c)}"><b>${c[0]}</b><span>${f(x,c)}<i>·</i>${f(y,c)}</span></div>`;}).join("");
+  return `<section class="ddsc" data-dgo="matchup"><div class="ddsh"><span class="hav me xs">${esc(tmInit(T))}</span><b>${rec(r)}</b><span class="muted">now · proj <b>${rec(pr)}</b></span><span class="hav op xs">${esc(tmInit(O))}</span></div><div class="ddcg">${cells}</div></section>`;}
+// the board's section titles, each with how many widgets sit under it
+function dDuoSecs(){
+  const g=$("#dgrid");if(!g)return [];const out=[];let s=null;
+  [...g.children].forEach(t=>{if(!t.classList.contains("dtile")||!t.dataset.dw)return;
+    if(t.classList.contains("dk-hd")){const h=t.querySelector(".dth h3");s={id:t.dataset.dw,t:(h?h.textContent:"Section").replace(/^\s*\d+\s*/,"").trim()||"Section",n:0,f:t.classList.contains("folded")};out.push(s);}
+    else if(s)s.n++;});
+  return out;}
+function dDuoRail(){
+  const rail=$("#rail");let box=$("#dDuoRail");
+  if(!dDuo()||!rail){if(box)box.remove();DDR_HTML="";document.body.classList.remove("ddrail");return;}
+  const d=document.querySelector("#rosters .dash");if(!d)return;
+  const q=s=>d.querySelector(":scope>"+s),acts=d.querySelector(".dhead .dacts"),bo=q(".dboards"),al=q(".dalerts"),note=q(".dnote");
+  const secs=DASH_EDIT?[]:dDuoSecs();
+  // board chips scroll sideways; Share sits with Edit so it never gets cut off
+  let chips="",share="";if(bo){const c=bo.cloneNode(true),sh=c.querySelector("[data-dshare]");if(sh){share=sh.outerHTML;sh.remove();}chips=c.innerHTML;}
+  const html=`<div class="ddtop"><div class="ddrow">${bo?`<div class="dboards">${chips}</div>`:""}<div class="ddacts">${share}${acts?acts.innerHTML:""}</div></div>${DASH_EDIT&&note?`<p class="dnote">${note.innerHTML}</p>`:""}</div>
+    ${al&&!d.classList.contains("hasgp")?`<ul class="dalerts" role="list">${al.innerHTML}</ul>`:""}
+    ${DASH_EDIT?"":dDuoScore()}
+    ${secs.length>1?`<nav class="ddsec" aria-label="Jump to a section"><h4>Jump to<button data-ddjump="top" aria-label="Back to the top">↑ Top</button></h4><div class="ddsg">${secs.map(s=>`<button data-ddjump="${esc(s.id)}"${s.f?' class="ddf"':""}><span>${esc(s.t)}</span><small>${s.f?"hidden":s.n}</small></button>`).join("")}</div></nav>`:""}`;
+  if(!box){box=document.createElement("div");box.id="dDuoRail";box.className="ddr";}
+  const sb=$("#subbar"),at=sb&&sb.parentNode===rail?sb:null;
+  if(box.parentNode!==rail||(at&&box.previousElementSibling!==at))at?at.after(box):rail.insertBefore(box,rail.firstChild);
+  if(html!==DDR_HTML){box.innerHTML=html;DDR_HTML=html;DDR_ACT="";}
+  document.body.classList.add("ddrail");dDuoSpy();}
+// which section is on screen: the last title above the upper third of the left pane
+function dDuoSpy(){const box=$("#dDuoRail");if(!box||!dDuo())return;const secs=[...document.querySelectorAll("#dgrid>.dtile.dk-hd[data-dw]")];
+  let act=secs.length?secs[0].dataset.dw:"";const lim=innerHeight*.35;secs.forEach(t=>{if(t.getBoundingClientRect().top<lim)act=t.dataset.dw;});
+  if(scrollY<40)act=secs.length?secs[0].dataset.dw:"";
+  if(act===DDR_ACT)return;DDR_ACT=act;box.querySelectorAll("[data-ddjump]").forEach(b=>b.classList.toggle("on",b.dataset.ddjump===act));}
+{let raf=0;addEventListener("scroll",()=>{if(raf||!dDuo())return;raf=requestAnimationFrame(()=>{raf=0;dDuoSpy();});},{passive:true});}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-ddjump]");if(!b)return;e.preventDefault();
+  const sm=matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth";
+  if(b.dataset.ddjump==="top"){scrollTo({top:0,behavior:sm});return;}
+  const t=document.querySelector(`#dgrid>.dtile[data-dw="${CSS.escape(b.dataset.ddjump)}"]`);if(!t)return;
+  // the tiles under a section fade in as they scroll into view; show them now so the jump lands on real content
+  let n=t.nextElementSibling;while(n&&!n.classList.contains("dk-hd")){n.classList.add("in");n=n.nextElementSibling;}t.classList.add("in");
+  scrollTo({top:Math.max(0,t.getBoundingClientRect().top+scrollY-8),behavior:sm});});
+{const _rr=renderRosters;renderRosters=function(){const r=_rr.apply(this,arguments);try{dDuoRail();}catch(e){}return r;};}
+{const _pr=placeRail;placeRail=function(){_pr.apply(this,arguments);try{dDuoRail();}catch(e){}};}
+// folding a section from its title changes the list's counts
+{const _fa=dFoldApply;dFoldApply=function(){const r=_fa.apply(this,arguments);try{if(dDuo())dDuoRail();}catch(e){}return r;};}
+
+// unfolded Duo (either way up): pack half-width widgets beside each other. Four columns, so S = half and W/F = full;
+// Today's lineup and Their lineup stay full width here (each would be too narrow at half the left pane).
+{const _np=nepPack;nepPack=function(){const r=_np.apply(this,arguments);const g=$("#dgrid");if(!g)return r;
+  const on=nav==="dash"&&!DASH_EDIT&&!DASH_DRAG&&document.body.classList.contains("fold")&&innerWidth>640&&g.clientWidth>=480;
+  g.classList.toggle("dfpack",on);
+  if(!on){[...g.children].forEach(t=>{t.style.order="";t.classList.remove("dsolo");});if(!g.classList.contains("npack")){g.querySelectorAll(".dtile[data-dw]").forEach(t=>t.style.gridRowEnd="");if(DFP_RO){DFP_RO.disconnect();DFP_RO=null;}}return r;}
+  g.classList.add("npack");g.style.setProperty("--nc",4);
+  const ts=[...g.querySelectorAll(".dtile[data-dw]")];ts.forEach(t=>{t.classList.remove("dpl","dpr","dsolo");t.style.gridColumn="";});
+  // half-width widgets go in pairs: a lone one borrows the next half-width widget from the same section (never across a
+  // section title), and one with no partner at all stretches to full width instead of leaving half the row empty
+  const isS=t=>t.classList.contains("sz-s")&&!t.classList.contains("dk-hd")&&!t.classList.contains("dfolded");
+  let ord=0,sec=[];const flush=()=>{const left=sec.slice();while(left.length){const t=left.shift();t.style.order=ord++;
+      if(!isS(t))continue;
+      if(left.length&&isS(left[0])){const u=left.shift();u.style.order=ord++;continue;}
+      const j=left.findIndex(isS);if(j>=0){const u=left.splice(j,1)[0];u.style.order=ord++;}else t.classList.add("dsolo");}
+    sec=[];};
+  [...g.children].forEach(t=>{if(!t.classList.contains("dtile")){t.style.order=9999;return;}if(t.classList.contains("dk-hd")){flush();t.style.order=ord++;}else sec.push(t);});flush();
+  const fit=t=>{const h=t.getBoundingClientRect().height;t.style.gridRowEnd=h?`span ${Math.ceil((h+12)/4)}`:"";};
+  ts.forEach(fit);
+  if("ResizeObserver" in window){if(DFP_RO)DFP_RO.disconnect();DFP_RO=new ResizeObserver(es=>es.forEach(e=>fit(e.target)));ts.forEach(t=>DFP_RO.observe(t));}
+  return r;};}
+let DFP_RO=null;
+DKEEP.push("dfpack","dsolo");
+
+{const s=document.createElement("style");s.textContent=`
+/* packed grid on the unfolded Duo */
+body.fold .dgrid.npack.dfpack,body.fold:not(.duow) .dgrid.npack.dfpack{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:12px}
+body.fold .dgrid.npack.dfpack>.dtile{margin-bottom:12px}
+body.fold .dgrid.npack.dfpack>.dtile.sz-s{grid-column:span 2}
+body.fold .dgrid.npack.dfpack>.dtile.sz-w,body.fold .dgrid.npack.dfpack>.dtile.sz-f,body.fold .dgrid.npack.dfpack>.dtile.dk-hd,body.fold .dgrid.npack.dfpack>.dtile.dsolo{grid-column:1/-1}
+/* two-pane: the dashboard's controls live in the rail */
+body.duow.ddrail .dash>.dboards,body.duow.ddrail .dash>.dalerts,body.duow.ddrail .dash>.dnote,body.duow.ddrail .dash .dhead .dacts{display:none!important}
+body.duow.ddrail .dash .dhead{margin-bottom:-4px}
+body.duow.ddrail .dash .nep-title{font-size:2.1rem}
+.ddr{display:flex;flex-direction:column;gap:8px}
+.ddtop{display:flex;flex-direction:column;gap:6px}
+.ddrow{display:flex;align-items:center;gap:6px}
+.ddrow .dboards{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:4px}.ddrow .dboards::-webkit-scrollbar{display:none}
+.ddrow .dboards .dbc{padding:5px 9px;font-size:.74rem;white-space:nowrap;flex:none}
+.ddrow .dboards .btn{padding:4px 8px;font-size:.72rem;flex:none}
+.ddrow .dboards .dbsp{display:none}
+.ddacts{display:flex;gap:4px;flex:none}.ddacts:empty{display:none}.ddacts .btn{padding:5px 9px;font-size:.74rem}
+.ddtop .dnote{margin:0;font-size:.72rem}
+.ddr .dalerts li{font-size:.76rem;padding:6px 8px;flex-wrap:wrap;gap:6px}
+.ddsc{padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.ddsh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.ddsh>b{font-family:var(--f-display);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.ddsh .muted{flex:1;font-size:.7rem}.ddsh .muted b{color:var(--ink)}
+.ddcg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.ddc{display:flex;flex-direction:column;align-items:center;padding:3px 1px;border-radius:7px;background:var(--chip);font-variant-numeric:tabular-nums;line-height:1.2;min-width:0;border:1px solid transparent}
+.ddc b{font-size:.58rem;letter-spacing:.04em;color:var(--muted)}
+.ddc span{font-size:.68rem;font-weight:700;white-space:nowrap}.ddc span i{font-style:normal;color:var(--muted);margin:0 2px}
+.ddc.me{background:color-mix(in srgb,var(--accent) 16%,var(--chip))}.ddc.me span{color:var(--accent)}.ddc.op{background:color-mix(in srgb,#c2410c 14%,var(--chip))}
+.ddc.flip{border-color:#d4a017}
+.ddsec{padding:6px 8px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.ddsec h4{display:flex;align-items:center;justify-content:space-between;margin:0 2px 5px;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ddsec h4 button{font:inherit;font-size:.62rem;letter-spacing:.04em;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:2px 4px}
+.ddsg{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ddsg button{display:flex;align-items:center;justify-content:space-between;gap:4px;font:inherit;font-size:.76rem;font-weight:600;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer;text-align:left;min-width:0}
+.ddsg button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ddsg button small{font-size:.66rem;font-weight:500;color:var(--muted);flex:none}
+.ddsg button.on{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
+.ddsg button.ddf span{opacity:.6}
+`;document.head.appendChild(s);}
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
    Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with

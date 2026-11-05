@@ -1,5 +1,5 @@
 /* ============================================================================
-   2.50 (2026-11-05). Arp: "tools that will navigate wins" → picked:
+   2.57 (2026-11-05). Arp: "tools that will navigate wins" → picked:
    - First to the wire (fw): the league server now checks injury news every
      5 minutes from 9 AM to 1 AM ET and stamps when each player was first ruled
      OUT (nba.outAt). New multi-game absences show here within minutes, with the

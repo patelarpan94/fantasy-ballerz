@@ -4,9 +4,27 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
-  {v:"2.50",date:"2026-11-05",title:"First to the wire and Season win plan",notes:[
-    ["296","New","First to the wire: the league server now checks injury news every 5 minutes from 9 AM to 1 AM ET. When a starter is ruled out for more than a game, the dashboard shows it within minutes with the teammates who really gain (from this season's games without him) and an Add button, plus an alert and a pop-up message so you get there before anyone else."],
-    ["297","New","Season win plan: every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much winning or losing each week moves them. Marks must-win weeks (use every pickup), swing weeks, weeks you're favored (don't drop good players for streamers) and long shots, plus a trade-deadline checklist."]]},
+  {v:"2.57",date:"2026-11-05",title:"First to the wire and Season win plan",notes:[
+    ["307","New","First to the wire: the league server now checks injury news every 5 minutes from 9 AM to 1 AM ET. When a starter is ruled out for more than a game, the dashboard shows it within minutes with the teammates who really gain (from this season's games without him) and an Add button, plus an alert and a pop-up message so you get there before anyone else."],
+    ["308","New","Season win plan: every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much winning or losing each week moves them. Marks must-win weeks (use every pickup), swing weeks, weeks you're favored (don't drop good players for streamers) and long shots, plus a trade-deadline checklist."]]},
+  {v:"2.56",date:"2026-11-05",title:"Pickups this matchup",notes:[
+    ["305","New","Your pickups (under the Win-the-week planner) now starts with how many pickups you've made this matchup and how many you have left, for example 3 pickups this matchup · 3 left of 6."],
+    ["306","Fix","Win-the-week planner: pickups you already made this matchup now count against your limit while the league mirrors ESPN. Before, the planner could plan up to 6 more no matter how many you'd used."]]},
+  {v:"2.55",date:"2026-11-05",title:"Your pickups, for every login",notes:[
+    ["303","Fix","Win-the-week planner: the move tracker now works when you're logged in as the commissioner. Before, it only logged and showed moves for a team login, so the commissioner saw nothing."],
+    ["304","Change","Win-the-week planner: Your planner moves is now Your pickups. It shows every pickup you made this matchup, not only the planner's, each with his starts and stats for you, what the player you dropped did since and the difference in each category. Pickups the planner suggested are tagged Planner pick, and earlier matchups' planner picks still fold below."]]},
+  {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
+    ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
+  {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
+    ["301","Change","Win-the-week planner: when you add a player it suggested, he goes on your Willing to drop list on his own (marked planner pickup), so the plan can swap him out for a better streamer later. Tap him to keep him; he won't be added back. Reset all keeps your planner pickups on the list."]]},
+  {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
+    ["298","New","Dashboard on an unfolded iPhone Duo held sideways: the right side now holds the dashboard's own buttons (your boards, Share, Edit and alerts), so the widgets start right at the top on the left."],
+    ["299","New","Dashboard on the Duo held sideways: a live score card on the right with every category, now and projected, that stays on screen while you scroll (tap it for Matchup). Below it, Jump to: tap a section (Today, Win the week and so on) to go straight there, and the one you're reading is lit up."],
+    ["300","Change","Dashboard on any unfolded Duo, upright or sideways: half-width widgets now pair up side by side within their section instead of leaving empty gaps, and one with no partner uses the full width."]]},
+  {v:"2.51",date:"2026-11-05",title:"Planner tracks your moves",notes:[
+    ["297","New","Win-the-week planner: Your planner moves. When you add a player the planner suggested (and drop the player it paired with him), it tracks how the move is paying off: his starts and stats for you, what the player you dropped did since, and the difference in each category. This matchup's moves show first, earlier ones fold below, and it keeps a season count. Tracking starts with the planner's suggestions from today on."]]},
+  {v:"2.50",date:"2026-11-05",title:"Planner counts roster spots right",notes:[
+    ["296","Fix","The Win-the-week planner no longer says you have an open roster spot when you don't. It counted the 3 IR slots as open spots, so a full roster with an empty IR slot looked like it had room. Now it only counts a spot as open if you're under both the roster max and the max off IR, and a pending waiver claim with no drop takes up a spot too."]]},
   {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
     ["295","New","Their lineup today: a dashboard widget that shows your opponent's lineup for today, with who starts, who sits, game times, live stat lines as games go on and any open spots they left empty. On a computer it sits side by side with Today's lineup on New Era +, and you can add it to any dashboard with + Add widget."]]},
   {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
