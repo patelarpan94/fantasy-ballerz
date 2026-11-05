@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.56",date:"2026-11-05",title:"Pickups this matchup",notes:[
+    ["305","New","Your pickups (under the Win-the-week planner) now starts with how many pickups you've made this matchup and how many you have left, for example 3 pickups this matchup · 3 left of 6."],
+    ["306","Fix","Win-the-week planner: pickups you already made this matchup now count against your limit while the league mirrors ESPN. Before, the planner could plan up to 6 more no matter how many you'd used."]]},
   {v:"2.55",date:"2026-11-05",title:"Your pickups, for every login",notes:[
     ["303","Fix","Win-the-week planner: the move tracker now works when you're logged in as the commissioner. Before, it only logged and showed moves for a team login, so the commissioner saw nothing."],
     ["304","Change","Win-the-week planner: Your planner moves is now Your pickups. It shows every pickup you made this matchup, not only the planner's, each with his starts and stats for you, what the player you dropped did since and the difference in each category. Pickups the planner suggested are tagged Planner pick, and earlier matchups' planner picks still fold below."]]},
