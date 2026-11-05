@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.50",date:"2026-11-05",title:"First to the wire and Season win plan",notes:[
+    ["296","New","First to the wire: the league server now checks injury news every 5 minutes from 9 AM to 1 AM ET. When a starter is ruled out for more than a game, the dashboard shows it within minutes with the teammates who really gain (from this season's games without him) and an Add button, plus an alert and a pop-up message so you get there before anyone else."],
+    ["297","New","Season win plan: every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much winning or losing each week moves them. Marks must-win weeks (use every pickup), swing weeks, weeks you're favored (don't drop good players for streamers) and long shots, plus a trade-deadline checklist."]]},
   {v:"2.49",date:"2026-11-05",title:"Their lineup today",notes:[
     ["295","New","Their lineup today: a dashboard widget that shows your opponent's lineup for today, with who starts, who sits, game times, live stat lines as games go on and any open spots they left empty. On a computer it sits side by side with Today's lineup on New Era +, and you can add it to any dashboard with + Add widget."]]},
   {v:"2.48",date:"2026-11-05",title:"No more blinking",notes:[
