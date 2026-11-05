@@ -18,7 +18,7 @@
 const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=sl?Object.keys(sl):rosterNow(T),act=sl?ns.filter(n=>sl[n]!==13).length:ns.length;
   const aMax=typeof activeMax==="function"?activeMax():ROSTER_MAX,cl=!mirror()&&typeof myClaims==="function"?myClaims(T).filter(c=>c.season===SEASON&&!c.drop).length:0;
   return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
-const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0};};
+const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0,ad:o.ad||[]};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
@@ -54,8 +54,10 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
-  const dAuto=!o.d,dl=dAuto?sugg.map(r=>r.n):o.d.filter(n=>act.some(r=>r.n===n));
-  const dropC=dAuto?sugg:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
+  // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
+  const adA=(o.ad||[]).filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
+  const dAuto=!o.d,dl=dAuto?[...sugg.map(r=>r.n),...adA]:o.d.filter(n=>act.some(r=>r.n===n));
+  const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored
   const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
@@ -99,7 +101,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
       ${o.x.length||o.d||Object.keys(o.c).length||o.n?`<button class="pl-reset" data-plreset>Reset all</button>`:""}</div>
     ${(()=>{const dn2=new Set(r.dl),mine=r.regs.filter(x=>!x.ir&&!dn2.has(x.n)).sort((a,b)=>a.z-b.z);
-      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
@@ -131,12 +133,13 @@ document.addEventListener("click",e=>{if(nav!=="dash")return;let b;const o=PLO()
   if((b=e.target.closest("[data-plux]"))){e.stopPropagation();dPlanSave({...o,x:o.x.filter(n=>n!==b.dataset.plux)});dashDraw();return;}
   if((b=e.target.closest("[data-plk1]"))){e.stopPropagation();dPlanSave({...o,d:((DPL&&DPL.dl)||[]).filter(n=>n!==b.dataset.plk1)});dashDraw();return;}
   if((b=e.target.closest("[data-plunk]"))){e.stopPropagation();dPlanSave({...o,d:((DPL&&DPL.dl)||[]).filter(n=>n!==b.dataset.plunk)});dashDraw();return;}
-  if((b=e.target.closest("[data-plreset]"))){e.stopPropagation();dPlanSave({});dashDraw();return;}
+  if((b=e.target.closest("[data-plreset]"))){e.stopPropagation();dPlanSave(o.ad&&o.ad.length?{ad:o.ad}:{});dashDraw();return;}
   if((b=e.target.closest("[data-pladd]"))){e.stopPropagation();sheetAdd(b.dataset.pladd);const d=b.dataset.pldrop;if(d)setTimeout(()=>{const i=[...document.querySelectorAll('#sheetBody input[name="drop"]')].find(x=>x.value===d);if(i){i.checked=true;i.dispatchEvent(new Event("change",{bubbles:true}));i.closest("label")?.scrollIntoView({block:"nearest"});}},0);return;}
 },true);
 document.addEventListener("change",e=>{if(nav!=="dash")return;const k=e.target.closest("[data-plk]");if(k){if(k.value){const o=PLO();dPlanSave({...o,d:[...new Set([...((DPL&&DPL.dl)||[]),k.value])]});dashDraw();}return;}},true);
 
 {const s=document.createElement("style");s.textContent=`
+.pl-pk{font-size:.65rem;opacity:.75;font-weight:600}
 .pl-wait{display:flex;align-items:center;gap:6px;padding:24px 4px;color:var(--muted);font-size:.9rem}.pl-wait i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:plw 1s ease-in-out infinite}.pl-wait i:nth-child(2){animation-delay:.15s}.pl-wait i:nth-child(3){animation-delay:.3s}.pl-wait span{margin-left:6px}
 @keyframes plw{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
 .pl-ctl{margin:4px 0 14px;padding:12px;border-radius:14px;border:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
