@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.45",date:"2026-11-05",title:"Opportunity radar, Sunday closer, Playoff edge, planner best path",notes:[
+    ["284","New","Opportunity radar: when a starter is ruled OUT, it shows which teammates really produce more without him, using this season's box scores (or an estimate from his minutes if he hasn't missed a game yet). Free agents who get a bump have an Add button, and the Win-the-week planner uses their bumped numbers while the starter is out."],
+    ["285","New","Sunday closer: each category marked safe, open or gone against your opponent, now and projected, plus who to sit on which day to protect a close FG% or FT% lead without giving away a counting category."],
+    ["287","Change","Win-the-week planner picks your best path for you: it targets the categories still in reach, punts the ones that are lost and leaves the safe ones alone. You can still tap any category to change it (auto → target → punt → normal)."],
+    ["288","Change","Win-the-week planner: Never drop is now Willing to drop. The plan only drops players on that list. It starts with 3 suggestions you can change, and 🔒 on a move takes that player off the list."],
+    ["286","New","Playoff schedule edge: games each NBA team plays in our fantasy playoff weeks, your players with light (sell high) or heavy (keep) playoff schedules, and trade and pickup targets who play the most."]]},
   {v:"2.44",date:"2026-11-05",title:"Never drop",notes:[
     ["283","New","Win-the-week planner: lock players you never want dropped. Tap 🔒 on a move to keep the player it would drop, or pick players under Never drop. The plan rebuilds around them and the lock is saved with your login."]]},
   {v:"2.43",date:"2026-11-05",title:"Planner Pro",notes:[
