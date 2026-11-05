@@ -64,7 +64,9 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
   // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
   const adA=(o.ad||[]).filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
-  const dAuto=!o.d,dl=dAuto?[...sugg.map(r=>r.n),...adA]:o.d.filter(n=>act.some(r=>r.n===n));
+  // BUG-315: a list whose players have all left the roster (dropped since) goes back to the automatic suggestions
+  const dKeep=o.d?o.d.filter(n=>act.some(r=>r.n===n)):null;
+  const dAuto=!o.d||(o.d.length>0&&!dKeep.length),dl=dAuto?[...sugg.map(r=>r.n),...adA]:dKeep;
   const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored

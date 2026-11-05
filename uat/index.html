@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105173143"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105173501"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,10 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.60",date:"2026-11-05",title:"Win-the-week planner fix for the commissioner",notes:[
+    ["314","Fix","Win-the-week planner: logged in as the commissioner, Your pickups was missing and your moves weren't tracked while the league mirrors ESPN. It now shows the pickups for whichever team the dashboard is on."],
+    ["315","Fix","Win-the-week planner: if everyone on your Willing to drop list has since left your roster, the planner goes back to suggesting who to drop. Before, it said Nobody and planned no moves."],
+    ["316","Fix","Your pickups: when you add two players on the same day, each is paired with the right player you dropped (Jrue Holiday no longer shows John Collins, who went for Ziaire Williams)."]]},
   {v:"2.59",date:"2026-11-05",title:"Themes on your dashboards, and New Era + stages",notes:[
     ["311","New","Every dashboard can wear its own team colors: tap 🎨 Theme next to Share and pick an NBA team. The header becomes a team banner with the logo, tiles get the team stripe, and the charts, rings and bars follow. The rest of the app keeps its own look, and Match my app puts it back. Each board chip shows a small color dot."],
     ["312","New","New Era + gets stages only it has: Night (spotlights), Team colors (your team's logo and glow), Hardwood (a lit court floor), Neon (sunset and grid) and Gold (black and gold with sparkles). Pick one in 🎨 Theme. The stage lights come up when you open the board."],
@@ -9719,7 +9723,9 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
   // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
   const adA=(o.ad||[]).filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
-  const dAuto=!o.d,dl=dAuto?[...sugg.map(r=>r.n),...adA]:o.d.filter(n=>act.some(r=>r.n===n));
+  // BUG-315: a list whose players have all left the roster (dropped since) goes back to the automatic suggestions
+  const dKeep=o.d?o.d.filter(n=>act.some(r=>r.n===n)):null;
+  const dAuto=!o.d||(o.d.length>0&&!dKeep.length),dl=dAuto?[...sugg.map(r=>r.n),...adA]:dKeep;
   const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored
@@ -10258,7 +10264,9 @@ const PLH_MAX=80;
 const plhList=()=>(UI.dash&&Array.isArray(UI.dash.plh))?UI.dash.plh:[];
 // whose moves this login tracks: a team login its own team, the commissioner the team the dashboard shows (BUG-303:
 // the commissioner login was skipped, so nothing was logged or shown). Each entry carries its team (T).
-const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||(isCommish()&&dCanEdit(T))));
+// BUG-314: the commissioner gets it for whichever team the dashboard shows, also while the league mirrors ESPN
+// (dCanEdit is false in mirror mode, so the commissioner saw no pickups and nothing was tracked).
+const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||isCommish()));
 const plhFor=T=>plhList().filter(e=>(e.T||myTeamNum()||T)===T);
 // remember the moves the planner suggests to your own team (first day suggested, every drop it paired)
 function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!plhOn(T)||!DAYS.length)return;
@@ -10294,9 +10302,9 @@ function plhRow(m){const e=m.e,net=plhNet(m),up=net.filter(x=>x.d>0).length,dn=n
     ${net.length?`<span class="plh-net">${net.map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":""}${x.d}</i>`).join("")}</span>`:""}</span></li>`;}
 // every pickup this matchup, not only the planner's (Arp 2026-11-05 picked up Zaire Williams and Jrue Holiday and saw nothing):
 // adds from the move log (with the drop paired in the same move) or, in mirror mode, players who joined the roster this week
-function plhAuto(T){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set();
+function plhAuto(T,claimed,skip){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set(claimed||[]);
   const tradeIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
-  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n))return;
+  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n)||(skip&&skip.has(n+"|"+iv.from)))return;
     const tx=[...TXLOG].reverse().find(t=>t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade");
     let ds=tx&&tx.drop?[tx.drop]:[];
     if(!tx){ds=Object.entries(OWN).filter(([d,dv])=>d!==n&&!usedDrop.has(d)&&dv.some(i=>i.team===T&&i.to!==Infinity&&i.to>=iv.from-1&&i.to<=iv.from+1)).map(([d])=>d).slice(0,1);}
@@ -10309,7 +10317,8 @@ function plUsedWk(T){if(!TEAMS[T])return 0;const m=L&&(L.addMode||"matchup");let
 function plhView(T){if(!plhOn(T))return "";
   const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
   const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
-  const auto=plhAuto(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
+  // BUG-316: a drop already paired with a tracked planner pick isn't paired again with another pickup
+  const auto=plhAuto(T,logged.filter(m=>m.drop).map(m=>m.drop.n),seen).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
   const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
   const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
   const lim=+L.addLimit||PL_MAX,used=plUsedWk(T),wkOnly=!(L.addMode&&L.addMode!=="matchup");

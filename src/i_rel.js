@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.60",date:"2026-11-05",title:"Win-the-week planner fix for the commissioner",notes:[
+    ["314","Fix","Win-the-week planner: logged in as the commissioner, Your pickups was missing and your moves weren't tracked while the league mirrors ESPN. It now shows the pickups for whichever team the dashboard is on."],
+    ["315","Fix","Win-the-week planner: if everyone on your Willing to drop list has since left your roster, the planner goes back to suggesting who to drop. Before, it said Nobody and planned no moves."],
+    ["316","Fix","Your pickups: when you add two players on the same day, each is paired with the right player you dropped (Jrue Holiday no longer shows John Collins, who went for Ziaire Williams)."]]},
   {v:"2.59",date:"2026-11-05",title:"Themes on your dashboards, and New Era + stages",notes:[
     ["311","New","Every dashboard can wear its own team colors: tap 🎨 Theme next to Share and pick an NBA team. The header becomes a team banner with the logo, tiles get the team stripe, and the charts, rings and bars follow. The rest of the app keeps its own look, and Match my app puts it back. Each board chip shows a small color dot."],
     ["312","New","New Era + gets stages only it has: Night (spotlights), Team colors (your team's logo and glow), Hardwood (a lit court floor), Neon (sunset and grid) and Gold (black and gold with sparkles). Pick one in 🎨 Theme. The stage lights come up when you open the board."],
