@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.59",date:"2026-11-05",title:"Themes on your dashboards, and New Era + stages",notes:[
+    ["311","New","Every dashboard can wear its own team colors: tap 🎨 Theme next to Share and pick an NBA team. The header becomes a team banner with the logo, tiles get the team stripe, and the charts, rings and bars follow. The rest of the app keeps its own look, and Match my app puts it back. Each board chip shows a small color dot."],
+    ["312","New","New Era + gets stages only it has: Night (spotlights), Team colors (your team's logo and glow), Hardwood (a lit court floor), Neon (sunset and grid) and Gold (black and gold with sparkles). Pick one in 🎨 Theme. The stage lights come up when you open the board."],
+    ["313","Fix","New Era + with team colors in light mode used the dark light-mode shade on its dark stage, so the colors looked muddy. It now always uses the bright shade."]]},
   {v:"2.58",date:"2026-11-05",title:"Trade radar and a tidier New Era +",notes:[
     ["309","New","Trade radar: scans every team in the league for trades that help you AND the other manager (so they're likely to accept), ranked by how many more categories a week you'd win, with which categories it helps and what it adds up to over the rest of the season. Tap Tweak in Trade packages to adjust it, or Offer trade to send it."],
     ["310","Change","New Era + is regrouped by when you make each call: Right now (injury news, game plan, both lineups), Win this week (planner and your pickups, Sunday closer, opponent watch, scout), Build your team (Trade radar, Team identity, Opportunity radar, Hot and cold) and The season (Season win plan, playoff odds, playoff schedule, league scoreboard). Each section has a one-line summary. Star duel, Roster wall and Trophy case left the default board and are still in + Add widget."]]},

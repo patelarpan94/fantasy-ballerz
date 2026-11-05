@@ -133,7 +133,7 @@ document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||dReduce(
 /* the New Era + board: aurora behind, glowing glass tiles, gradient section titles */
 .dash.dnep{position:relative;isolation:isolate}
 .dash.dnep::before{content:"";position:absolute;inset:-40px -16px auto;height:760px;z-index:-1;pointer-events:none;
-  background:radial-gradient(40% 50% at 15% 20%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 70%),radial-gradient(35% 45% at 85% 10%,color-mix(in srgb,var(--s-op,#e2701f) 24%,transparent),transparent 70%),radial-gradient(45% 40% at 55% 60%,color-mix(in srgb,#8b5cf6 18%,transparent),transparent 70%);
+  background:radial-gradient(40% 50% at 15% 20%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 70%),radial-gradient(35% 45% at 85% 10%,color-mix(in srgb,var(--s-op,#e2701f) 24%,transparent),transparent 70%),radial-gradient(45% 40% at 55% 60%,color-mix(in srgb,var(--nB2,#8b5cf6) 18%,transparent),transparent 70%);
   animation:nepaur 18s ease-in-out infinite alternate;opacity:.9}
 @keyframes nepaur{to{transform:translate3d(0,24px,0) scale(1.06)}}
 .dash.dnep .dhead h2{background:linear-gradient(90deg,var(--ink),var(--accent) 60%,var(--s-op,#e2701f));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -162,7 +162,7 @@ document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||dReduce(
 .xa-core{position:relative;width:150px;height:150px;display:grid;place-items:center}
 .xa-ring{position:absolute;inset:0;width:100%;height:100%}.xa-rt{fill:none;stroke:rgba(255,255,255,.1);stroke-width:9}
 .xa-rv{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:var(--p) 100;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--me) 70%,transparent))}
-.xa-s1{stop-color:var(--me)}.xa-s2{stop-color:#a78bfa}
+.xa-s1{stop-color:var(--me)}.xa-s2{stop-color:var(--nB,#a78bfa)}
 .dfirst .xa-rv{animation:xaring 1.4s cubic-bezier(.3,.7,.2,1) both}@keyframes xaring{from{stroke-dasharray:0 100}}
 .xa-num{display:flex;flex-direction:column;align-items:center;line-height:1}.xa-num b{font-size:2.6rem;font-weight:900;letter-spacing:-.03em}.xa-num b small{font-size:1rem;margin-left:2px;opacity:.7}.xa-num>span{font-size:.7rem;color:#aab4d4;text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
 .xa-score{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:2px 0 12px;color:#aab4d4;font-size:.78rem}.xa-score b{font-size:1.5rem;color:#fff;font-weight:900}.xa-score>i{width:1px;height:18px;background:rgba(255,255,255,.2);margin:0 8px}
