@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105013133"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105022538"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.47",date:"2026-11-05",title:"New Era + cleaned up",notes:[
+    ["291","Change","New Era + board reorganized: hero, then Today, Win the week, Your squad and The race, with 21 widgets instead of 28. Widgets that repeated the same numbers (Live ticker, Matchup heartbeat, Category targets, Projected final, Lineup efficiency, Bench wasted, Power climb) left the default board; you can still add them with + Add widget."],
+    ["292","Change","On a computer, smaller widgets now stack beside the wide ones, so the board has no empty gaps and is much shorter. The planner's Who plays when grid starts folded; tap it to open."]]},
   {v:"2.46",date:"2026-11-05",title:"Opponent watch and Team identity",notes:[
     ["289","New","Opponent watch: your opponent's moves this matchup, what each one did to your win odds and which categories it helps them in. One tap targets those categories in the Win-the-week planner. New moves also show as a dashboard alert until you tap Got it."],
     ["290","New","Team identity: the punt build your roster fits, where you rank in each category (strong, swing or punt), players who don't fit your build (sell), and trade targets and pickups who fit it all season. Tap a category to punt it or bring it back."]]},
@@ -9731,7 +9734,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
       if(!gameOn(row.x.t,sp))return `<td class="ng"></td>`;if(row.x.out)return `<td class="out" title="Out">OUT</td>`;return u.used.has(n)?`<td class="st" title="Starts">●</td>`:`<td class="sit" title="Game, but no open spot">○</td>`;}
     const m=row.m;if(sp<m.from||sp>m.to)return `<td class="na"></td>`;if(!gameOn(row.x.t,sp))return `<td class="ng"></td>`;return u.used.has(n)?`<td class="st add" title="Starts">●</td>`:`<td class="sit" title="Game, but no open spot">○</td>`;};
   const filled=sp=>{const u=r.cur.use[sp];return `${LINEUP.length-u.free}/${LINEUP.length}`;};
-  const grid=`<details class="pl-wg"${phone?"":" open"}><summary>Who plays when <small class="muted">● starts · ○ has a game but no open spot · ✕ dropped</small></summary><div class="pl-wgw"><table class="pl-tab"><thead><tr><th></th>${r.days.map(sp=>`<th class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</th>`).join("")}</tr></thead>
+  const grid=`<details class="pl-wg"><summary>Who plays when <small class="muted">● starts · ○ has a game but no open spot · ✕ dropped</small></summary><div class="pl-wgw"><table class="pl-tab"><thead><tr><th></th>${r.days.map(sp=>`<th class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</th>`).join("")}</tr></thead>
     <tbody>${rows.map(row=>`<tr class="${row.k}"><th>${row.k==="add"?'<i class="pl-new">+</i>':""}${row.k==="reg"&&r.dl.includes(row.x.n)?'<i class="pl-lk" title="Willing to drop">↓</i>':""}${esc(dashLast(row.x.n))}</th>${r.days.map(sp=>cell(row,sp)).join("")}</tr>`).join("")}</tbody>
     <tfoot><tr><th>Spots filled</th>${r.days.map(sp=>`<td class="num">${filled(sp)}</td>`).join("")}</tr></tfoot></table></div></details>`;
   return head+path+cats+mv+ctl+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Add opens the add sheet with the planned drop already picked.</p>`;};
@@ -10052,6 +10055,43 @@ NEP_VER=6;
 .id-bar{height:6px;border-radius:99px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.id-bar i{display:block;height:100%;border-radius:99px;background:var(--muted)}
 .id-c.st .id-bar i{background:#22c55e}.id-c.st u{color:#22c55e}.id-c.sw .id-bar i{background:#f59e0b}.id-c.sw u{color:#f59e0b}.id-c.p{opacity:.55}.id-c.p b{text-decoration:line-through}.id-c.p u{color:#ef4444}
 .id-f{font-size:.84rem;color:var(--accent)}
+`;document.head.appendChild(s);}
+/* ============================================================================
+   2.47 (2026-11-05). Arp: "optimize the new era dashboard page to make it clean
+   and organized". The New Era + board had grown to 28 widgets (about 9,700px on
+   a desktop, 13,000px on a phone), with several showing the same thing twice and
+   gaps beside short side widgets.
+   - One clear default layout (21 widgets): hero, then Today, Win the week, Your
+     squad, The race. Duplicates leave the default (Live ticker, Matchup
+     heartbeat, Category targets, Projected final, Lineup efficiency, Bench
+     wasted, Power climb); all stay in + Add widget.
+   - Desktop packs side widgets under each other next to the wide ones, so no
+     empty holes (sections keep their order).
+   - The planner's Who plays when grid starts folded.
+   ============================================================================ */
+NEP_DEF.splice(0,NEP_DEF.length,
+  ["xa","f"],["kp","f"],
+  ["hd","f",{t:"Today"}],["gp","w"],["cd","s"],["ow","s"],["tl","w"],
+  ["hd","f",{t:"Win the week"}],["pl","f"],["cl","w"],["op","s"],["or","w"],
+  ["hd","f",{t:"Your squad"}],["id","f"],["sd","w"],["hc","s"],["rw","f"],
+  ["hd","f",{t:"The race"}],["po","w"],["tc","s"],["ls","f"],["ps","f"]);
+NEP_VER=7;
+
+// desktop: each tile spans as many 4px rows as it is tall, so short side widgets stack beside a tall one.
+// Placement stays in order (no "dense"), so nothing jumps above its section title.
+let NEP_RO=null;
+function nepPack(){const g=$("#dgrid");if(!g)return;const on=nepOn()&&!DASH_EDIT&&!DASH_DRAG&&!PHONE()&&getComputedStyle(g).gridTemplateColumns.split(" ").length>=3;
+  g.classList.toggle("npack",on);const ts=[...g.querySelectorAll(".dtile[data-dw]")];
+  if(!on){ts.forEach(t=>t.style.gridRowEnd="");if(NEP_RO){NEP_RO.disconnect();NEP_RO=null;}return;}
+  const fit=t=>{const h=t.getBoundingClientRect().height;t.style.gridRowEnd=h?`span ${Math.ceil((h+16)/4)}`:"";};
+  ts.forEach(fit);
+  if("ResizeObserver" in window){if(NEP_RO)NEP_RO.disconnect();NEP_RO=new ResizeObserver(es=>es.forEach(e=>fit(e.target)));ts.forEach(t=>NEP_RO.observe(t));}}
+{const _rr=renderRosters;renderRosters=function(){const r=_rr.apply(this,arguments);if(nav==="dash")try{nepPack();}catch(e){}return r;};}
+addEventListener("resize",()=>{if(nav==="dash")try{nepPack();}catch(e){}});
+
+{const s=document.createElement("style");s.textContent=`
+.dgrid.npack{grid-auto-rows:4px;row-gap:0;grid-auto-flow:row}
+.dgrid.npack>.dtile{margin-bottom:16px}
 `;document.head.appendChild(s);}
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
