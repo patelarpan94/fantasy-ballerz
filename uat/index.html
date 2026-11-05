@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105123917"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105131331"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
+    ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
   {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
     ["301","Change","Win-the-week planner: when you add a player it suggested, he goes on your Willing to drop list on his own (marked planner pickup), so the plan can swap him out for a better streamer later. Tap him to keep him; he won't be added back. Reset all keeps your planner pickups on the list."]]},
   {v:"2.52",date:"2026-11-05",title:"Dashboard on the iPhone Duo",notes:[
@@ -9655,6 +9657,12 @@ NEP_VER=4;
 const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=sl?Object.keys(sl):rosterNow(T),act=sl?ns.filter(n=>sl[n]!==13).length:ns.length;
   const aMax=typeof activeMax==="function"?activeMax():ROSTER_MAX,cl=!mirror()&&typeof myClaims==="function"?myClaims(T).filter(c=>c.season===SEASON&&!c.drop).length:0;
   return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
+// BUG-302 (Arp 2026-11-05): a player you picked up can't be dropped on the day you picked him up.
+// Pickup day = the add's day in the move log (mirror mode: the first day ESPN listed him). A planned drop is
+// made after day d0-PL_LAG's games, so it has to be later than the pickup day: d0 >= pickup day + 1 + PL_LAG.
+function plPickDay(T,n){for(let i=TXLOG.length-1;i>=0;i--){const t=TXLOG[i];if(t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade")return t.day??t.addDay??null;}
+  const iv=(OWN[n]||[]).find(i=>i.team===T&&i.to===Infinity);return iv?iv.from:null;}
+const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1+PL_LAG;};
 const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0,ad:o.ad||[]};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
@@ -9665,7 +9673,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
-  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT"}));
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",minD:plMinDrop(T,p.n)}));
   const act=regs.filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
@@ -9701,7 +9709,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
       const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
-      for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;push({drops:{...pl.drops,[p.n]:d0},adds:[...pl.adds,{x,from:d0,to:end,spot:p.n}]},"drop");}
+      for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;const dd=(p.minD||0)>d0?days.find(d=>d>=p.minD&&ok(d)):d0;if(dd==null)continue;push({drops:{...pl.drops,[p.n]:dd},adds:[...pl.adds,{x,from:dd,to:end,spot:p.n}]},"drop");}
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
     return out.sort((a,b)=>b.r.s-a.r.s).slice(0,4);};
   const sig=pl=>pl.adds.map(a=>a.x.n+"@"+a.from+"-"+a.to).sort().join("|");
@@ -9738,7 +9746,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
       ${o.x.length||o.d||Object.keys(o.c).length||o.n?`<button class="pl-reset" data-plreset>Reset all</button>`:""}</div>
     ${(()=>{const dn2=new Set(r.dl),mine=r.regs.filter(x=>!x.ir&&!dn2.has(x.n)).sort((a,b)=>a.z-b.z);
-      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+PL_LAG?` <small class="pl-pk">drop from ${esc(dow(x.minD-PL_LAG))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
