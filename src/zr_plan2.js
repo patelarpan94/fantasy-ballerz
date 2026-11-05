@@ -13,6 +13,11 @@
    - Add pre-picks the planned drop in the add sheet.
    - The search runs after the page paints, so the dashboard never waits on it.
    ============================================================================ */
+// open roster spots (BUG-296): ROSTER_MAX counts the IR slots, but only activeMax() players may be off IR,
+// so a full active roster has no open spot even with an empty IR slot. Pending claims with no drop use a spot too.
+const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=sl?Object.keys(sl):rosterNow(T),act=sl?ns.filter(n=>sl[n]!==13).length:ns.length;
+  const aMax=typeof activeMax==="function"?activeMax():ROSTER_MAX,cl=!mirror()&&typeof myClaims==="function"?myClaims(T).filter(c=>c.season===SEASON&&!c.drop).length:0;
+  return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
 const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
@@ -45,7 +50,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const skip=new Set(o.x);
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&!skip.has(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
       return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,18);
-  const openN=Math.max(0,ROSTER_MAX-dNowP(T).length);
+  const openN=plOpen(T);
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
