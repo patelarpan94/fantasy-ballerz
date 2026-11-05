@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.46",date:"2026-11-05",title:"Opponent watch and Team identity",notes:[
+    ["289","New","Opponent watch: your opponent's moves this matchup, what each one did to your win odds and which categories it helps them in. One tap targets those categories in the Win-the-week planner. New moves also show as a dashboard alert until you tap Got it."],
+    ["290","New","Team identity: the punt build your roster fits, where you rank in each category (strong, swing or punt), players who don't fit your build (sell), and trade targets and pickups who fit it all season. Tap a category to punt it or bring it back."]]},
   {v:"2.45",date:"2026-11-05",title:"Opportunity radar, Sunday closer, Playoff edge, planner best path",notes:[
     ["284","New","Opportunity radar: when a starter is ruled OUT, it shows which teammates really produce more without him, using this season's box scores (or an estimate from his minutes if he hasn't missed a game yet). Free agents who get a bump have an Add button, and the Win-the-week planner uses their bumped numbers while the starter is out."],
     ["285","New","Sunday closer: each category marked safe, open or gone against your opponent, now and projected, plus who to sit on which day to protect a close FG% or FT% lead without giving away a counting category."],
