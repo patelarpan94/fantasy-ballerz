@@ -53,15 +53,15 @@ function dOppBoost(n){let r=null;try{for(const s of dOppRadar()){if(!s.missWk)co
 
 const dStatBumps=(a,b)=>[["PTS",K.PTS],["REB",K.REB],["AST",K.AST],["3PM",K.TPM],["STL",K.STL],["BLK",K.BLK]].map(([l,i])=>({l,d:b[i]-a[i]})).filter(x=>x.d>=.6).sort((x,y)=>y.d-x.d).slice(0,3);
 DW.or={name:"Opportunity radar",desc:"When a starter is ruled OUT, the teammates who really produce more without him (from this season's box scores), and which of them you can pick up.",s:"w",
-  view(w,T){const xs=dOppRadar(),ed=dCanEdit(T),full=w.s==="f",lim=full?8:w.s==="w"?4:3;
+  view(w,T){const xs=dOppRadar(),ed=dCanEdit(T),full=w.s==="f",lim=full?8:PHONE()?2:w.s==="w"?3:2;
     if(!xs.length)return `<p class="dempty okc">✓ No key starter is out right now, so nobody gets an injury bump.</p>`;
     const fa=xs.reduce((a,s)=>a+s.bens.filter(b=>!b.own).length,0);
     return `<p class="or-sum"><b>${xs.length} starter${xs.length>1?"s":""} out</b> · ${fa?`<b class="okc">${fa} free agent${fa>1?"s":""}</b> get a bump`:"no free agent gets a bump"}</p>
     <ol class="or-l">${xs.slice(0,lim).map((s,i)=>`<li style="--d:${i*70}ms"><div class="or-st">${dFace(s.n,s.t,"sm")}<span><b>${dashNm(s.n)}</b> <small class="muted">${esc(s.t)} · OUT${s.back?` · back ~${esc(dow(s.back))} ${esc(dateOf(s.back).toLocaleDateString("en-US",{month:"short",day:"numeric"}))}`:" · no return date"}</small><small class="or-miss">${s.missWk?`misses ${s.missWk} game${s.missWk>1?"s":""} left this matchup`:`misses ${s.miss7} in the next 7 days`} · ${Math.round(s.min)} min a game</small></span></div>
-      <ul class="or-b">${s.bens.map(b=>{const tag=b.own?(b.own.id===T?`<em class="or-me">Yours</em>`:`<em>${esc(b.own.nm)}</em>`):`<em class="or-fa">${b.w?"Waivers":"Free agent"}</em>`;
+      <ul class="or-b">${s.bens.slice(0,full?99:3).map(b=>{const tag=b.own?(b.own.id===T?`<em class="or-me">Yours</em>`:`<em>${esc(b.own.nm)}</em>`):`<em class="or-fa">${b.w?"Waivers":"Free agent"}</em>`;
         const bm=dStatBumps(b.base,b.line);
         return `<li>${dFace(b.n,b.t,"sm")}<span class="or-who"><b>${dashNm(b.n)}</b>${tag}<small class="muted">${Math.round(dMinOf(b.base))}→${Math.round(dMinOf(b.line))} min${bm.map(x=>` · ${x.l} +${x.d.toFixed(1)}`).join("")}</small><small class="or-src">${b.nWo?`${b.nWo} game${b.nWo>1?"s":""} without him${b.nWo===1?" + estimate":""}`:"estimate: he hasn't missed a game yet"}</small></span>
-          <b class="or-dz num">+${b.dz.toFixed(1)}</b>${!b.own&&ed?`<button class="btn sm" data-add="${esc(b.n)}">${b.w?"Claim":"Add"}</button>`:""}</li>`;}).join("")}</ul></li>`).join("")}</ol>
+          <b class="or-dz num">+${b.dz.toFixed(1)}</b>${!b.own&&ed?`<button class="btn sm" data-add="${esc(b.n)}">${b.w?"Claim":"Add"}</button>`:""}</li>`;}).join("")}</ul></li>`).join("")}</ol>${xs.length>lim?`<p class="dsm muted">${xs.length-lim} more starter${xs.length-lim>1?"s":""} out. Make this widget full width (Edit) to see them all.</p>`:""}
     <p class="dsm muted">+ is the change in value per game (z-score across your categories). Free agents here also count in the Win-the-week planner while the starter is out.</p>`;}};
 
 // planner: free agents use their "starter out" line, and the move says why
