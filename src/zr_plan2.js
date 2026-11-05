@@ -29,7 +29,9 @@ function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{.
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const days=DAYS.filter(sp=>sp>=TODAY);if(!days.length)return {opp,done:true};
   const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
-  let cap=lim?(mode==="day"?lim*days.length:pickupsLeft(T)):PL_MAX;cap=Math.max(0,Math.min(cap,PL_MAX));
+  // BUG-306: pickups already made this matchup count against the limit in mirror mode too (the move log is empty there)
+  const usedWk=typeof plUsedWk==="function"?plUsedWk(T):0;
+  let cap=mode==="day"&&lim?lim*days.length:Math.max(0,(lim||PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
   const budget=o.n?Math.min(o.n,cap):cap,perDay=mode==="day"&&lim?lim:99;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);

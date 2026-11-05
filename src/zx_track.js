@@ -55,13 +55,17 @@ function plhAuto(T){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set();
     ds.forEach(d=>usedDrop.add(d));
     out.push({a:n,t:DIR[n]&&DIR[n].t,ds,sp:Math.max(0,(tx?tx.day:iv.from)-1),wk:lo,T,mine:1});}));
   return out;}
+// pickups made this matchup: the move log's count (app mode), or the roster joins this week (mirror mode), whichever is more
+function plUsedWk(T){if(!TEAMS[T])return 0;const m=L&&(L.addMode||"matchup");let a=0;try{a=plhAuto(T).length;}catch(e){}
+  const b=m==="matchup"&&typeof pickupsUsed==="function"?pickupsUsed(T,TODAY):0;return Math.max(a,b);}
 function plhView(T){if(!plhOn(T))return "";
   const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
   const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
   const auto=plhAuto(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
   const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
   const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
-  return `<div class="plh"><p class="plh-h"><b>Your pickups</b><small class="muted">${pm} planner pick${pm===1?"":"s"} this season${pm?` · ${starts} start${starts===1?"":"s"} from them`:""}</small></p>
+  const lim=+L.addLimit||PL_MAX,used=plUsedWk(T),wkOnly=!(L.addMode&&L.addMode!=="matchup");
+  return `<div class="plh"><p class="plh-h"><b>Your pickups</b>${wkOnly?`<span class="plh-cnt"><b class="num">${used}</b> pickup${used===1?"":"s"} this matchup · <b class="num">${Math.max(0,lim-used)}</b> left of ${lim}</span>`:""}<small class="muted">${pm} planner pick${pm===1?"":"s"} this season${pm?` · ${starts} start${starts===1?"":"s"} from them`:""}</small></p>
     ${now.length?`<ol class="plh-l">${now.map(plhRow).join("")}</ol>`:`<p class="dsm muted">No pickups this matchup yet. When you add someone, he shows up here with his starts and stats for you, what the player you dropped did since, and the difference in each category.</p>`}
     ${old.length?`<details class="plh-old"><summary>Planner picks in earlier matchups (${old.length})</summary><ol class="plh-l">${old.map(plhRow).join("")}</ol></details>`:""}
     <p class="dsm muted"><b>Planner pick</b> = a player the planner suggested and you added. Stats for him are from games he started for you; stats for the player you dropped are from all his games since. A pickup made today shows numbers once his first game starts.</p></div>`;}
@@ -78,5 +82,6 @@ function plhView(T){if(!plhOn(T))return "";
 .plh-net{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}.plh-net i{font-style:normal;font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:6px}
 .plh-net i.up{color:var(--win);background:color-mix(in srgb,var(--win) 12%,transparent)}.plh-net i.dn{color:var(--loss);background:color-mix(in srgb,var(--loss) 10%,transparent)}
 .plh-v.pp{background:var(--accent-wash);color:var(--accent)}
+.plh-cnt{font-size:.8rem;padding:2px 9px;border-radius:99px;background:var(--chip)}
 .plh-old{margin-top:8px}.plh-old summary{cursor:pointer;font-size:.8rem;color:var(--muted);margin-bottom:6px}
 `;document.head.appendChild(s);}
