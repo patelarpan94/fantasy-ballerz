@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.44",date:"2026-11-05",title:"Never drop",notes:[
+    ["283","New","Win-the-week planner: lock players you never want dropped. Tap 🔒 on a move to keep the player it would drop, or pick players under Never drop. The plan rebuilds around them and the lock is saved with your login."]]},
   {v:"2.43",date:"2026-11-05",title:"Planner Pro",notes:[
     ["280","New","Win-the-week planner: a smarter search that tries several plans side by side instead of one at a time, and shows what each move is worth on its own and which categories it helps."],
     ["281","New","Win-the-week planner: your own controls. Tap a category to target it or punt it, set how many pickups to use, turn drops on or off, and skip any player you don't want (✕). The plan rebuilds right away."],
