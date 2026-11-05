@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105131331"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261105132156"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4434,6 +4434,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.55",date:"2026-11-05",title:"Your pickups, for every login",notes:[
+    ["303","Fix","Win-the-week planner: the move tracker now works when you're logged in as the commissioner. Before, it only logged and showed moves for a team login, so the commissioner saw nothing."],
+    ["304","Change","Win-the-week planner: Your planner moves is now Your pickups. It shows every pickup you made this matchup, not only the planner's, each with his starts and stats for you, what the player you dropped did since and the difference in each category. Pickups the planner suggested are tagged Planner pick, and earlier matchups' planner picks still fold below."]]},
   {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
     ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
   {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
@@ -10238,16 +10241,20 @@ DKEEP.push("dpl","dpr");
    ============================================================================ */
 const PLH_MAX=80;
 const plhList=()=>(UI.dash&&Array.isArray(UI.dash.plh))?UI.dash.plh:[];
+// whose moves this login tracks: a team login its own team, the commissioner the team the dashboard shows (BUG-303:
+// the commissioner login was skipped, so nothing was logged or shown). Each entry carries its team (T).
+const plhOn=T=>!!(prefKey()&&T&&TEAMS[T]&&(T===myTeamNum()||(isCommish()&&dCanEdit(T))));
+const plhFor=T=>plhList().filter(e=>(e.T||myTeamNum()||T)===T);
 // remember the moves the planner suggests to your own team (first day suggested, every drop it paired)
-function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!prefKey()||T!==myTeamNum()||!DAYS.length)return;
+function plhLog(T,r){if(!r||!r.moves||!r.moves.length||!plhOn(T)||!DAYS.length)return;
   const wk=DAYS[0],list=plhList().map(e=>({...e,ds:[...(e.ds||[])]}));let ch=false;
-  r.moves.forEach(m=>{let e=list.find(x=>x.a===m.x.n&&x.wk===wk);
-    if(!e){e={a:m.x.n,t:m.x.t,ds:[],sp:TODAY,wk};list.push(e);ch=true;}
+  r.moves.forEach(m=>{let e=list.find(x=>x.a===m.x.n&&x.wk===wk&&(x.T||T)===T);
+    if(!e){e={a:m.x.n,t:m.x.t,ds:[],sp:TODAY,wk,T};list.push(e);ch=true;}
     if(m.drop&&!e.ds.includes(m.drop)){e.ds.push(m.drop);ch=true;}});
   if(ch)dashBoardSet({plh:list.slice(-PLH_MAX)});}
 // Arp 2026-11-05: pickups you made from a suggestion go on your Willing to drop list (once, so taking one off sticks)
-function plhSyncDrop(T){if(!prefKey()||T!==myTeamNum())return;const list=plhList();let ch=false;const add=[];
-  const nl=list.map(e=>{if(e.dl)return e;const m=plhMatch(T,e);if(!m||m.gone!=null||ownerNow(e.a)!==T)return e;ch=true;add.push(e.a);return {...e,dl:1};});
+function plhSyncDrop(T){if(!plhOn(T))return;const list=plhList();let ch=false;const add=[];
+  const nl=list.map(e=>{if(e.dl||(e.T||T)!==T)return e;const m=plhMatch(T,e);if(!m||m.gone!=null||ownerNow(e.a)!==T)return e;ch=true;add.push(e.a);return {...e,dl:1};});
   if(!ch)return;const o=PLO();
   const np=o.d?{...o,d:[...new Set([...o.d,...add])]}:{...o,ad:[...new Set([...(o.ad||[]),...add])]};
   dashBoardSet({plh:nl,plan:np});DPL_K="";}
@@ -10265,19 +10272,32 @@ const plhCats=x=>{if(!x)return "";return CATS.map(c=>c[1]==="pct"?`${esc(c[0])} 
 function plhNet(m){if(!m.dr)return [];return CATS.filter(c=>c[1]!=="pct").map(c=>({c,d:m.st.a[c[2]]-m.dr.a[c[2]]})).filter(x=>x.d);}
 function plhRow(m){const e=m.e,net=plhNet(m),up=net.filter(x=>x.d>0).length,dn=net.filter(x=>x.d<0).length;
   const verdict=!m.st.g&&!(m.dr&&m.dr.g)?`<i class="plh-v">no games yet</i>`:m.dr?`<i class="plh-v ${up>dn?"ok":dn>up?"bad":""}">${up>dn?"paying off":dn>up?"behind":"even"} · ${up} up, ${dn} down</i>`:(m.st.g?`<i class="plh-v ok">+${m.st.g} game${m.st.g>1?"s":""}</i>`:"");
-  return `<li>${dFace(e.a,e.t||(DIR[e.a]&&DIR[e.a].t)||"","sm")}<span class="plh-who"><span><b>Added ${dashNm(e.a)}</b>${verdict}</span>
+  return `<li>${dFace(e.a,e.t||(DIR[e.a]&&DIR[e.a].t)||"","sm")}<span class="plh-who"><span><b>Added ${dashNm(e.a)}</b>${e.mine?"":`<i class="plh-v pp">planner pick</i>`}${verdict}</span>
     <small class="muted">${esc(dow(m.from))}${m.drop?` · dropped ${dashNm(m.drop.n)}`:" · open spot"}${m.gone!=null?` · gone ${esc(dow(m.gone))}`:""}</small>
     <small>For you: <b class="num">${m.st.g}</b> start${m.st.g===1?"":"s"}${m.pl.g>m.st.g?` <span class="muted">(${m.pl.g-m.st.g} on bench)</span>`:""}${m.st.g?` · <span class="num">${plhCats(m.st)}</span>`:""}</small>
     ${m.dr?`<small class="muted">${esc(dashLast(m.drop.n))} since: <b class="num">${m.dr.g}</b> game${m.dr.g===1?"":"s"}${m.dr.g?` · <span class="num">${plhCats(m.dr)}</span>`:""}</small>`:""}
     ${net.length?`<span class="plh-net">${net.map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":""}${x.d}</i>`).join("")}</span>`:""}</span></li>`;}
-function plhView(T){if(T!==myTeamNum()||!prefKey())return "";const ms=plhList().map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
-  const wk=DAYS[0],now=ms.filter(m=>m.e.wk===wk),old=ms.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
-  const starts=ms.reduce((s,m)=>s+m.st.g,0);
-  if(!ms.length)return `<div class="plh"><p class="plh-h"><b>Your planner moves</b></p><p class="dsm muted">When you add or drop someone the planner suggested, it shows up here with how it's paying off: his starts and stats for you, and what the player you dropped did since.</p></div>`;
-  return `<div class="plh"><p class="plh-h"><b>Your planner moves</b><small class="muted">${ms.length} move${ms.length>1?"s":""} this season · ${starts} start${starts===1?"":"s"} from pickups</small></p>
-    ${now.length?`<ol class="plh-l">${now.map(plhRow).join("")}</ol>`:`<p class="dsm muted">None this matchup yet.</p>`}
-    ${old.length?`<details class="plh-old"><summary>Earlier matchups (${old.length})</summary><ol class="plh-l">${old.map(plhRow).join("")}</ol></details>`:""}
-    <p class="dsm muted">Counts a move when you add a player the planner suggested within a week of the suggestion. Stats for him are from games he started for you; stats for the player you dropped are from all his games since.</p></div>`;}
+// every pickup this matchup, not only the planner's (Arp 2026-11-05 picked up Zaire Williams and Jrue Holiday and saw nothing):
+// adds from the move log (with the drop paired in the same move) or, in mirror mode, players who joined the roster this week
+function plhAuto(T){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set();
+  const tradeIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
+  Object.entries(OWN).forEach(([n,ivs])=>ivs.forEach(iv=>{if(iv.team!==T||iv.from<Math.max(1,lo)||iv.from>TODAY+1||tradeIn.has(n))return;
+    const tx=[...TXLOG].reverse().find(t=>t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade");
+    let ds=tx&&tx.drop?[tx.drop]:[];
+    if(!tx){ds=Object.entries(OWN).filter(([d,dv])=>d!==n&&!usedDrop.has(d)&&dv.some(i=>i.team===T&&i.to!==Infinity&&i.to>=iv.from-1&&i.to<=iv.from+1)).map(([d])=>d).slice(0,1);}
+    ds.forEach(d=>usedDrop.add(d));
+    out.push({a:n,t:DIR[n]&&DIR[n].t,ds,sp:Math.max(0,(tx?tx.day:iv.from)-1),wk:lo,T,mine:1});}));
+  return out;}
+function plhView(T){if(!plhOn(T))return "";
+  const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
+  const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
+  const auto=plhAuto(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
+  const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
+  const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
+  return `<div class="plh"><p class="plh-h"><b>Your pickups</b><small class="muted">${pm} planner pick${pm===1?"":"s"} this season${pm?` · ${starts} start${starts===1?"":"s"} from them`:""}</small></p>
+    ${now.length?`<ol class="plh-l">${now.map(plhRow).join("")}</ol>`:`<p class="dsm muted">No pickups this matchup yet. When you add someone, he shows up here with his starts and stats for you, what the player you dropped did since, and the difference in each category.</p>`}
+    ${old.length?`<details class="plh-old"><summary>Planner picks in earlier matchups (${old.length})</summary><ol class="plh-l">${old.map(plhRow).join("")}</ol></details>`:""}
+    <p class="dsm muted"><b>Planner pick</b> = a player the planner suggested and you added. Stats for him are from games he started for you; stats for the player you dropped are from all his games since. A pickup made today shows numbers once his first game starts.</p></div>`;}
 {const _v=DW.pl.view;DW.pl.view=function(w,T){const h=_v.apply(this,arguments);let t="";try{t=plhView(T);}catch(e){console.warn(e);}return h+t;};}
 
 {const s=document.createElement("style");s.textContent=`
@@ -10290,6 +10310,7 @@ function plhView(T){if(T!==myTeamNum()||!prefKey())return "";const ms=plhList().
 .plh-v.ok{background:color-mix(in srgb,var(--win) 18%,transparent);color:var(--win)}.plh-v.bad{background:color-mix(in srgb,var(--loss) 16%,transparent);color:var(--loss)}
 .plh-net{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}.plh-net i{font-style:normal;font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:6px}
 .plh-net i.up{color:var(--win);background:color-mix(in srgb,var(--win) 12%,transparent)}.plh-net i.dn{color:var(--loss);background:color-mix(in srgb,var(--loss) 10%,transparent)}
+.plh-v.pp{background:var(--accent-wash);color:var(--accent)}
 .plh-old{margin-top:8px}.plh-old summary{cursor:pointer;font-size:.8rem;color:var(--muted);margin-bottom:6px}
 `;document.head.appendChild(s);}
 /* ============================================================================

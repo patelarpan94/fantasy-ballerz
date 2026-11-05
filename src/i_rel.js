@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.55",date:"2026-11-05",title:"Your pickups, for every login",notes:[
+    ["303","Fix","Win-the-week planner: the move tracker now works when you're logged in as the commissioner. Before, it only logged and showed moves for a team login, so the commissioner saw nothing."],
+    ["304","Change","Win-the-week planner: Your planner moves is now Your pickups. It shows every pickup you made this matchup, not only the planner's, each with his starts and stats for you, what the player you dropped did since and the difference in each category. Pickups the planner suggested are tagged Planner pick, and earlier matchups' planner picks still fold below."]]},
   {v:"2.54",date:"2026-11-05",title:"Planner keeps today's pickups",notes:[
     ["302","Fix","Win-the-week planner: a player you picked up can't be dropped on the same day you picked him up. The earliest the plan will drop him is the next day, after that day's games, and his chip on Willing to drop shows the first day he can go. It works for pickups you made yourself, waiver wins and pickups the planner suggested."]]},
   {v:"2.53",date:"2026-11-05",title:"Planner pickups go on your drop list",notes:[
