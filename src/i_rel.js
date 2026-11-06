@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.61",date:"2026-11-06",title:"Side bets",notes:[
+    ["317","New","Side bets (Fun › Side bets): challenge another manager to a friendly bet on your matchup, one category this matchup, your player vs theirs, or who finishes higher in the standings. Set what the loser owes (lunch, $5, renames their team, anything) and they accept or pass. Live bets show the score as the games go, and the app settles each one the moment the matchup is final, posts the result in league chat and keeps a Who owes who list with a Mark paid button, a bet record for every team, and Double or nothing for next matchup."],
+    ["318","New","Side bet offers land in a DM with Accept and Pass buttons right in the chat, and bets that are on or settled post in league chat."],
+    ["319","New","Side bets dashboard widget: offers waiting on you (accept from the dashboard), live scores on your bets and what you owe or are owed. Add it from + Add widget."]]},
   {v:"2.60",date:"2026-11-05",title:"Win-the-week planner fix for the commissioner",notes:[
     ["314","Fix","Win-the-week planner: logged in as the commissioner, Your pickups was missing and your moves weren't tracked while the league mirrors ESPN. It now shows the pickups for whichever team the dashboard is on."],
     ["315","Fix","Win-the-week planner: if everyone on your Willing to drop list has since left your roster, the planner goes back to suggesting who to drop. Before, it said Nobody and planned no moves."],
