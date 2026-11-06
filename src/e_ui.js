@@ -1,6 +1,6 @@
 
 /* ============================================================================
-   SLEEPER / ESPN-STYLE LAYER (2026-10-22): matchup hero with win odds, ESPN's
+   SLEEPER / ESPN-STYLE LAYER (2026-10-22): matchup hero with win chance, ESPN's
    category board, team header, league icon row, trending
    players, docked league chat and a theme switch. These sit on top of the
    existing views; nothing the app already showed is removed.
@@ -25,7 +25,7 @@ function streakOf(id){let s="",k=0;
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
   TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
   return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
-// chance to win the matchup: each category's odds from its projected margin, then P(more category wins than losses)
+// chance to win the matchup: each category's chance from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
   // a finished matchup is decided: 100% for the winner (BUG-163)
   if(a.done&&b.done){const r=h2h(a.fin,b.fin);return r[0]>r[1]?1:r[0]<r[1]?0:.5;}

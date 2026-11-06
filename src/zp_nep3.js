@@ -5,12 +5,12 @@
    What the research said, and what it changed here:
    - Lead with the few numbers that drive decisions, each with a direction and
      a trend  -> Pulse: 4 KPI cards the arena above does not already show
-     (playoff odds, standing, games-left edge, pickups left).
+     (playoff chances, standing, games-left edge, pickups left).
    - Answer "what do I do now?" before showing detail -> Game plan: one ranked
      to-do list built from every signal the app has, with one-tap actions.
    - Progressive disclosure -> every section title folds its section away
      (on every dashboard), remembered per login.
-   - New tools that matter in head-to-head categories: Playoff odds (a 2,000-
+   - New tools that matter in head-to-head categories: Playoff chances (a 2,000-
      season simulation) and Scout your opponent.
    ============================================================================ */
 NEP_VER=3;
@@ -20,7 +20,7 @@ const dSpk=(v,cls)=>{if(!v||v.length<2)return "";const W=96,H=28,mn=Math.min(...
   const d=v.map((a,i)=>`${i?"L":"M"}${x(i)},${y(a)}`).join("");return `<svg class="kp-sp ${cls||""}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}L${W},${H}L0,${H}Z" class="kp-sa"/><path d="${d}" class="kp-sl"/><circle cx="${x(v.length-1)}" cy="${y(v[v.length-1])}" r="2.6"/></svg>`;};
 const dDelta=(d,unit,inv)=>{if(d==null||!isFinite(d)||Math.abs(d)<.5)return `<span class="kp-d flat">no change</span>`;const up=d>0;return `<span class="kp-d ${up!==!!inv?"up":"down"}">${up?"▲":"▼"} ${Math.abs(Math.round(d))}${unit||""}</span>`;};
 
-/* ---- playoff odds: simulate the rest of the regular season 2,000 times ---- */
+/* ---- playoff chances: simulate the rest of the regular season 2,000 times ---- */
 let DPO_K="",DPO=null;
 function dTeamStr(id){const xs=dNowP(id).filter(p=>p.st!=="OUT").map(p=>{const pj=pgLine(p.pj),r=recentPG(p.n,21);const z=pj?zOf(pj):r?zOf(r.pg):null;return z==null?-3:z;}).sort((a,b)=>b-a).slice(0,10);return xs.reduce((a,b)=>a+b,0);}
 function dPlayoffOdds(){const k=TODAY+":"+TXLOG.length+":"+Object.keys(STATS||{}).length;if(k===DPO_K&&DPO)return DPO;DPO_K=k;
@@ -41,8 +41,8 @@ function dPlayoffOdds(){const k=TODAY+":"+TXLOG.length+":"+Object.keys(STATS||{}
   const rows=ids.map(x=>({id:x,p:made[x]/N,t:top[x]/N,seed:seed[x].map(v=>v/N),avg:seed[x].reduce((s,v,i)=>s+v*(i+1),0)/N})).sort((a,b)=>b.p-a.p||a.avg-b.avg);
   let left=0;for(let n=1;n<=reg;n++)if(!weekDone(n))left++;DPO={rows,P,left,reg,cw};return DPO;}
 
-DW.po={name:"Playoff odds",desc:"Plays out the rest of the regular season 2,000 times from today's rosters and standings, then shows each team's chance to make the playoffs and where you're likely to finish.",s:"w",
-  view(w,T){let o=null;try{o=dPlayoffOdds();}catch(e){o=null;}if(!o)return dashEmpty("Playoff odds start once the league has a schedule.");
+DW.po={name:"Playoff chances",desc:"Plays out the rest of the regular season 2,000 times from today's rosters and standings, then shows each team's chance to make the playoffs and where you're likely to finish.",s:"w",
+  view(w,T){let o=null;try{o=dPlayoffOdds();}catch(e){o=null;}if(!o)return dashEmpty("Playoff chances start once the league has a schedule.");
     const me=o.rows.find(r=>r.id===T)||o.rows[0],pc=dPct(me.p),mxS=Math.max(...me.seed),best=me.seed.indexOf(mxS)+1,phone=PHONE();
     const lab=r=>o.left>4?"":r.p>.995?`<i class="po-tag in">in</i>`:r.p<.005?`<i class="po-tag out">out</i>`:"";
     return `<div class="po-top"><div class="po-big"><b class="num">${pc}<small>%</small></b><span>to make the playoffs<br><small class="muted">top ${o.P} of ${o.rows.length} · most likely ${ord(best)} seed</small></span></div>
@@ -74,14 +74,14 @@ DW.gp={name:"Game plan",desc:"Your to-do list for this matchup, most important f
       <ol class="gp-l">${xs.map((x,i)=>`<li class="lv${x.lv}" style="--d:${i*70}ms"><span class="gp-ic" aria-hidden="true">${x.ic}</span><span class="gp-t">${esc(x.t)}</span>${x.imp?`<b class="gp-imp num">${esc(x.imp)}</b>`:""}${x.act||""}</li>`).join("")}</ol>`;}};
 
 /* ---- pulse: the four numbers that matter, with direction and trend ---- */
-DW.kp={name:"Pulse",desc:"Four numbers the matchup hero doesn't show, each with direction and trend: playoff odds, your standing, the games-left edge and pickups left.",s:"f",
+DW.kp={name:"Pulse",desc:"Four numbers the matchup hero doesn't show, each with direction and trend: playoff chances, your standing, the games-left edge and pickups left.",s:"f",
   view(w,T){const opp=dOpp(T);let po=null;try{po=dPlayoffOdds();}catch(e){}const mr=po&&po.rows.find(r=>r.id===T);
     const card=(cls,lab,big,sub,extra)=>`<div class="kp-c ${cls}"><span class="kp-l">${lab}</span><b class="kp-v num">${big}</b><span class="kp-s">${sub}</span>${extra||""}</div>`;
     const order=standOrder(),rk=order.indexOf(T)+1,r=STAND[T]?.rec||[0,0,0],stk=typeof streakOf==="function"?streakOf(T):"",n=order.length;
     const wr=[];for(let k=1;k<=regWeeks();k++){if(!weekDone(k))break;const pr=(W[k]||[]).find(([a,b])=>a===T||b===T);if(!pr)continue;const o=pr[0]===T?pr[1]:pr[0];const x=h2h(wt(T,k),wt(o,k));wr.push(x[0]-x[1]);}
     const days=DAYS.filter(sp=>sp>=TODAY),gm=opp?dLeft(T,days):0,go=opp?dLeft(opp,days):0,gs=days.map((sp,i)=>dLeft(T,days.slice(i))-(opp?dLeft(opp,days.slice(i)):0)).reverse();
     const lim=+L.addLimit||0,pl=lim?pickupsLeft(T):null,open=Math.max(0,ROSTER_MAX-dNowP(T).length);
-    return `<div class="kp">${card(mr?(mr.p>=.5?"good":"bad"):"","Playoff odds",mr?`${dPct(mr.p)}<small>%</small>`:"–",mr?`<small class="muted">likely ${ord(Math.max(1,Math.round(mr.avg)))} of ${po.rows.length} · top ${po.P} get in</small>`:`<small class="muted">no schedule yet</small>`,mr?`<div class="kp-mini">${mr.seed.map((v,i)=>`<i class="${i<po.P?"in":""}" style="--h:${Math.max(6,v/Math.max(...mr.seed)*100).toFixed(0)}%"></i>`).join("")}</div>`:"")}
+    return `<div class="kp">${card(mr?(mr.p>=.5?"good":"bad"):"","Playoff chances",mr?`${dPct(mr.p)}<small>%</small>`:"–",mr?`<small class="muted">likely ${ord(Math.max(1,Math.round(mr.avg)))} of ${po.rows.length} · top ${po.P} get in</small>`:`<small class="muted">no schedule yet</small>`,mr?`<div class="kp-mini">${mr.seed.map((v,i)=>`<i class="${i<po.P?"in":""}" style="--h:${Math.max(6,v/Math.max(...mr.seed)*100).toFixed(0)}%"></i>`).join("")}</div>`:"")}
       ${card(rk&&rk<=(po?po.P:4)?"good":"bad","Standing",rk?`${ord(rk)}<small> of ${n}</small>`:"–",`<small class="muted">${r.join("-")}${stk?` · ${esc(stk)}`:""}</small>`,dSpk(wr.length>1?wr:null,"acc"))}
       ${opp?card(gm>=go?"good":"bad","Games left",`${gm}<small> vs ${go}</small>`,gm===go?`<span class="kp-d flat">even</span>`:`<span class="kp-d ${gm>go?"up":"down"}">${gm>go?"▲ +":"▼ −"}${Math.abs(gm-go)}</span><small class="muted"> starter games</small>`,dSpk(gs.length>1?gs:null,gm>=go?"good":"bad")):card("","Games left","–",`<small class="muted">no matchup</small>`)}
       ${lim?card(pl>0?"good":"bad","Pickups left",`${pl}<small> of ${lim}</small>`,`<small class="muted">${esc(addWhen())}</small>`,`<div class="kp-pips">${Array.from({length:lim},(_,i)=>`<i class="${i<lim-pl?"used":""}"></i>`).join("")}</div>`)
@@ -145,7 +145,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-dfold]");i
 .lv3 .gp-ic{background:rgba(239,68,68,.16);color:#ef4444}.lv2 .gp-ic{background:rgba(245,158,11,.16);color:#f59e0b}.lv0 .gp-ic{background:rgba(34,197,94,.14);color:#22c55e}
 .gp-imp{font-size:.85rem;color:#22c55e;white-space:nowrap}.gp-l li:not(:has(.btn)) .gp-imp{grid-column:3/5}.gp-l li:not(:has(.btn)):not(:has(.gp-imp)) .gp-t{grid-column:2/5}
 .dfirst .gp-l li{animation:drise .45s cubic-bezier(.3,.7,.2,1) both;animation-delay:var(--d)}
-/* playoff odds */
+/* playoff chances */
 .po-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
 .po-big{display:flex;align-items:center;gap:12px}.po-big b{font-size:2.6rem;line-height:1;font-weight:800;letter-spacing:-.03em;background:linear-gradient(90deg,var(--accent),#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent}.po-big b small{font-size:1.1rem}.po-big span{font-size:.88rem;line-height:1.35}
 .po-seeds{display:flex;align-items:flex-end;gap:4px;height:64px;flex:1;min-width:180px;max-width:340px}.po-seeds span{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}

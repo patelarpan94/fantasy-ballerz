@@ -1,7 +1,7 @@
 /* ============================================================================
    TRASH TALK (2.21, 2026-11-02): Fun › Trash talk. Pick a team (this week's
    opponent by default) and the app digs through real league numbers for
-   ammo: the live score, win odds, starts left, their worst category, your
+   ammo: the live score, win chance, starts left, their worst category, your
    best one, the last time you met, the standings, the taco, bench points,
    OUT players still in their lineup and a quiet waiver wire. Each fact comes
    with ready lines (tap 🎲 for another), tagged with the playbook rule it
@@ -34,7 +34,7 @@ function tkFacts(T,O){
         [`${tkF(lead.x,lead.c)} to ${tkF(lead.y,lead.c)} in ${lead.c[0]}. Is that category optional for you?`,`I've got ${lead.c[0]} locked, ${tkF(lead.x,lead.c)} to ${tkF(lead.y,lead.c)}. Don't bother.`]);}
     if(!done){const p=winProb(a,b),P=Math.round(p*100);
       if(p>=.6)add("odds","receipts",2+4*(p-.5),`${P}% to win this week, says the app`,
-        [`The app has me at ${P}% to win this week. Not my numbers, the math's.`,`${P}% win odds. Even the computer is picking against you.`,`${100-P}% for you. I'd start practicing your congratulations.`]);
+        [`The app has me at ${P}% to win this week. Not my numbers, the math's.`,`${P}% win chance. Even the computer is picking against you.`,`${100-P}% for you. I'd start practicing your congratulations.`]);
       const g1=gamesLeft(T),g2=gamesLeft(O);
       if(g1>=g2+3)add("sched","sched",1.5+(g1-g2)/4,`${g1} starts left vs ${tkPos(nO)} ${g2}`,
         [`I've got ${g1} starts left, you've got ${g2}. Hope your guys play 48 minutes.`,`${g1} games to your ${g2}. Volume wins, ${nO}.`,`Math check: ${g1} > ${g2}. Enjoy the rest of the week.`]);}}

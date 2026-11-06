@@ -6,7 +6,7 @@
      teammates who really gain (Opportunity radar's with/without data) and a
      one-tap Add. New ones also pop a toast and a dashboard alert.
    - Season win plan (sv): every regular-season matchup left, projected from
-     both rosters and that week's NBA schedule, your playoff odds, and how much
+     both rosters and that week's NBA schedule, your playoff chances, and how much
      each week moves them (win vs lose). Tells you which weeks are must-wins
      (use every pickup) and which to coast (don't drop good players for
      streamers), plus a trade-deadline checklist.
@@ -79,27 +79,27 @@ function dSeasonPlan(T){const k=T+":"+TODAY+":"+TXLOG.length+":"+Object.keys(STA
     mine.forEach(m=>{const R=res[m.gi];if(wonG[m.gi]){R.win++;if(inn)R.mw++;}else if(inn)R.ml++;});}
   mine.forEach(m=>{const R=res[m.gi],nw=R.win,nl=N-R.win;m.p=nw/N;m.ifW=nw>=60?R.mw/nw:null;m.ifL=nl>=60?R.ml/nl:null;m.lev=m.ifW!=null&&m.ifL!=null?Math.max(0,m.ifW-m.ifL):0;
     m.tag=m.p>=.75?"safe":m.p<=.25?"long":"swing";});
-  // the three weeks that move your odds most (and are winnable) are the must-wins
+  // the three weeks that move your chances most (and are winnable) are the must-wins
   mine.filter(m=>m.tag==="swing"&&m.lev>=.08).sort((a,b)=>b.lev-a.lev).slice(0,3).forEach(m=>m.tag="must");
   const odds=made/N,best=seed.indexOf(Math.max(...seed))+1;
   SVP={mine,P,odds,best,reg,cw,N:ids.length};SVP_K=k;return SVP;}
 
 const SV_TAG={must:["Must win","Use every pickup"],swing:["Swing week","Stream if it's close"],safe:["Favored","Don't drop good players for streamers"],long:["Long shot","Save your roster for later"]};
-DW.sv={name:"Season win plan",desc:"Every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff odds and how much each week moves them. Shows which weeks are must-wins, which to coast, and a trade-deadline checklist.",s:"f",
+DW.sv={name:"Season win plan",desc:"Every regular-season matchup you have left, projected from both rosters and that week's NBA schedule, with your playoff chances and how much each week moves them. Shows which weeks are must-wins, which to coast, and a trade-deadline checklist.",s:"f",
   view(w,T){let r=null;try{r=dSeasonPlan(T);}catch(e){console.warn(e);}if(!r)return dashEmpty("The season plan starts once the league has a schedule.");
     if(!r.mine.length)return dashEmpty("No regular-season matchups left. The playoffs are next: see Playoff schedule edge.");
     const phone=PHONE(),lim=w.s==="f"?r.mine.length:6,pc=dPct(r.odds);
     const must=r.mine.filter(m=>m.tag==="must").sort((a,b)=>b.lev-a.lev),key=r.mine.slice().sort((a,b)=>b.lev*(1-Math.abs(.5-b.p))-a.lev*(1-Math.abs(.5-a.p)));
     const dl=typeof tcfg==="function"?tcfg().deadline:null,dleft=dl?Math.ceil((dl-Date.now())/864e5):null;
     const sum=r.odds>.985?`You're all but in. Use the weeks left to set up your playoff roster.`:r.odds<.015?`The playoffs are a long shot. Win now and you climb back in.`:
-      must.length?`<b>${must.length} must-win week${must.length>1?"s":""}</b> left. The biggest is <b>${esc(weekName(must[0].n))}</b> vs ${esc(dShort(must[0].o))}: winning it is worth <b>${dPct(must[0].lev)} points</b> of playoff odds.`
+      must.length?`<b>${must.length} must-win week${must.length>1?"s":""}</b> left. The biggest is <b>${esc(weekName(must[0].n))}</b> vs ${esc(dShort(must[0].o))}: winning it is worth <b>${dPct(must[0].lev)} points</b> of playoff chances.`
       :`No single week decides it. Your biggest is <b>${esc(weekName(key[0].n))}</b> vs ${esc(dShort(key[0].o))} (${dPct(key[0].lev)} points).`;
     const row=m=>{const t=SV_TAG[m.tag],ge=m.gm!=null&&m.go!=null?m.gm-m.go:null;
       return `<li class="sv-${m.tag}${m.n===r.cw?" now":""}"><span class="sv-wk"><b>${esc(weekName(m.n))}</b>${m.n===r.cw?`<small class="okc">now</small>`:""}</span>
         <span class="sv-o"><span>vs <b>${esc(phone?dShort(m.o):TEAMS[m.o].name)}</b></span><small class="muted">${m.exp.toFixed(1)}–${(CATS.length-m.exp).toFixed(1)} cats${ge!=null?` · ${ge?`${ge>0?"+":""}${ge} games`:"even games"}`:""}</small></span>
         <span class="sv-p"><i style="--w:${(m.p*100).toFixed(0)}%"></i><b class="num">${dPct(m.p)}%</b></span>
         <span class="sv-t"><em>${t[0]}</em><small class="muted">${t[1]}</small></span>
-        ${phone?"":`<span class="sv-lv num" title="Playoff odds if you win this week vs if you lose it">${m.ifW!=null?dPct(m.ifW):"–"}% / ${m.ifL!=null?dPct(m.ifL):"–"}%</span>`}</li>`;};
+        ${phone?"":`<span class="sv-lv num" title="Playoff chances if you win this week vs if you lose it">${m.ifW!=null?dPct(m.ifW):"–"}% / ${m.ifL!=null?dPct(m.ifL):"–"}%</span>`}</li>`;};
     // trade-deadline checklist from the playoff schedule
     let chk="";try{const ps=dPlayoffSched();if(ps&&ps.g.some(x=>x.tot)&&dl&&dleft>0){const mineP=dNowP(T).map(p=>({n:p.n,t:p.t,v:ps.val(p.n),s:ps.G[p.t]})).filter(x=>x.s&&x.v!=null);
       const sell=mineP.filter(x=>x.s.tot<=ps.avg-1).sort((a,b)=>b.v-a.v).slice(0,2);
@@ -108,9 +108,9 @@ DW.sv={name:"Season win plan",desc:"Every regular-season matchup you have left, 
         ${sell.map(x=>`<li>Sell <b>${dashNm(x.n)}</b> <small class="muted">only ${x.s.tot} playoff games</small></li>`).join("")}
         ${buy.map(x=>`<li>Target <b>${dashNm(x.n)}</b> <small class="muted">${esc(x.own.nm)} · ${x.s.tot} playoff games</small><button class="btn ghost sm" data-trade="${esc(x.n)}">Trade</button></li>`).join("")}
         ${!sell.length&&!buy.length?`<li class="muted">Your playoff schedule looks fine. Nothing urgent.</li>`:""}</ul></div>`;}}catch(e){}
-    return `<div class="sv-top"><div class="po-big"><b class="num">${pc}<small>%</small></b><span>playoff odds <small class="muted">with the schedule</small><br><small class="muted">top ${r.P} of ${r.N} · most likely ${ord(r.best)} seed</small></span></div><p class="sv-sum">${sum}</p></div>
-      <ol class="sv-l">${phone?"":`<li class="sv-hd" aria-hidden="true"><span>Week</span><span>Opponent</span><span>Win chance</span><span>Plan</span><span>Odds if W / L</span></li>`}${r.mine.slice(0,lim).map(row).join("")}</ol>
-      ${chk}<p class="dsm muted">Each week is projected from both current rosters, injuries and how many games each team's players have that week (this week uses live projections). The season is then played out 4,000 times to see how much each result moves your playoff odds.</p>`;}};
+    return `<div class="sv-top"><div class="po-big"><b class="num">${pc}<small>%</small></b><span>playoff chances <small class="muted">with the schedule</small><br><small class="muted">top ${r.P} of ${r.N} · most likely ${ord(r.best)} seed</small></span></div><p class="sv-sum">${sum}</p></div>
+      <ol class="sv-l">${phone?"":`<li class="sv-hd" aria-hidden="true"><span>Week</span><span>Opponent</span><span>Win chance</span><span>Plan</span><span>Chances if W / L</span></li>`}${r.mine.slice(0,lim).map(row).join("")}</ol>
+      ${chk}<p class="dsm muted">Each week is projected from both current rosters, injuries and how many games each team's players have that week (this week uses live projections). The season is then played out 4,000 times to see how much each result moves your playoff chances.</p>`;}};
 
 // New Era +: First to the wire at the top of Today, Season win plan at the top of The race (added once to boards already set up)
 {const ins=(after,k,s)=>{if(NEP_DEF.some(x=>x[0]===k))return;const i=NEP_DEF.findIndex(x=>x[0]===after.k&&(!after.t||(x[2]&&x[2].t===after.t)));NEP_DEF.splice(i>=0?i+1:NEP_DEF.length,0,[k,s]);};

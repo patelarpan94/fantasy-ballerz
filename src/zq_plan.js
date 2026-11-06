@@ -13,7 +13,7 @@
      (swapping him out on a later day chains streams). A free agent only
      counts on days he has a game AND fits an open slot after your regulars.
    - Score: expected categories won against this opponent's projected
-     finish (same per-category odds as the rest of the dashboard).
+     finish (same per-category chances as the rest of the dashboard).
    ============================================================================ */
 let DPL_K="",DPL=null;
 // Arp 2026-11-04: "i can only pickup 6 players a week ... players i pickup only show up next day"

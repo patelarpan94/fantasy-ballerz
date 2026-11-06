@@ -768,7 +768,7 @@ function runWaivers_(L, D, now, TODAY, put) {
     var wins = res.filter(function (r) { return r[1] === 'won'; }), cid = 'sys_waivers_' + SEASON + '_' + T0;
     if (wins.length && !(D.chat[cid] && D.chat[cid].text)) {
       put('chat', cid, {ch: 'league', members: ['all'], from: 'sys', kind: 'waivers', at: now,
-        text: 'Waivers ran ' + fmtET_(T0) + '\n' + wins.map(function (r) { var x = r[0]; return '✅ ' + teamName_(L, x.team) + ' claimed ' + x.add + (c.type === 'faab' ? ' ($' + (+x.bid || 0) + ')' : '') + (x.drop ? ', dropped ' + x.drop : ''); }).join('\n')});
+        text: 'Waivers ran ' + fmtET_(T0) + '\n' + wins.map(function (r) { var x = r[0]; return '✅ ' + teamName_(L, x.team) + ' claimed ' + x.add + (c.type === 'faab' ? ' (bid ' + (+x.bid || 0) + ')' : '') + (x.drop ? ', dropped ' + x.drop : ''); }).join('\n')});
     }
     log.push(fmtET_(T0) + ': ' + wins.length + ' of ' + res.length + ' claims won');
   });

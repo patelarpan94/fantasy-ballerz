@@ -116,7 +116,7 @@ function espnRules(st){const a=st.acquisitionSettings||{},t=st.tradeSettings||{}
   const vv=+t.vetoVotesRequired,rh=+t.revisionHours;
   out.trades={review:!(rh>0)?"none":vv>0?"veto":"commish",hours:rh>0?rh:24,vetoes:vv>0?vv:3,deadline:+t.deadlineDate||null};
   return out;}
-const wDesc=w=>`${{rolling:"Rolling",standings:"Reverse standings",faab:"Bidding"}[w.type]||w.type}, ${w.days.length===7?"every day":w.days.map(d=>DOW_FULL[d].slice(0,3)).join("/")} ${fmtHour(w.hour)} ET, ${w.hours}h wait${w.type==="faab"?`, $${w.budget} budget, $${w.minBid} min`:""}`;
+const wDesc=w=>`${{rolling:"Rolling",standings:"Reverse standings",faab:"Bidding"}[w.type]||w.type}, ${w.days.length===7?"every day":w.days.map(d=>DOW_FULL[d].slice(0,3)).join("/")} ${fmtHour(w.hour)} ET, ${w.hours}h wait${w.type==="faab"?`, ${w.budget}-point budget, ${w.minBid} min bid`:""}`;
 const tDesc=t=>`${{veto:`${t.vetoes} vetoes`,majority:"league vote",commish:"commissioner",none:"no review"}[t.review]}${t.review==="none"?"":`, ${t.hours}h`}, deadline ${t.deadline?fmtDeadline(t.deadline):"none"}`;
 const aDesc=(n,m)=>n?`${n} per ${{day:"day",season:"season"}[m]||"matchup"}`:"No limit";
 let ESPN_RULES=null;
