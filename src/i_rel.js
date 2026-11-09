@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.63",date:"2026-11-09",title:"Opponent watch sees ESPN moves",notes:[
+    ["324","Fix","Opponent watch now finds your opponent's adds, drops and trades while the league mirrors ESPN (it read only the app's own move log, which is empty in mirror mode). It also shows on past matchups, with your category score without their moves next to the real final, and which categories each move cost you."]]},
   {v:"2.62",date:"2026-11-09",title:"Dashboard for any matchup",notes:[
     ["322","New","The dashboard follows the matchup picked at the top, and has its own ‹ Matchup › arrows. Pick a past matchup and the week widgets (matchup, arena, swing categories, win % tracker, tug-of-war, daily production, league scoreboard and more) show that week, while today's tools (lineup, quick add, planner, countdown) step aside until you tap Back to this week."],
     ["323","New","Matchup recap: looking back at a finished matchup, the dashboard leads with the result, every category with who won it and by how much, each side's top three players, the best single game, starts and bench points left."]]},

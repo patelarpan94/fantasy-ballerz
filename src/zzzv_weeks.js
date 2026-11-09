@@ -17,7 +17,7 @@
    - "This week" jumps straight back.
    ============================================================================ */
 // widgets about today / right now: hidden while a past or future matchup is picked
-const DWK_NOW=new Set(["lu","tl","otl","qa","co","cd","gm","lt","nw","fa","tr","wf","wa","sm","mw","ct","pl","cl","fw","or","gp","ij","gl","ow","kp","op","wl","ch","hd","rr"]);
+const DWK_NOW=new Set(["lu","tl","otl","qa","co","cd","gm","lt","nw","fa","tr","wf","wa","sm","mw","ct","pl","cl","fw","or","gp","ij","gl","kp","op","wl","ch","hd","rr"]);
 // projections that read wrong once a matchup is final
 const DWK_PAST=new Set(["sw","wp"]);
 const dwkNow=()=>weekOf(Math.min(TODAY,SEASON_END));
