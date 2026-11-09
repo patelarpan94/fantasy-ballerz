@@ -20,10 +20,10 @@ const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=s
   return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
 // BUG-302 (Arp 2026-11-05): a player you picked up can't be dropped on the day you picked him up.
 // Pickup day = the add's day in the move log (mirror mode: the first day ESPN listed him). A planned drop is
-// made after day d0-PL_LAG's games, so it has to be later than the pickup day: d0 >= pickup day + 1 + PL_LAG.
+// made on day d0 before the first tip-off (BUG-327), so it has to be a later day than the pickup: d0 >= pickup day + 1.
 function plPickDay(T,n){for(let i=TXLOG.length-1;i>=0;i--){const t=TXLOG[i];if(t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade")return t.day??t.addDay??null;}
   const iv=(OWN[n]||[]).find(i=>i.team===T&&i.to===Infinity);return iv?iv.from:null;}
-const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1+PL_LAG;};
+const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1;};
 const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0,ad:o.ad||[]};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
@@ -78,7 +78,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const pos0=limK.length?posN({drops:{},adds:[]}):{},posOk=pl=>{if(!limK.length)return true;const c=posN(pl);return limK.every(k=>(c[k]||0)<=Math.max(+PLIM[k],pos0[k]||0));};
   const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
-      const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
+      const ok=d=>d>=TODAY+plLag()+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
       for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;const dd=(p.minD||0)>d0?days.find(d=>d>=p.minD&&ok(d)):d0;if(dd==null)continue;push({drops:{...pl.drops,[p.n]:dd},adds:[...pl.adds,{x,from:dd,to:end,spot:p.n}]},"drop");}
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
@@ -100,7 +100,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
   return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
 let DPL_BUSY=false;
-dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
+dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
   if(k===DPL_K)return DPL;if(!sync){if(!DPL_BUSY){DPL_BUSY=true;setTimeout(()=>{DPL_BUSY=false;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}DPL_K=k;if(nav==="dash")dashDraw();},30);}return undefined;}
   DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
 
@@ -117,15 +117,15 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
       ${o.x.length||o.d||Object.keys(o.c).length||o.n?`<button class="pl-reset" data-plreset>Reset all</button>`:""}</div>
     ${(()=>{const dn2=new Set(r.dl),mine=r.regs.filter(x=>!x.ir&&!dn2.has(x.n)).sort((a,b)=>a.z-b.z);
-      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+PL_LAG?` <small class="pl-pk">drop from ${esc(dow(x.minD-PL_LAG))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+plLag()?` <small class="pl-pk">drop from ${esc(dow(plAddDay(x.minD)))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
   const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
   const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
-  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const today=m.from-PL_LAG===TODAY;
-    const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(m.from-PL_LAG))}</small>`;
-    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from-PL_LAG))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"} · plays from ${esc(dow(m.from))}${m.x.w?" · on waivers":""}</small>
+  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const today=plAddDay(m.from)===TODAY;
+    const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(plAddDay(m.from)))}</small>`;
+    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(plAddDay(m.from)))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}${m.x.w?" · on waivers":""}</small>
       ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
       <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
       ${btn}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
