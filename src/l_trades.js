@@ -112,13 +112,13 @@ const ESPN_DOW={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATU
 function espnRules(st){const a=st.acquisitionSettings||{},t=st.tradeSettings||{},out={};
   out.waivers={type:a.isUsingAcquisitionBudget?"faab":"rolling",hours:+a.waiverHours||0,days:(a.waiverProcessDays||[]).map(d=>ESPN_DOW[d]).filter(d=>d!=null).sort(),hour:+a.waiverProcessHour||0,budget:+a.acquisitionBudget||100,minBid:+a.minimumBid||0};
   if(!out.waivers.days.length)out.waivers.days=[0,1,2,3,4,5,6];
-  const ml=+a.matchupAcquisitionLimit,sl=+a.acquisitionLimit;out.addLimit=ml>0?ml:sl>0?sl:0;out.addMode=ml>0?(a.matchupLimitPerScoringPeriod?"day":"matchup"):sl>0?"season":"matchup";
+  const ml=+a.matchupAcquisitionLimit,sl=+a.acquisitionLimit;out.addLimit=ml>0?ml:sl>0?sl:0;out.addMode=ml>0?(a.matchupLimitPerScoringPeriod?"mday":"matchup"):sl>0?"season":"matchup";
   const vv=+t.vetoVotesRequired,rh=+t.revisionHours;
   out.trades={review:!(rh>0)?"none":vv>0?"veto":"commish",hours:rh>0?rh:24,vetoes:vv>0?vv:3,deadline:+t.deadlineDate||null};
   return out;}
 const wDesc=w=>`${{rolling:"Rolling",standings:"Reverse standings",faab:"Bidding"}[w.type]||w.type}, ${w.days.length===7?"every day":w.days.map(d=>DOW_FULL[d].slice(0,3)).join("/")} ${fmtHour(w.hour)} ET, ${w.hours}h wait${w.type==="faab"?`, ${w.budget}-point budget, ${w.minBid} min bid`:""}`;
 const tDesc=t=>`${{veto:`${t.vetoes} vetoes`,majority:"league vote",commish:"commissioner",none:"no review"}[t.review]}${t.review==="none"?"":`, ${t.hours}h`}, deadline ${t.deadline?fmtDeadline(t.deadline):"none"}`;
-const aDesc=(n,m)=>n?`${n} per ${{day:"day",season:"season"}[m]||"matchup"}`:"No limit";
+const aDesc=(n,m)=>n?(m==="mday"?`${n} per day of the matchup (${n*7} per 7-day matchup)`:`${n} per ${{day:"day",season:"season"}[m]||"matchup"}`):"No limit";
 let ESPN_RULES=null;
 async function matchEspn(){const F=FORM,E=(F&&F.espn)||L.espn;if(!F||!E?.league)return toast("This league isn't linked to an ESPN league.");
   toast("Loading ESPN's rules…");

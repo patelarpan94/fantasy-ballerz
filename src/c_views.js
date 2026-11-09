@@ -285,11 +285,11 @@ function rosterPick(T,name,type,checked,disableLocked){
   return `<div class="picklist">${rosterNow(T).map(n=>{const p=TEAMS[T].P.find(q=>q.n===n)||mkP(n);const lk=disableLocked&&lockedName(n,TODAY);return `<label><input type="${type}" name="${name}" value="${esc(n)}" ${checked.includes(n)?"checked":""}>${playerCell(p,false)}${lk?'<span class="lock">plays today · leaves tomorrow</span>':""}</label>`;}).join("")}</div>`;
 }
 const pickupsUsed=(T,sp)=>TXLOG.filter(t=>t.type==="add"&&t.add&&t.ok&&t.role!=="commish"&&tnum(t.team)===T&&addPeriod(t.day||TODAY)===addPeriod(sp)).length;
-const pickupsLeft=T=>{const lim=+L.addLimit||0;return lim?Math.max(0,lim-pickupsUsed(T,TODAY)):Infinity;};
-const pickupTxt=T=>{const lim=+L.addLimit||0;return lim?`${pickupsUsed(T,TODAY)} of ${lim} pickups used ${addWhen()}`:"";};
+const pickupsLeft=T=>{const lim=addLimitFor(TODAY);return lim?Math.max(0,lim-pickupsUsed(T,TODAY)):Infinity;};
+const pickupTxt=T=>{const lim=addLimitFor(TODAY);return lim?`${pickupsUsed(T,TODAY)} of ${lim} pickups used ${addWhen()}`:"";};
 function sheetAdd(n){
-  const T0=actTeam();if(T0&&!isCommish()&&pickupsLeft(T0)<=0){const m=L.addMode||"matchup",nw=m==="matchup"?WEEKS[weekOf(TODAY)[0]]:null;
-    return openSheet(`Add ${n}`,`<p>You've used all ${L.addLimit} pickups ${m==="day"?"for today. You can add players again tomorrow.":m==="season"?"for the season.":`for this matchup.${nw?` You can add players again on ${dow(nw[1])} ${md(nw[1])}.`:""}`}</p><div class="sheetacts"><button class="btn" data-sheet="close">OK</button></div>`);}
+  const T0=actTeam();if(T0&&!isCommish()&&pickupsLeft(T0)<=0){const m=L.addMode||"matchup",nw=m==="matchup"||m==="mday"?WEEKS[weekOf(TODAY)[0]]:null;
+    return openSheet(`Add ${n}`,`<p>You've used all ${addLimitFor(TODAY)} pickups ${m==="day"?"for today. You can add players again tomorrow.":m==="season"?"for the season.":`for this matchup.${nw?` You can add players again on ${dow(nw[1])} ${md(nw[1])}.`:""}`}</p><div class="sheetacts"><button class="btn" data-sheet="close">OK</button></div>`);}
   const T=actTeam(),full=rosterNow(T).length>=ROSTER_MAX,lk=lockedName(n,TODAY);
   openSheet(`Add ${n}`,`<div class="picklist"><label style="cursor:default">${playerCell(mkP(n))}</label></div>
     <p>To <b>${esc(TEAMS[T].name)}</b>.${+L.addLimit&&!isCommish()?` This uses 1 of your ${pickupsLeft(T)} pickups left ${addWhen()}.`:""} ${lk?"His game today has started, so he joins tomorrow.":"He can play today if his game hasn't started."} New players fill an open starting slot if there is one, otherwise the bench.</p>
@@ -545,7 +545,7 @@ function setupView(){
     <div class="field" style="grid-column:1/-1"><label for="fName">League name</label><input type="text" id="fName" value="${esc(F.name)}" ${dis}></div>
     <div class="field"><label for="fStart">Season starts in week</label><select id="fStart" ${dis}>${CAL.slice(0,CAL.length-3).map(w=>`<option value="${w[0]}"${(+F.startWeek||1)===w[0]?" selected":""}>Week ${w[0]} · ${md(w[1])}</option>`).join("")}</select></div>
     <div class="field"><label for="fAdds">Pickup limit</label><input type="number" id="fAdds" min="0" max="99" value="${+F.addLimit||0}" ${dis}><span class="hint">0 = no limit. Waiver claims count; commissioner moves don't.</span></div>
-    <div class="field"><label for="fAddMode">Pickup limit counts</label><select id="fAddMode" ${dis}>${[["matchup","Per matchup"],["day","Per day"],["season","Per season"]].map(([k,l])=>`<option value="${k}"${(F.addMode||"matchup")===k?" selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field"><label for="fAddMode">Pickup limit counts</label><select id="fAddMode" ${dis}>${[["matchup","Per matchup"],["mday","Per matchup, times its days (ESPN)"],["day","Per day"],["season","Per season"]].map(([k,l])=>`<option value="${k}"${(F.addMode||"matchup")===k?" selected":""}>${l}</option>`).join("")}</select></div>
     <div class="field"><label for="fPlayoff">Playoff teams</label><input type="number" id="fPlayoff" min="2" max="${F.teams.length}" value="${F.playoffTeams}" ${dis}></div>
     <div class="field" style="grid-column:1/-1"><label for="fFormat">Scoring</label><select id="fFormat" ${dis}><option value="each"${F.format!=="most"?" selected":""}>Each category counts (W-L-T per category)</option><option value="most"${F.format==="most"?" selected":""}>Most categories wins the week (one W, L or T)</option></select></div>
   </div></section>
