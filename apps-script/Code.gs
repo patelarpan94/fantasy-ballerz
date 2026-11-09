@@ -914,6 +914,13 @@ function syncSettings_(L, LG) {
     for (var i in lc) if (ESPN_SLOT[+i]) { sl[ESPN_SLOT[+i]] = +lc[i] || 0; if (+lc[i]) any = true; tot += +lc[i] || 0; }
     if (any) { nxt.slots = sl; nxt.maxRoster = tot; }
   }
+  // position limits (ESPN positionLimits: 1 PG, 2 SG, 3 SF, 4 PF, 5 C; -1 or 0 = no limit)
+  var plim = g_(st, 'rosterSettings', 'positionLimits');
+  if (plim) {
+    var PM = { 1: 'PG', 2: 'SG', 3: 'SF', 4: 'PF', 5: 'C' }, pm = {};
+    for (var j in plim) if (PM[+j] && +plim[j] > 0) pm[PM[+j]] = +plim[j];
+    nxt.posMax = pm;
+  }
   var ks = (g_(st, 'scoringSettings', 'scoringItems') || []).map(function (x) { return ESPN_CAT[x.statId]; });
   var cats = CATDEF.filter(function (k) { return ks.indexOf(k) >= 0; });
   if (cats.length) nxt.cats = DEFAULT_CATS.filter(function (k) { return cats.indexOf(k) >= 0; }).concat(cats.filter(function (k) { return DEFAULT_CATS.indexOf(k) < 0; }));

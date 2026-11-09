@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.65",date:"2026-11-09",title:"Position limits",notes:[
+    ["326","New","Position limits, like ESPN: a team can have at most 4 centers off IR (by each player's main ESPN position). It's a league setting (League › Settings › Max players per position) copied from ESPN. The win-the-week planner never suggests a pickup that would break it (at 4 centers it only suggests a center if one of yours goes out), and adds and waiver claims check it when the app runs the league."]]},
   {v:"2.64",date:"2026-11-09",title:"Finished weeks say who won",notes:[
     ["325","Fix","A finished matchup now says Final with a Won, Lost or Tied badge on the matchup card, instead of \"now\" and \"projected\" with a win %, in every look. The confetti for a won week now also plays on phones (once per won week on each device)."]]},
   {v:"2.63",date:"2026-11-09",title:"Opponent watch sees ESPN moves",notes:[

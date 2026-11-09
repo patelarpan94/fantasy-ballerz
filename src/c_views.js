@@ -529,7 +529,7 @@ function seasonLabel(){const d=new Date(),y=d.getMonth()>=6?d.getFullYear():d.ge
 function nextSeason(s){const m=/^(\d{4})-(\d{2})$/.exec(s||"");if(!m)return seasonLabel();const y=+m[1]+1;return y+"-"+String((y+1)%100).padStart(2,"0");}
 function newLeague(season,prev){
   const teams=prev?prev.teams.map(t=>({id:t.id,name:t.name})):Array.from({length:10},(_,i)=>({id:"t"+(i+1),name:"Team "+(i+1)}));
-  return {name:prev?prev.name:"Our League",season,teams,cats:prev?prev.cats.slice():DEFAULT_CATS.slice(),slots:prev?{...prev.slots}:{...DEFAULT_SLOTS},maxRoster:prev?rosterCap(prev):14,
+  return {name:prev?prev.name:"Our League",season,teams,cats:prev?prev.cats.slice():DEFAULT_CATS.slice(),slots:prev?{...prev.slots}:{...DEFAULT_SLOTS},maxRoster:prev?rosterCap(prev):14,posMax:prev?.posMax?{...prev.posMax}:{},
     playoffTeams:prev?prev.playoffTeams:4,addLimit:prev?.addLimit||0,addMode:prev?.addMode||"matchup",startWeek:1,format:prev?.format||"each",
     draft:{type:prev?prev.draft.type:"snake",clock:prev?prev.draft.clock:90,autoOnExpire:prev?prev.draft.autoOnExpire:true,order:teams.map(t=>t.id),status:"setup",resumedAt:0},createdAt:Date.now()};
 }
@@ -558,6 +558,7 @@ function setupView(){
   </div></div></section>
   <section class="panel"><div class="phead"><h2>Roster slots</h2><span class="hint" id="slotHint">${rosterSize(F)} of ${rosterCap(F)} players max (IR included) · ${draftRounds(F)} draft rounds</span></div><div class="pbody">
     <div class="field capf"><label for="fCap">Max roster size this season</label><input type="number" id="fCap" min="1" max="${ROSTER_CAP_MAX}" value="${rosterCap(F)}" ${lockT}><span class="hint">Up to ${ROSTER_CAP_MAX}, IR included. No team can roster more than this. It carries over to next season, so change it there if the league wants a different size.</span></div>
+    <div class="field posf"><label>Max players per position</label><div class="posrow">${POS_KEYS.map(k=>`<label>${k}<input type="number" min="0" max="${ROSTER_CAP_MAX}" data-posmax="${k}" value="${(F.posMax||posMaxL())[k]||""}" placeholder="any" ${dis}></label>`).join("")}</div><span class="hint">Counted by each player's main ESPN position. Players on IR don't count. Blank means no limit. ESPN's setting for this league is C 4.</span></div>
     <div class="slotsf">${SLOT_KEYS.map(k=>`<div class="field"><label for="sl_${k}">${k}</label><input type="number" id="sl_${k}" data-slot="${k}" min="0" max="${(+F.slots[k]||0)+Math.max(0,rosterCap(F)-rosterSize(F))}" value="${F.slots[k]||0}" ${lockT}></div>`).join("")}</div>
   </div></section>
   <section class="panel" style="grid-column:1/-1"><div class="phead"><h2>Draft</h2><span class="hint">${totalPicks(F)} picks · ${F.draft.type==="snake"?"snake":"same order every round"} · ${fmtClock(+F.draft.clock)} per pick</span></div><div class="pbody row">
@@ -599,6 +600,7 @@ function setupInput(t){
   else if(t.dataset.tname){const tm=F.teams.find(x=>x.id===t.dataset.tname);if(tm)tm.name=t.value;}
   else if(t.dataset.slot){const k=t.dataset.slot,cap=rosterCap(F),room=cap-(rosterSize(F)-(+F.slots[k]||0));let v=Math.max(0,Math.round(+t.value||0));
     if(v>room){v=Math.max(0,room);t.value=v;toast(`Rosters max out at ${cap} players this season. Raise the max or lower another slot first.`);}F.slots[k]=v;}
+  else if(t.dataset.posmax){const k=t.dataset.posmax,v=Math.max(0,Math.min(ROSTER_CAP_MAX,Math.round(+t.value||0)));F.posMax={...(F.posMax||{})};if(v>0)F.posMax[k]=v;else delete F.posMax[k];}
   else if(t.id==="fCap"){let v=Math.max(1,Math.min(ROSTER_CAP_MAX,Math.round(+t.value||0)));if(v<rosterSize(F)){v=rosterSize(F);toast(`The slots already add up to ${v}. Lower a slot first.`);}if(String(v)!==t.value)t.value=v;F.maxRoster=v;}
   else if(t.dataset.cat)F.cats=t.checked?Object.keys(CATDEF).filter(k=>k===t.dataset.cat||F.cats.includes(k)):F.cats.filter(k=>k!==t.dataset.cat);
   else return false;

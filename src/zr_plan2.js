@@ -70,7 +70,13 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored
-  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
+  // position limits (BUG-326, ESPN: max 4 C off IR): the roster on any day left can't go over a limit it isn't already over
+  const PLIM=typeof posMaxL==="function"?posMaxL():{},limK=Object.keys(PLIM).filter(k=>+PLIM[k]>0);
+  // counted on every day left, so a pickup can't arrive before the center it replaces is gone
+  const posN=pl=>{const c={};days.forEach(sp=>{const d={},inc=n=>{const k=posMain(n);if(limK.includes(k))d[k]=(d[k]||0)+1;};
+    act.forEach(r=>{if(pl.drops[r.n]==null||sp<pl.drops[r.n])inc(r.n);});pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to)inc(a.x.n);});limK.forEach(k=>c[k]=Math.max(c[k]||0,d[k]||0));});return c;};
+  const pos0=limK.length?posN({drops:{},adds:[]}):{},posOk=pl=>{if(!limK.length)return true;const c=posN(pl);return limK.every(k=>(c[k]||0)<=Math.max(+PLIM[k],pos0[k]||0));};
+  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
       const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
