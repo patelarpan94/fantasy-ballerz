@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.64",date:"2026-11-09",title:"Finished weeks say who won",notes:[
+    ["325","Fix","A finished matchup now says Final with a Won, Lost or Tied badge on the matchup card, instead of \"now\" and \"projected\" with a win %, in every look. The confetti for a won week now also plays on phones (once per won week on each device)."]]},
   {v:"2.63",date:"2026-11-09",title:"Opponent watch sees ESPN moves",notes:[
     ["324","Fix","Opponent watch now finds your opponent's adds, drops and trades while the league mirrors ESPN (it read only the app's own move log, which is empty in mirror mode). It also shows on past matchups, with your category score without their moves next to the real final, and which categories each move cost you."]]},
   {v:"2.62",date:"2026-11-09",title:"Dashboard for any matchup",notes:[
