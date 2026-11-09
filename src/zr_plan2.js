@@ -31,7 +31,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
   // BUG-306: pickups already made this matchup count against the limit in mirror mode too (the move log is empty there)
   const usedWk=typeof plUsedWk==="function"?plUsedWk(T):0;
-  let cap=mode==="day"&&lim?lim*days.length:Math.max(0,(lim||PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
+  const usedDay=mode==="day"&&lim?plUsedDay(T,TODAY):0;let cap=mode==="day"&&lim?Math.max(0,lim*days.length-usedDay):Math.max(0,(lim||PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
   const budget=o.n?Math.min(o.n,cap):cap,perDay=mode==="day"&&lim?lim:99;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
@@ -78,7 +78,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const pos0=limK.length?posN({drops:{},adds:[]}):{},posOk=pl=>{if(!limK.length)return true;const c=posN(pl);return limK.every(k=>(c[k]||0)<=Math.max(+PLIM[k],pos0[k]||0));};
   const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
-      const ok=d=>d>=TODAY+plLag()+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
+      const ok=d=>d>=TODAY+plLag()+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay-(d===TODAY?usedDay:0);const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
       for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;const dd=(p.minD||0)>d0?days.find(d=>d>=p.minD&&ok(d)):d0;if(dd==null)continue;push({drops:{...pl.drops,[p.n]:dd},adds:[...pl.adds,{x,from:dd,to:end,spot:p.n}]},"drop");}
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}

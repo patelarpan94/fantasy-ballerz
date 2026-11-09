@@ -17,7 +17,10 @@
    ============================================================================ */
 let DPL_K="",DPL=null;
 // Arp 2026-11-04: "i can only pickup 6 players a week ... players i pickup only show up next day"
-const PL_MAX=6,PL_LAG=1;
+const PL_MAX=7,PL_LAG=1;
+// pickups that take effect on day sp (ESPN counts the limit per day when matchupLimitPerScoringPeriod is on; BUG-328)
+function plUsedDay(T,sp){if(mirror()){let c=0;for(const n in OWN)OWN[n].forEach((iv,k)=>{if(iv.team===T&&iv.from===sp&&sp>0){const pv=OWN[n][k-1];if(!(pv&&pv.team&&pv.to===sp))c++;}});return c;}
+  return TXLOG.filter(t=>t.ok&&t.type!=="trade"&&t.add&&tnum(t.team)===T&&(t.addDay??t.day)===sp).length;}
 // BUG-327 (Arp 2026-11-09, ESPN rosterLocktimeType FIRSTGAME_SCORINGPERIOD): roster moves lock when the day's first game tips off.
 // Before that a pickup plays the same day; after it, from tomorrow. A move for a later day can be made the night before.
 const plTip=()=>{let m=null;for(const t in SCHED){const g=SCHED[t][TODAY];if(g&&g[2]!=null&&(m==null||g[2]<m))m=g[2];}return m;};

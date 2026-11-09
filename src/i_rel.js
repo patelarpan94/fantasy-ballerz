@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.67",date:"2026-11-09",title:"Pickup limit like ESPN",notes:[
+    ["328","Fix","The pickup limit now matches ESPN's setting: 1 pickup per day (it counts on the day the player joins), with no weekly cap, instead of 6 a week. The win-the-week planner plans at most one pickup per day and knows when you've already used today's. \"Match ESPN rules\" and the ESPN settings sync read it the same way."]]},
   {v:"2.66",date:"2026-11-09",title:"Same-day pickups in the planner",notes:[
     ["327","Change","The win-the-week planner follows ESPN's exact roster lock for this league: moves lock when the day's first game tips off. Before that, a pickup can play the same day, so the planner now counts today's games for adds made before the first tip-off (and says so on the move). After tip-off, pickups play from tomorrow as before. A player you picked up can be dropped from the next day."]]},
   {v:"2.65",date:"2026-11-09",title:"Position limits",notes:[

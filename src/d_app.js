@@ -258,6 +258,7 @@ async function syncEspnSettings(mcp,LG){
   const pt=+st.scheduleSettings?.playoffTeamCount;if(pt>=2)next.playoffTeams=pt;
   const lc=st.rosterSettings?.lineupSlotCounts;if(lc){const sl={};SLOT_KEYS.forEach(k=>sl[k]=0);for(const [id,c] of Object.entries(lc))if(ESPN_SLOT[id])sl[ESPN_SLOT[id]]=+c||0;
     if(Object.values(sl).some(Boolean)){next.slots=sl;next.maxRoster=Object.values(sl).reduce((a,b)=>a+b,0);}}
+  const acq=st.acquisitionSettings;if(acq){const ml=+acq.matchupAcquisitionLimit,sl=+acq.acquisitionLimit;next.addLimit=ml>0?ml:sl>0?sl:0;next.addMode=ml>0?(acq.matchupLimitPerScoringPeriod?"day":"matchup"):sl>0?"season":"matchup";}
   const plim=st.rosterSettings?.positionLimits;if(plim){const pm={};for(const [id,c] of Object.entries(plim))if(ESPN_POS[id]&&+c>0)pm[ESPN_POS[id]]=+c;next.posMax=pm;}
   const items=st.scoringSettings?.scoringItems;if(items?.length){const ks=items.map(x=>ESPN_CAT[x.statId]).filter(Boolean);const cats=Object.keys(CATDEF).filter(k=>ks.includes(k));if(cats.length)next.cats=DEFAULT_CATS.filter(k=>cats.includes(k)).concat(cats.filter(k=>!DEFAULT_CATS.includes(k)));}
   (j.teams||[]).forEach(t=>{const tm=next.teams.find(x=>x.id==="t"+t.id),nm=(t.name||[t.location,t.nickname].filter(Boolean).join(" ")).trim();if(tm&&nm)tm.name=nm;else if(!tm&&nm&&next.teams.length<MAX_TEAMS)next.teams.push({id:"t"+t.id,name:nm});});
