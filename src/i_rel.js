@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.62",date:"2026-11-09",title:"Dashboard for any matchup",notes:[
+    ["322","New","The dashboard follows the matchup picked at the top, and has its own ‹ Matchup › arrows. Pick a past matchup and the week widgets (matchup, arena, swing categories, win % tracker, tug-of-war, daily production, league scoreboard and more) show that week, while today's tools (lineup, quick add, planner, countdown) step aside until you tap Back to this week."],
+    ["323","New","Matchup recap: looking back at a finished matchup, the dashboard leads with the result, every category with who won it and by how much, each side's top three players, the best single game, starts and bench points left."]]},
   {v:"2.61",date:"2026-11-06",title:"No money talk",notes:[
     ["320","Change","Bidding waivers (when the league uses them) now count the budget in points instead of dollars: bids, budgets and what's left all show as points. Nothing in the app uses real money."],
     ["321","Change","\"Odds\" is now \"chance\" everywhere: playoff chances, your win chance, chance change in Opponent watch and Season win plan."]]},
