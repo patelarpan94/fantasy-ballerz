@@ -4,6 +4,14 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.68",date:"2026-11-09",title:"Win-more tools on New Era +",notes:[
+    ["329","New","Next-week head start (New Era + › Next week): next matchup's opponent, games per NBA team, and from Friday the pickups to line up so they play Monday and Tuesday and count against next matchup's pickups."],
+    ["330","New","Ratio guard (Right now): which starters to sit tonight to protect a close FG% or FT% without losing a counting category."],
+    ["331","New","Opponent move forecast (Win this week): how your opponent usually streams (pickups a matchup, which weekdays, which positions) and the moves they're likely to make before the matchup ends. A switch counts those moves in your win chance and the win-the-week planner."],
+    ["332","New","Role change radar (Right now): free agents whose minutes or shots jumped in their last 3 games, with the injured teammate behind it."],
+    ["333","New","IR stash planner (Build your team): injured free agents worth an open IR slot, and your IR players who are back or coming back, with the player to drop."],
+    ["334","New","Sell high, buy low (Build your team): your players running hot and other teams' good players in a slump, with their games in the playoff weeks and a Trade package button."],
+    ["335","New","Matchup review: on a past matchup, under the recap, the categories you lost, bench games that could have started (and whether they would have flipped the result), pickups used, and a season tally."]]},
   {v:"2.67",date:"2026-11-09",title:"Pickup limit like ESPN",notes:[
     ["328","Fix","The pickup limit now matches ESPN exactly: \"7 per matchup (for 7-day matchups)\", which is 1 per day of the matchup (6 in a 6-day matchup), usable on any day, several at once. It used to be a flat 6. The win-the-week planner plans up to that many and counts the pickups you have already made. \"Match ESPN rules\" and the ESPN settings sync read it the same way."]]},
   {v:"2.66",date:"2026-11-09",title:"Same-day pickups in the planner",notes:[
