@@ -601,6 +601,12 @@ function tnum_(id) { return +String(id).replace(/\D/g, ''); }
 function weekOf_(sp) { for (var k = 0; k < CAL.length; k++) if (sp >= CAL[k][1] && sp <= CAL[k][2]) return CAL[k][0]; return sp < 1 ? 1 : CAL[CAL.length - 1][0]; }
 // the pickup limit counts per matchup (default), per day or per season
 function addPeriod_(L, d) { return L.addMode === 'day' ? 'd' + d : L.addMode === 'season' ? 's' : 'w' + weekOf_(d); }
+// BUG-328: 'mday' = ESPN "N per matchup (for 7-day matchups)": the limit is N x days in the matchup, used on any day
+function addLimitFor_(L, d) {
+  var lim = +L.addLimit || 0; if (!lim || L.addMode !== 'mday') return lim;
+  var w = weekOf_(d); for (var k = 0; k < CAL.length; k++) if (CAL[k][0] === w) return lim * (CAL[k][2] - CAL[k][1] + 1);
+  return lim * 7;
+}
 function fmtET_(ms) {     // "Sun, Nov 1, 8:00 AM ET", like the app
   var d = etDate_(ms).split('-'), hm = Utilities.formatDate(new Date(ms), TZ, 'H:m').split(':');
   var w = new Date(Date.UTC(+d[0], +d[1] - 1, +d[2])).getUTCDay();
@@ -643,7 +649,7 @@ function leagueOwn_(L, D, TODAY) {
   var add = function (n, T, from) { (OWN[n] = OWN[n] || []).push({team: T, from: from, to: Infinity}); };
   var end = function (n, T, day) { var iv = (OWN[n] || []).filter(function (i) { return i.team === T && i.to === Infinity; })[0]; if (iv) iv.to = day; };
   D.picks.slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { if (!ownerNow(p.player)) add(p.player, tnum_(p.team), 0); });
-  var lim = +L.addLimit || 0, used = {}, wk = function (T, d) { return T + '_' + addPeriod_(L, d); };
+  var used = {}, wk = function (T, d) { return T + '_' + addPeriod_(L, d); };
   D.tx.filter(function (t) { return t.type !== 'trade' || t.status === 'accepted'; })
     .sort(function (a, b) { return (a.eff || a.at) - (b.eff || b.at); }).forEach(function (t) {
       var day = t.day || TODAY, ok = true;
@@ -652,7 +658,7 @@ function leagueOwn_(L, D, TODAY) {
         if (t.add && ownerNow(t.add)) ok = false;
         else if (t.drop && ownerNow(t.drop) !== T) ok = false;
         else if (t.add && rosterNow(T).length - (t.drop ? 1 : 0) + 1 > MAX) ok = false;
-        else if (t.add && lim && t.role !== 'commish' && (used[wk(T, day)] || 0) >= lim) ok = false;
+        else if (t.add && addLimitFor_(L, day) && t.role !== 'commish' && (used[wk(T, day)] || 0) >= addLimitFor_(L, day)) ok = false;
         if (ok && t.add && t.role !== 'commish') used[wk(T, day)] = (used[wk(T, day)] || 0) + 1;
         if (ok) { if (t.drop) end(t.drop, T, t.dropDay != null ? t.dropDay : day); if (t.add) add(t.add, T, t.addDay != null ? t.addDay : day); }
       } else if (t.type === 'trade') {
@@ -722,7 +728,7 @@ function runWaivers_(L, D, now, TODAY, put) {
     var saved = ((c.type === 'standings' && wd.sorder) || wd.order || []).map(tnum_).filter(function (t) { return ids.indexOf(t) >= 0; });
     var base = saved.length ? saved : (L.draft && L.draft.order || []).map(tnum_).reverse();
     order = base.filter(function (t) { return ids.indexOf(t) >= 0; }).concat(ids.filter(function (t) { return base.indexOf(t) < 0; }));
-    var pend = D.claims.filter(function (x) { return x.status === 'pending' && x.clearAt === T0; }), left = {}, res = [], won = {}, lim = +L.addLimit || 0;
+    var pend = D.claims.filter(function (x) { return x.status === 'pending' && x.clearAt === T0; }), left = {}, res = [], won = {}, lim = addLimitFor_(L, TODAY);
     pend.forEach(function (x) { left[x.id] = 1; });
     var valid = function (x) {
       var T = tnum_(x.team);
@@ -887,12 +893,13 @@ function syncEspn_(full, maxDays) {
   });
   saveMeta_(M);
 
-  var doc = {season: SEASON, inj: NBA.inj || {}, injd: NBA.injd || {}, news: NBA.news || [], live: live || NBA.live || null, own: NBA.own || null, ownAt: NBA.ownAt || null, outAt: NBA.outAt || {}, injAt: NBA.injAt || 0, at: now};
+  var doc = {season: SEASON, inj: NBA.inj || {}, injd: NBA.injd || {}, news: NBA.news || [], live: live || NBA.live || null, own: NBA.own || null, ownAt: NBA.ownAt || null, wv: NBA.wv || {}, outAt: NBA.outAt || {}, injAt: NBA.injAt || 0, at: now};
   if (full) {
     try { var ij = injuries_(); doc.outAt = outAt_(doc.inj, ij[0], doc.outAt, now); doc.inj = ij[0]; doc.injd = ij[1]; doc.injAt = now; } catch (e) { log.push('injuries failed: ' + e); }
     try { doc.news = news_(doc.news, now); } catch (e) { log.push('news failed: ' + e); }
     try { var rn = rss_(doc.news, doc, now); doc.news = rn[0]; if (rn[1]) log.push(rn[1]); } catch (e) { log.push('rss failed: ' + e); }
     try { var o = ownership_(LG); if (o) { doc.own = o; doc.ownAt = now; } } catch (e) { log.push('ownership skipped: ' + e); }
+    try { var w = waiverList_(LG); if (w) doc.wv = w; } catch (e) { log.push('waivers skipped: ' + e); }
   }
   putDoc_('nba', SEASON, doc);
   return (full ? 'Full pull. ' : 'Live pull. ') + log.join('; ');
@@ -913,6 +920,20 @@ function syncSettings_(L, LG) {
     SLOT_KEYS.forEach(function (k) { sl[k] = 0; });
     for (var i in lc) if (ESPN_SLOT[+i]) { sl[ESPN_SLOT[+i]] = +lc[i] || 0; if (+lc[i]) any = true; tot += +lc[i] || 0; }
     if (any) { nxt.slots = sl; nxt.maxRoster = tot; }
+  }
+  // pickup limit (BUG-328): matchupAcquisitionLimit + matchupLimitPerScoringPeriod = N per day of the matchup
+  var acq = st.acquisitionSettings;
+  if (acq) {
+    var ml = +acq.matchupAcquisitionLimit, sl2 = +acq.acquisitionLimit;
+    nxt.addLimit = ml > 0 ? ml : sl2 > 0 ? sl2 : 0;
+    nxt.addMode = ml > 0 ? (acq.matchupLimitPerScoringPeriod ? 'mday' : 'matchup') : sl2 > 0 ? 'season' : 'matchup';
+  }
+  // position limits (ESPN positionLimits: 1 PG, 2 SG, 3 SF, 4 PF, 5 C; -1 or 0 = no limit)
+  var plim = g_(st, 'rosterSettings', 'positionLimits');
+  if (plim) {
+    var PM = { 1: 'PG', 2: 'SG', 3: 'SF', 4: 'PF', 5: 'C' }, pm = {};
+    for (var j in plim) if (PM[+j] && +plim[j] > 0) pm[PM[+j]] = +plim[j];
+    nxt.posMax = pm;
   }
   var ks = (g_(st, 'scoringSettings', 'scoringItems') || []).map(function (x) { return ESPN_CAT[x.statId]; });
   var cats = CATDEF.filter(function (k) { return ks.indexOf(k) >= 0; });
@@ -1217,6 +1238,15 @@ function rss_(cur, nbaDoc, now) {
   var lim = {ESPN: 120, RotoWire: 60, CBS: 60}, n = {};
   out = out.filter(function (a) { var s = a.s || 'ESPN'; n[s] = (n[s] || 0) + 1; return n[s] <= (lim[s] || 40); });
   return [out, msg.length ? 'rss: ' + msg.join(', ') : ''];
+}
+// BUG-336: ESPN's waiver list, {name: when the claim clears (ms)}; ESPN runs claims at 3 AM ET after the 1-day waiver period.
+// Statuses come with the player list (a status filter alone returns nothing or a 400).
+function waiverList_(LG) {
+  var j = getJson_(LG + '?view=kona_player_info', {'x-fantasy-filter': JSON.stringify({players: {limit: 800, sortPercOwned: {sortAsc: false, sortPriority: 1}}})});
+  var ps = j.players || [], wv = {};
+  if (!ps.length) return null;
+  ps.forEach(function (x) { var p = x.player || {}; if (x.status === 'WAIVERS' && x.waiverProcessDate && p.fullName) wv[p.fullName] = +x.waiverProcessDate; });
+  return wv;
 }
 function ownership_(LG) {
   var o = {}, any = false;

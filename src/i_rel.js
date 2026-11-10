@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[
+    ["339","Fix","The iPhone app is back with everything since 2.60. Its server now saves ESPN's waiver list (so the planner knows when each waiver claim clears) and copies ESPN's pickup limit (7 per 7-day matchup, any day) like the Refresh in the backup app already did."]]},
   {v:"2.71",date:"2026-11-10",title:"Planner shows the other options",notes:[
     ["338","New","Win-the-week planner: every move has Other options, the best other free agents for the same spot and days, each with games, how it compares to the pick, win chance and the categories it helps or hurts, plus why the pick won. Add any of them with the same drop already picked, so the call is yours."]]},
   {v:"2.70",date:"2026-11-10",title:"Planner shows how early you can make each move",notes:[
