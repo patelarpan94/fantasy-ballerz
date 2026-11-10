@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.71",date:"2026-11-10",title:"Planner shows the other options",notes:[
+    ["338","New","Win-the-week planner: every move has Other options, the best other free agents for the same spot and days, each with games, how it compares to the pick, win chance and the categories it helps or hurts, plus why the pick won. Add any of them with the same drop already picked, so the call is yours."]]},
   {v:"2.70",date:"2026-11-10",title:"Planner shows how early you can make each move",notes:[
     ["337","New","Win-the-week planner: each move now says how early you can make it without losing a game (for example \"Now–Tue: make it now or any time up to Tue night, Shead doesn't start again before Wed\"). Moving early means nobody else grabs the player. The Add button shows as soon as the move can be made."]]},
   {v:"2.69",date:"2026-11-10",title:"Planner knows waiver claim timing",notes:[

@@ -98,9 +98,22 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
     // BUG-337 (Arp 2026-11-10): the earliest day the move costs nothing: the player you drop doesn't start again before the pickup's first game
     let early=null;if(!a.x.w){let e=TODAY+plLag();if(drop){const ls=days.filter(sp=>sp<a.from&&cur.use[sp].used.has(drop)).pop();if(ls!=null)e=Math.max(e,ls+1);
       if(prev)e=Math.max(e,prev.from+1);const rg=regs.find(x=>x.n===drop);if(rg&&rg.minD)e=Math.max(e,rg.minD);}if(e<a.from)early=e;}
-    return {x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc,early};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
+    return {a,x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc,early};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
   const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
   const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
+  // BUG-338 (Arp 2026-11-10: "build this information in so the manager can make the call"): for each move, the best other free agents
+  // for the same spot and days, scored the same way (the rest of the plan unchanged), with the categories each one helps vs the pick
+  const inPlan=new Set(plan.adds.map(a=>a.x.n));
+  moves.forEach(m=>{const a=m.a,alts=[];
+    // the spot opens on the move's earliest day (the player dropped has no start left before it), so an option can use those days too
+    const lo=m.early!=null?m.early:a.from,pv=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1);
+    for(const y of fa){if(inPlan.has(y.n))continue;const f=days.find(d=>d>=lo&&d<=a.to&&d>=(y.w?y.wd:0)&&plays(y,d));if(f==null)continue;
+      const fs=Math.min(f,a.from),dr=!pv&&plan.drops[a.spot]!=null&&fs<a.from?{...plan.drops,[a.spot]:fs}:plan.drops;
+      const np={drops:dr,adds:plan.adds.map(b=>b===a?{...a,x:y,from:f}:pv&&b===pv&&f<a.from?{...b,to:f-1}:b)};if(!posOk(np))continue;
+      const r=evalPlan(np),g=days.filter(sp=>sp>=f&&sp<=a.to&&r.use[sp].used.has(y.n));if(!g.length)continue;
+      const dc=CATS.map((c,i)=>({c,d:dLogit(val(r.tot,c),val(B,c),c)-pA[i]})).filter(x=>Math.abs(x.d)>=.03).sort((p,q)=>q.d-p.d);
+      alts.push({x:y,from:f,games:g,d:r.exp-cur.exp,w:wp(r.tot),dc});}
+    m.alts=alts.sort((p,q)=>q.d-p.d).slice(0,4);m.w=wp(cur.tot);});
   return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
 // BUG-336 (Arp 2026-11-10): a player on waivers can't be added, only claimed. The claim clears at ESPN's 3 AM ET run
 // after his waiver period, so he plays from that day (wvDay). Claim now to get him then; a later start means adding him once he clears.
@@ -111,6 +124,14 @@ const plWvTxt=m=>{const c=m.x.wc?fmtET(m.x.wc).replace(/^(\w+), \w+ \d+, /,"$1 "
 // earliest action day when it's earlier than the planned one (the move has to be in before that day's first tip-off)
 const plEarly=m=>{if(m.early==null)return null;const e=plAddDay(m.early);return e<plActDay(m)?e:null;};
 const plEarlyTxt=(m,ea,ad)=>` · make it ${ea===TODAY?"now":"from "+esc(dow(ea))} or any time up to ${esc(ad===TODAY?"today":dow(ad))} night: ${m.drop?`${esc(dashLast(m.drop))} doesn't start again before ${esc(dow(m.from))}`:"you lose nothing by adding him early"}, and nobody else can grab him first`;
+// other options under a move (BUG-338): same spot, same days; the Add button pre-picks the same drop
+const plAltHtml=(m,canAdd,dn)=>{if(!m.alts||!m.alts.length)return "";const why=m.dc.length?`${esc(dashLast(m.x.n))} is the pick because he helps ${m.dc.slice(0,3).map(x=>esc(x.c[0])).join(", ")} most.`:"";
+  return `<details class="pl-alt"><summary>Other options <small class="muted">${m.alts.length} close behind</small></summary>${why?`<p class="dsm muted">${why} The difference is in expected categories won with the rest of the plan the same. Under 0.1 is close to a coin flip, so it's your call.</p>`:""}
+    <table class="pl-at"><thead><tr><th>Player</th><th>Games</th><th>vs pick</th><th>Win</th><th>Categories vs pick</th><th></th></tr></thead><tbody>
+    <tr class="pick"><td><b>${esc(dashLast(m.x.n))}</b> <small class="muted">${esc(m.x.t)} · pick</small></td><td class="num">${m.games.length} <small class="muted">${esc(m.games.map(sp=>dn(sp).slice(0,3)).join(" "))}</small></td><td class="num">–</td><td class="num">${m.w!=null?dPct(m.w)+"%":""}</td><td>${m.dc.slice(0,3).map(x=>`<i class="up">${esc(x.c[0])}</i>`).join("")}</td><td></td></tr>
+    ${m.alts.map(a=>`<tr><td>${dashNm(a.x.n)} <small class="muted">${esc(a.x.t)}${a.x.w?" · waivers":""}</small></td><td class="num">${a.games.length} <small class="muted">${esc(a.games.map(sp=>dn(sp).slice(0,3)).join(" "))}</small></td><td class="num ${a.d>=0?"up":"dn"}">${a.d>=0?"+":"−"}${Math.abs(a.d).toFixed(2)}</td><td class="num">${a.w!=null?dPct(a.w)+"%":""}</td>
+      <td>${a.dc.slice(0,3).map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":"−"}${dPct(Math.abs(x.d))}</i>`).join("")}</td>
+      <td>${canAdd&&!a.x.w?`<button class="btn sm" data-pladd="${esc(a.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`:""}</td></tr>`).join("")}</tbody></table></details>`;};
 let DPL_BUSY=false;
 dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
   if(k===DPL_K)return DPL;if(!sync){if(!DPL_BUSY){DPL_BUSY=true;setTimeout(()=>{DPL_BUSY=false;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}DPL_K=k;if(nav==="dash")dashDraw();},30);}return undefined;}
@@ -140,7 +161,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(m.x.w&&m.from===m.x.wd?"Claim now":ea!=null?(ea===TODAY?"Now":dn(ea))+"–"+dn(ad):dn(ad))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>${m.x.w&&m.from===m.x.wd?"Claim":"Add"} ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${ea!=null?plEarlyTxt(m,ea,ad):""}${m.x.w?plWvTxt(m):m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}</small>
       ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
       <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
-      ${btn}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
+      ${btn}${plAltHtml(m,ed&&today,dn)}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
   // who plays when
   const rows=[...r.regs.map(x=>({x,k:"reg"})),...r.moves.map(m=>({x:m.x,k:"add",m}))];
   const cell=(row,sp)=>{const u=r.cur.use[sp];const n=row.x.n;
@@ -182,6 +203,10 @@ document.addEventListener("change",e=>{if(nav!=="dash")return;const k=e.target.c
 .pl-hint{margin:0}
 .pl-imp{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pl-imp b{font-size:.74rem;color:#22c55e;margin-right:2px}.pl-imp i{font-style:normal;font-size:.68rem;padding:1px 6px;border-radius:6px;background:rgba(34,197,94,.12);color:#22c55e;font-weight:700}
 .pl-m li{grid-template-columns:62px 30px minmax(0,1fr) auto auto auto}
+.pl-alt{grid-column:1/-1;margin-top:2px}.pl-alt summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--accent)}.pl-alt summary small{font-weight:500;margin-left:6px}.pl-alt p{margin:6px 0}
+.pl-at{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px}.pl-at th{text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800;padding:4px 6px}.pl-at td{padding:5px 6px;border-top:1px solid var(--line);vertical-align:middle}
+.pl-at tr.pick td{background:color-mix(in srgb,#22c55e 8%,transparent)}.pl-at .up{color:#22c55e}.pl-at .dn{color:#ef4444}.pl-at td i{font-style:normal;font-size:.68rem;font-weight:700;margin-right:6px;white-space:nowrap}.pl-at td small{font-size:.66rem}
+@media (max-width:760px){.pl-at th:nth-child(4),.pl-at td:nth-child(4){display:none}.pl-at td small.muted{display:block}}
 .pl-acts{display:flex;gap:6px}.pl-acts:empty{display:none}.pl-x{font:inherit;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.pl-x:hover{color:#ef4444;border-color:#ef4444}
 .pl-wg{margin:6px 0 10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.pl-wg summary{cursor:pointer;font-weight:700;font-size:.9rem}.pl-wg summary small{font-weight:500;margin-left:8px}
 .pl-wgw{overflow-x:auto;margin-top:10px}.pl-tab{border-collapse:separate;border-spacing:3px;width:100%;font-size:.8rem}
