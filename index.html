@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261110204507"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261110225720"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4438,6 +4438,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[
+    ["340","Fix","The win chance on the dashboard is now the same for everyone looking at a matchup. Before, a manager's own login also counted the pickups their opponent usually makes, so the same matchup showed 31% to the manager and 59% to everyone else. That forecast is now off unless you tick it in the Opponent move forecast widget. \"Win chance up/down since yesterday\" on the Matchup arena now shows only what the last day of games did, so it no longer jumps by 60."]]},
   {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[
     ["339","Fix","The iPhone app is back with everything since 2.60. Its server now saves ESPN's waiver list (so the planner knows when each waiver claim clears) and copies ESPN's pickup limit (7 per 7-day matchup, any day) like the Refresh in the backup app already did."]]},
   {v:"2.71",date:"2026-11-10",title:"Planner shows the other options",notes:[
@@ -9057,8 +9059,9 @@ const dRemDays=t=>DAYS.filter(sp=>upcoming(t,sp)&&gameOn(t,sp));
 DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win chance ring, momentum since yesterday, every category battle and the games-left duel.",s:"f",
   view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const u=++NEP_U;
     const a=fcProj(T),b=fcProj(opp),p=winProb(a,b),now=h2h(a.now,b.now),pr=h2h(a.fin,b.fin),pc=dPct(p);
-    let prev=null;try{const D=dMatchDays(T,opp);if(D.length>1)prev=D[D.length-2].p;}catch(e){}
-    const mom=prev==null?null:Math.round((p-prev)*100),live=dLiveOn(),ga=gamesLeft(T),gb=gamesLeft(opp),gt=Math.max(1,ga+gb);
+    // momentum = what the last day of games did, both ends worked out the same way (BUG-340)
+    let mom=null;try{const D=dMatchDays(T,opp);if(D.length>1)mom=Math.round((D[D.length-1].p-D[D.length-2].p)*100);}catch(e){}
+    const live=dLiveOn(),ga=gamesLeft(T),gb=gamesLeft(opp),gt=Math.max(1,ga+gb);
     const side=(id,cls)=>{const r=STAND[id]&&STAND[id].rec||[0,0,0];let sk="";try{sk=streakOf(id)||"";}catch(e){}
       return `<div class="xa-team ${cls}"><span class="xa-crest ${cls}">${esc(tmInit(id))}</span><b>${esc(PHONE()?dShort(id):TEAMS[id].name)}</b><small>${r.join("-")}${sk?` · ${esc(sk)}`:""}</small></div>`;};
     const chip=(c,i)=>{const x=val(a.now,c),y=val(b.now,c),fx=val(a.fin,c),fy=val(b.fin,c),pp=dLogit(fx,fy,c),s=x+y>0?x/(x+y):.5,st=pp>=.7?"safe":pp<=.3?"lost":"swing";
@@ -9072,7 +9075,7 @@ DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win cha
           <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" stroke="url(#xag${u})" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
           <div class="xa-num"><b>${dCount(pc,0,"xa"+T)}<small>%</small></b><span>to win</span></div></div>
         ${side(opp,"op")}</div>
-      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected</span></div>
+      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected${b.ofc?" · with their likely moves":""}</span></div>
       <div class="xa-cats">${CATS.map(chip).join("")}</div>
       <div class="xa-gl"><span><b class="num">${ga}</b> games left</span><i class="xa-glb"><i style="--w:${(ga/gt*100).toFixed(1)}%"></i></i><span><b class="num">${gb}</b> games left</span></div></div>`;}};
 
@@ -11237,10 +11240,11 @@ function wnOppF(T){const O=dOpp(T);if(!O||!DAYS.length)return null;const k=T+":"
   const boost=add.map(v=>v*exp);
   WNO_K=k;WNO={O,h,exp,cap,boost,left:left.length};return WNO;}
 let WNO_IN=false;
-const wnOfcOn=()=>!(UI&&UI.dash&&UI.dash.ofc===false);
+// off unless the manager ticks it (BUG-340): the headline win chance is the same for every viewer
+const wnOfcOn=()=>!!(UI&&UI.dash&&UI.dash.ofc===true);
 {const _f=fcProj;fcProj=function(T){const r=_f.apply(this,arguments);if(WNO_IN||!wnOfcOn())return r;try{const me=myTeamNum();if(!me||T===me||dOpp(me)!==T||wk[0]!==wnCur()[0]||r.done)return r;
   WNO_IN=true;const f=wnOppF(me);WNO_IN=false;if(!f||!(f.exp>0))return r;return {...r,fin:r.fin.map((v,i)=>v+(f.boost[i]||0)),ofc:f.exp};}catch(e){WNO_IN=false;return r;}};}
-DW.of={name:"Opponent move forecast",desc:"How your opponent usually streams and the moves they're likely to make before Sunday, counted in your win chance and the planner.",s:"w",
+DW.of={name:"Opponent move forecast",desc:"How your opponent usually streams and the moves they're likely to make before Sunday. Tick the box to count them in your win chance and the planner.",s:"w",
   view(w,T){WNO_IN=true;let f;try{f=wnOppF(T);}finally{WNO_IN=false;}if(!f)return dashEmpty("No matchup this week.");const on=dShort(f.O),h=f.h;
     const me=fcProj(T).fin;WNO_IN=true;let opRaw;try{opRaw=fcProj(f.O).fin;}finally{WNO_IN=false;}const opF=opRaw.map((v,i)=>v+(f.boost[i]||0));
     const wp=X=>{try{return winProb({fin:me},{fin:X});}catch(e){return null;}},a=wp(opRaw),b=wp(opF);
