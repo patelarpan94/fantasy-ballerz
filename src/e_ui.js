@@ -23,7 +23,7 @@ function streakOf(id){let s="",k=0;
   return s?k+s:"";}
 // box scores so far plus ESPN per-game projections for each starter's remaining games this matchup
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
-  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
+  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
   return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's chance from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
@@ -57,7 +57,7 @@ function catBoard(){
   return `<section class="panel catboard" aria-label="Category scoreboard"><div class="cbhead"><span class="me">${esc(TEAMS[me].name)}</span><span class="eyebrow">${sd?esc(dow(sd)+" "+dateOf(sd).getDate()):"Week"}</span><span class="op">${esc(TEAMS[opp].name)}</span></div>${cbDays()}${rows}<div class="cbsec">Starter games</div>${gl}</section>`;}
 // day buttons: on the board (Week + each day); on a team view (solo) just the days, for that team's day stats
 function cbDays(solo,noWeek){const simple=MLAY!=="classic",opp=M.opp&&TEAMS[M.opp]?M.opp:null,fo=mFocus(),vd=viewDay();
-  const cnt=sp=>!simple?"":solo?`<small>${playing(fo==="op"?opp:cur,sp)} ${sp<TODAY?"played":"starts"}</small>`:MLAY==="hershy"&&opp?`<small><span class="op">${playing(opp,sp)}</span> · <span class="me">${playing(cur,sp)}</span></small>`:`<small><span class="me">${playing(cur,sp)}</span>${opp?` · <span class="op">${playing(opp,sp)}</span>`:""}</small>`;
+  const cnt=sp=>!simple?"":solo?`<small>${playing(fo==="op"?opp:cur,sp)} ${sp<TODAY?"played":"starts"}</small>`:`<small><span class="me">${playing(cur,sp)}</span>${opp?` · <span class="op">${playing(opp,sp)}</span>`:""}</small>`;
   const b=(v,l,on,sp)=>`<button data-cbday="${v}" aria-pressed="${on}"${sp===TODAY?' class="tod"':""}><span>${l}</span>${sp?cnt(sp):simple?"<small>all days</small>":""}</button>`;
   const h=`<div class="cbdays${simple?" s":""}${solo?" solo":""}" role="group" aria-label="${solo?"Pick a day":"Show categories for"}">${solo||noWeek?"":b("","Week",!selDay,0)}${DAYS.map(sp=>b(sp,sp===TODAY?"Today":`${dow(sp)} ${dateOf(sp).getDate()}`,solo||noWeek?vd===sp:selDay===sp,sp)).join("")}</div>`;
   return solo?`<section class="panel cbsolo">${h}<p class="cbkey muted">Starters with a game that day</p></section>`:h;}
@@ -73,17 +73,17 @@ function simpleBoard(me,opp,sd,A,B,a,b,live,f){
     <div class="cbgames"><span class="me">${g(ga)}</span><span class="cbgl">Starter games · ${esc(scope())}</span><span class="op">${g(gb)}</span></div>
     <div class="cbfoot"><span class="muted">Tap a category for details and its graph</span></div></section>`;}
 // Hershy (1.26, Hersh's layout): ESPN's board with a day column on each edge and no leader tags.
-// Opponent on the left, you on the right: their day · their week | cat | your week · your day.
+// BUG-345 (Arp 2026-11-10): you on the left, opponent on the right, the same sides as the score card: your day · your week | cat | their week · their day.
 function hershyBoard(me,opp){
   const vd=viewDay(),dl=vd===TODAY?"Today":`${dow(vd)} ${dateOf(vd).getDate()}`,wkL=fcProj(me).now,wkO=fcProj(opp).now,dyL=dayProj(me,vd),dyO=dayProj(opp,vd);
   const wkLive=started(),dyLive=vd<TODAY||(vd===TODAY&&dyL.gp+dyO.gp>0);
   const rows=CATS.map(c=>{const pair=(o,m,live)=>{const x=val(o,c),y=val(m,c),ld=live&&Math.abs(x-y)>1e-9?(x>y?"o":"m"):"";return [`<b class="num${ld==="o"?" ld":""}">${live?show(x,c):"–"}</b>`,`<b class="num${ld==="m"?" ld":""}">${live?show(y,c):"–"}</b>`,ld];};
     const [od,md2]=pair(dyO.now,dyL.now,dyLive),[ow,mw,wl]=pair(wkO,wkL,wkLive);
-    return `<div class="hbrow"><div class="hbd">${od}</div><div class="hbw${wl==="o"?" win op":""}">${ow}</div><div class="hbc">${c[0]}</div><div class="hbw${wl==="m"?" win me":""}">${mw}</div><div class="hbd">${md2}</div></div>`;}).join("");
+    return `<div class="hbrow"><div class="hbd">${md2}</div><div class="hbw${wl==="m"?" win me":""}">${mw}</div><div class="hbc">${c[0]}</div><div class="hbw${wl==="o"?" win op":""}">${ow}</div><div class="hbd">${od}</div></div>`;}).join("");
   const ga=counts(me),gb=counts(opp),g=x=>`<b class="num">${x[0]}</b> played · <b class="num">${x[1]}</b> left${x[2]?` · <span class="bx">+${x[2]} bench</span>`:""}`;
-  return `<section class="panel catboard hershy" aria-label="Category scoreboard"><div class="cbhead"><span class="op">${esc(TEAMS[opp].name)}</span><span class="eyebrow">${esc(weekName(wk[0]))}</span><span class="me">${esc(TEAMS[me].name)}</span></div>${cbDays(false,true)}
+  return `<section class="panel catboard hershy" aria-label="Category scoreboard"><div class="cbhead"><span class="me">${esc(TEAMS[me].name)}</span><span class="eyebrow">${esc(weekName(wk[0]))}</span><span class="op">${esc(TEAMS[opp].name)}</span></div>${cbDays(false,true)}
     <div class="hbrow hbh"><div class="hbd">${esc(dl)}</div><div class="hbw">Week</div><div class="hbc"></div><div class="hbw">Week</div><div class="hbd">${esc(dl)}</div></div>${rows}
-    <div class="cbgames"><span class="op">${g(gb)}</span><span class="cbgl">Starter games · ${esc(scope())}</span><span class="me">${g(ga)}</span></div></section>`;}
+    <div class="cbgames"><span class="me">${g(ga)}</span><span class="cbgl">Starter games · ${esc(scope())}</span><span class="op">${g(gb)}</span></div></section>`;}
 // running totals this week for one category (the Tracker chart for just that row)
 function cbGraph(ci){
   if(!DAYS.some(sp=>sp<TODAY))return `<p class="muted cbxn">No games played yet this week.</p>`;
@@ -99,7 +99,7 @@ function setMLay(v){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(ty
 }
 // one day: starters' actual stats, plus projections for starters still to play that day
 function dayProj(T,sp){const {t,gp}=totals(TEAMS[T].P,[sp]),rem=new Array(11).fill(0);
-  if(sp>=TODAY)TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
+  if(sp>=TODAY)TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
   return {now:t,gp,fin:t.map((v,i)=>v+rem[i])};}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-cbday]");if(!b)return;selDay=b.dataset.cbday?+b.dataset.cbday:null;MOVING=null;try{renderBox();renderDays();renderHero();}catch(x){}renderRosters();});
 function teamHeader(){

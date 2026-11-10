@@ -36,7 +36,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
-  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pgLine(p.pj),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",minD:plMinDrop(T,p.n)}));
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pjOf(p),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",minD:plMinDrop(T,p.n)}));
   const act=regs.filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
