@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.75",date:"2026-11-10",title:"Roster widget shows only your current players",notes:[
+    ["342","Fix","Dashboard Roster widget: players you had dropped earlier in the season were still listed, with no slot, a cut-off name and numbers on top of the chart. It now lists only the players on the team today, and the spots-used count is right. The injuries, news, hottest player and season line widgets also stop counting dropped players."]]},
   {v:"2.74",date:"2026-11-10",title:"Matchup card stripe matches the win chance",notes:[
     ["341","Fix","With an NBA team look on, the colored stripe across the top of the Matchup card was always split 72/28, so it looked like a win chance bar that disagreed with the percentages (for example 41% next to a stripe that was mostly that team's color). The stripe now splits at the real win chance."]]},
   {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[

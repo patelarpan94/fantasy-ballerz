@@ -91,12 +91,12 @@ DW.sp={name:"Strengths and punts",desc:"Your league rank in each category, best 
     return `<div class="drank">${rk.map((x,i)=>`<div class="drk ${x.r<=3?"good":x.r>n-3?"bad":""}"><span>${esc(x.c[0])}</span><span class="drkb"><i class="dg2" style="--w:${((n-x.r+1)/n*100).toFixed(0)}%;--d:${i*50}ms"></i></span><b class="num">${x.r}<small>/${n}</small></b></div>`).join("")}</div>`;}};
 /* ---- 8. roster sparklines ---- */
 DW.rs={name:"Roster sparklines",desc:"Every player's last 10 games as a sparkline (game score: points, boards, assists, stocks, threes).",s:"w",
-  view(w,T,big){const P=TEAMS[T].P.slice().sort((a,b)=>(a.s??20)-(b.s??20)).slice(0,big?16:8);
+  view(w,T,big){const P=dCurP(T).slice().sort((a,b)=>(a.s??20)-(b.s??20)).slice(0,big?16:8);
     return `<ol class="dspk">${P.map(p=>{const d=p.d||{},ks=Object.keys(d).map(Number).filter(sp=>sp<=TODAY).sort((a,b)=>a-b).slice(-10),v=ks.map(sp=>gscore(d[sp])),avg=v.length?v.reduce((s,x)=>s+x,0)/v.length:0,last=v[v.length-1];
       return `<li><span class="dspn">${dashNm(p.n)}<small class="muted">${esc(p.t||"")}</small></span>${DCH.spark(v,{cls:last!=null&&last>=avg?"up":"down"})}<b class="num" title="Last game">${last!=null?Math.round(last):"–"}</b></li>`;}).join("")}</ol>`;}};
 /* ---- 9. player of the week ---- */
 DW.pw={name:"Player of the week",desc:"Your best player over the last 7 days.",s:"s",
-  view(w,T){const best=TEAMS[T].P.map(p=>{const r=recentPG(p.n,7);return r?{p,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((a,b)=>b.z-a.z)[0];if(!best)return dashEmpty("No games in the last 7 days.");
+  view(w,T){const best=dCurP(T).map(p=>{const r=recentPG(p.n,7);return r?{p,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((a,b)=>b.z-a.z)[0];if(!best)return dashEmpty("No games in the last 7 days.");
     const pg=best.r.pg,st=[["PTS",K.PTS],["REB",K.REB],["AST",K.AST],["STL",K.STL],["BLK",K.BLK],["3PM",K.TPM]];
     return `<div class="dpow">${dFace(best.p.n,best.p.t,"xl")}<div><b class="dpown">${dashNm(best.p.n)}</b><small class="muted">${esc(best.p.t)} · ${best.r.g} game${best.r.g>1?"s":""} · last 7 days</small></div></div>
       <div class="dpst">${st.map(([l,i])=>`<span><b>${dCount(dRound(pg[i]),1)}</b><small>${l}</small></span>`).join("")}</div>`;}};
@@ -158,7 +158,7 @@ DW.aw={name:"Weekly awards",desc:"The awards from the last finished matchup. Con
     return `<p class="dsm muted">${esc(weekName(n))}</p><ul class="dawl${mine?" mine":""}">${a.map(([i,t,v],j)=>`<li class="${String(v).includes(me)?"you":""}" style="--d:${j*90}ms"><span class="dawi">${i}</span><span><b>${esc(t)}</b><small>${esc(v)}</small></span></li>`).join("")}</ul>${mine?'<span class="dconf" aria-hidden="true">'+Array.from({length:14},(_,i)=>`<i style="--i:${i}"></i>`).join("")+"</span>":""}`;}};
 /* ---- 18. injury tracker ---- */
 DW.ij={name:"Injury tracker",desc:"Your injured players and when ESPN expects them back, on a 4-week timeline.",s:"s",
-  view(w,T){const P=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
+  view(w,T){const P=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
     const now=Date.now(),span=28*864e5;
     return `<ol class="dinjl">${P.map(p=>{const ij=injOf(p.n)||{},r=ij.r?new Date(ij.r+"T12:00:00").getTime():null,fr=r?Math.max(.03,Math.min(1,(r-now)/span)):null,k=outKind(p.n);
       return `<li><span>${dashNm(p.n)} ${stTag(p.n,p.st)}<br><small class="muted">${esc(ij.t||outWhy(p.n)||"")}${r?` · back ${retTxt(ij.r)}`:k==="ofs"?" · out for the season":""}</small></span><span class="dinb ${k||"dtd"}"><i class="dg2" style="--w:${fr==null?(k==="ofs"?100:12):(fr*100).toFixed(0)}%"></i></span></li>`;}).join("")}</ol><p class="dsm muted">Bar = time until the expected return (full bar = 4+ weeks)</p>`;}};

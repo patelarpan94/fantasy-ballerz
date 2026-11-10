@@ -48,8 +48,10 @@ DW.fa.view=function(w,T,big){const own=NBA&&NBA.own||{},fa=Object.values(DIR).fi
   if(!fa.length)return dashEmpty("Not enough box scores yet.");
   return `<ol class="dqal">${fa.map(x=>`<li>${dFace(x.D.n,x.D.t,"sm")}<span>${dashNm(x.D.n)}<small class="muted">${esc(x.D.t||"")}${gameOn(x.D.t,TODAY)?' · <b class="okc">plays today</b>':""} · <span class="num">${pra(x.r.pg)}</span></small></span>${own[x.D.n]?`<span class="dqo num"><b>${Math.round(+own[x.D.n][0])}%</b><small class="muted">owned</small></span>`:"<span></span>"}${dAddBtn(x.D.n,T)}</li>`).join("")}</ol><p class="muted dsm">Points / rebounds / assists per game, last 7 days</p>`;};
 // Roster: the season view (today's slots live in Today's lineup)
+// players on the team today: TEAMS[T].P also holds everyone who was ever on it this season (BUG-342)
+function dCurP(T){const sp=Math.min(TODAY,SEASON_END);return TEAMS[T]?TEAMS[T].P.filter(p=>slotOn(p,sp)!=null):[];}
 DW.rr.desc="Your whole roster for the season: games left, season average, form over the last 10 games, plus Move, IR and Drop.";
-DW.rr.view=function(w,T){const sp=TODAY,ed=dCanEdit(T),P=TEAMS[T].P.slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12)),ir=P.filter(p=>slotOn(p,sp)===13).length;
+DW.rr.view=function(w,T){const sp=TODAY,ed=dCanEdit(T),P=dCurP(T).slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12)),ir=P.filter(p=>slotOn(p,sp)===13).length;
   const left=p=>dDaysLeft().filter(d=>gameOn(p.t,d)).length;
   return `<div class="dkpi"><span class="muted">${P.length} of ${ROSTER_MAX} spots used${ir?` · ${ir} on IR`:""}</span></div>
     <div class="drr drr2" role="table" aria-label="Roster"><div class="drrh" role="row"><span>Slot</span><span></span><span>Player</span><span title="Games left this matchup">GL</span><span>Season</span><span>Form</span>${ed?"<span></span>":""}</div>
@@ -63,7 +65,7 @@ dWrap("et",(h,w,T)=>{if(!dCanEdit(T))return h;return h.replace(/(<li><span><span
 dWrap("sm",(h,w,T)=>{let out=h;if(dCanEdit(T))out=out.replace(/(<span class="dcn"><span class="dnm"[^>]*data-pcard="([^"]+)"[^>]*>[^<]*<\/span>)/g,(m,a,n)=>{const nm=n.replace(/&amp;/g,"&").replace(/&#39;/g,"'").replace(/&quot;/g,'"');return a+dAddBtn(nm,T);});
   return out.replace(/(<button class="btn ghost sm dgo" data-dgo="analytics:main")/,'<p class="dsm muted dsmk"><i class="on"></i> fits an open starting spot · <i class="off"></i> plays, but no open spot</p>$1');});
 dWrap("wf",(h,w,T)=>{if(!dCanEdit(T))return h;return h.replace(/(dropped <span class="dnm"[^>]*data-pcard="([^"]+)"[^>]*>[^<]*<\/span>)/g,(m,a,n)=>{const nm=n.replace(/&amp;/g,"&").replace(/&#39;/g,"'").replace(/&quot;/g,'"');return a+(ownerNow(nm)?"":` <button class="btn ghost xs dwfa" data-add="${esc(nm)}">+ Add</button>`);});});
-DW.ij.view=function(w,T){const P=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
+DW.ij.view=function(w,T){const P=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
   const now=Date.now(),span=28*864e5,ed=dCanEdit(T);
   return `<ol class="dinjl">${P.map(p=>{const ij=injOf(p.n)||{},r=ij.r?new Date(ij.r+"T12:00:00").getTime():null,fr=r?Math.max(.03,Math.min(1,(r-now)/span)):null,k=outKind(p.n),s=slotOn(p,TODAY),bad=p.st==="OUT"&&s!=null&&s<12;
     return `<li class="${bad?"bad":""}"><span>${dashNm(p.n)} ${stTag(p.n,p.st)}<br><small class="muted">${esc(ij.t||outWhy(p.n)||"")}${r?` · back ${retTxt(ij.r)}`:k==="ofs"?" · out for the season":""}</small>${bad?`<br><small class="badc">In your lineup today${ed?" · tap the slot to move him or put him on IR":""}</small>`:""}</span><span class="dinr">${ed&&s!=null?dSlotBtn(p,T,TODAY):""}<span class="dinb ${k||"dtd"}"><i class="dg2" style="--w:${fr==null?(k==="ofs"?100:12):(fr*100).toFixed(0)}%"></i></span></span></li>`;}).join("")}</ol><p class="dsm muted">Bar = time until the expected return (full bar = 4+ weeks)</p>`;};
@@ -143,8 +145,8 @@ dWrap("rd",(h,w,T)=>{const opp=dOpp(T);if(!opp||w.o.op==="0")return h;const S=dS
   return h.replace(/(<polygon class="drp me)/,poly+"$1").replace(/(<p class="dsm muted">)/,`$1<i class="dkey me"></i>${esc(dShort(T))} <i class="dkey op"></i>${esc(dShort(opp))} · `);});
 DW.rd.opts=function(w){return `<p class="muted dsnote">Show your opponent?</p><div class="tabs sm dsrow" role="group"><button data-dopto="op:1" aria-selected="${w.o.op!=="0"}">Yes</button><button data-dopto="op:0" aria-selected="${w.o.op==="0"}">No</button></div>`;};
 // My players' news: photos and each story's player status
-DW.nw.view=function(w,T,big){const mine=new Set(TEAMS[T].P.map(p=>p.n)),list=newsAll().filter(a=>(a.p||[]).some(n=>mine.has(n))).slice(0,big?6:3);
-  const inStory=new Set(list.flatMap(a=>(a.p||[]).filter(n=>mine.has(n)))),inj=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE"&&!inStory.has(p.n));
+DW.nw.view=function(w,T,big){const mine=new Set(dCurP(T).map(p=>p.n)),list=newsAll().filter(a=>(a.p||[]).some(n=>mine.has(n))).slice(0,big?6:3);
+  const inStory=new Set(list.flatMap(a=>(a.p||[]).filter(n=>mine.has(n)))),inj=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE"&&!inStory.has(p.n));
   const pl=n=>{const p=TEAMS[T].P.find(q=>q.n===n);return `${dashNm(n)}${p&&p.st&&p.st!=="ACTIVE"?" "+stTag(n,p.st):""}`;};
   return `${list.length?`<ol class="dnews dnews2">${list.map(a=>{const ps=(a.p||[]).filter(n=>mine.has(n)),p0=TEAMS[T].P.find(q=>q.n===ps[0]);return `<li>${dFace(ps[0],p0&&p0.t,"sm")}<span><a href="${esc(a.u||"#")}" target="_blank" rel="noopener noreferrer">${esc(a.h)}</a><small class="muted">${ps.slice(0,2).map(pl).join(", ")} · ${esc(newsSrc(a))} · ${ago(a.at)}</small></span></li>`;}).join("")}</ol>`:dashEmpty("No stories about your players this week.")}
     ${inj.length?`<p class="dsm dinj2"><span class="muted">Also hurt:</span> ${inj.map(p=>`${dashNm(dashLast(p.n))} ${stTag(p.n,p.st)}`).join(" ")}</p>`:""}${dashGo("news","latest","All news")}`;};
