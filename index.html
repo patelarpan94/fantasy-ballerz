@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261110225720"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261110230951"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1331,6 +1331,8 @@ html.nbat .mainnav button:hover{color:#fff}
 html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
 html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent) 0 72%,var(--nbaline) 72% 100%);z-index:1}
+/* on the matchup card the stripe is the win chance split, not a fixed 72/28 (BUG-341) */
+html.nbat .panel.hero::before{background:linear-gradient(90deg,var(--accent) 0 var(--hp,72%),var(--nbaline) var(--hp,72%) 100%)}
 html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in oklab,var(--accent) 13%,var(--surface)) 0%,var(--surface) 70%)}
 html.nbat .teamhead .tn{color:var(--accent)}
 html.nbat .grid thead th,html.nbat .lg thead th{color:var(--accent)}
@@ -3966,7 +3968,7 @@ function matchupHero(){
   const me=cur,opp=M.opp;if(!TEAMS[me])return "";
   if(!opp||!TEAMS[opp])return `<section class="panel hero"><div class="hrow solo">${heroSide(me,"me",null)}</div><p class="hnote">${esc(noOppText())}</p></section>`;
   const a=fcProj(me),b=fcProj(opp),p=winProb(a,b),now=started()?h2h(a.now,b.now):null,pr=h2h(a.fin,b.fin);
-  return `<section class="panel hero" aria-label="Matchup summary"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
+  return `<section class="panel hero" aria-label="Matchup summary" style="--hp:${Math.round(p*100)}%"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
 // ESPN-style category board: one row per category, the leader highlighted, projected finish underneath
 function catBoard(){
   const me=cur,opp=M.opp;if(!TEAMS[me]||!opp||!TEAMS[opp])return "";
@@ -4438,6 +4440,12 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.76",date:"2026-11-10",title:"Planner always has recommendations",notes:[
+    ["343","Fix","Win-the-week planner: every pickup you made this matchup now joins Willing to drop on its own (until you set your own list), not only the ones the planner suggested. When no move clears the usual bar because you are already far ahead, the planner now shows the small edges it can still find and says so. If nothing helps at all, it lists the best free agents with games left, with waiver times, so there is always something to look at."]]},
+  {v:"2.75",date:"2026-11-10",title:"Roster widget shows only your current players",notes:[
+    ["342","Fix","Dashboard Roster widget: players you had dropped earlier in the season were still listed, with no slot, a cut-off name and numbers on top of the chart. It now lists only the players on the team today, and the spots-used count is right. The injuries, news, hottest player and season line widgets also stop counting dropped players."]]},
+  {v:"2.74",date:"2026-11-10",title:"Matchup card stripe matches the win chance",notes:[
+    ["341","Fix","With an NBA team look on, the colored stripe across the top of the Matchup card was always split 72/28, so it looked like a win chance bar that disagreed with the percentages (for example 41% next to a stripe that was mostly that team's color). The stripe now splits at the real win chance."]]},
   {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[
     ["340","Fix","The win chance on the dashboard is now the same for everyone looking at a matchup. Before, a manager's own login also counted the pickups their opponent usually makes, so the same matchup showed 31% to the manager and 59% to everyone else. That forecast is now off unless you tick it in the Opponent move forecast widget. \"Win chance up/down since yesterday\" on the Matchup arena now shows only what the last day of games did, so it no longer jumps by 60."]]},
   {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[
@@ -8089,12 +8097,12 @@ DW.sp={name:"Strengths and punts",desc:"Your league rank in each category, best 
     return `<div class="drank">${rk.map((x,i)=>`<div class="drk ${x.r<=3?"good":x.r>n-3?"bad":""}"><span>${esc(x.c[0])}</span><span class="drkb"><i class="dg2" style="--w:${((n-x.r+1)/n*100).toFixed(0)}%;--d:${i*50}ms"></i></span><b class="num">${x.r}<small>/${n}</small></b></div>`).join("")}</div>`;}};
 /* ---- 8. roster sparklines ---- */
 DW.rs={name:"Roster sparklines",desc:"Every player's last 10 games as a sparkline (game score: points, boards, assists, stocks, threes).",s:"w",
-  view(w,T,big){const P=TEAMS[T].P.slice().sort((a,b)=>(a.s??20)-(b.s??20)).slice(0,big?16:8);
+  view(w,T,big){const P=dCurP(T).slice().sort((a,b)=>(a.s??20)-(b.s??20)).slice(0,big?16:8);
     return `<ol class="dspk">${P.map(p=>{const d=p.d||{},ks=Object.keys(d).map(Number).filter(sp=>sp<=TODAY).sort((a,b)=>a-b).slice(-10),v=ks.map(sp=>gscore(d[sp])),avg=v.length?v.reduce((s,x)=>s+x,0)/v.length:0,last=v[v.length-1];
       return `<li><span class="dspn">${dashNm(p.n)}<small class="muted">${esc(p.t||"")}</small></span>${DCH.spark(v,{cls:last!=null&&last>=avg?"up":"down"})}<b class="num" title="Last game">${last!=null?Math.round(last):"–"}</b></li>`;}).join("")}</ol>`;}};
 /* ---- 9. player of the week ---- */
 DW.pw={name:"Player of the week",desc:"Your best player over the last 7 days.",s:"s",
-  view(w,T){const best=TEAMS[T].P.map(p=>{const r=recentPG(p.n,7);return r?{p,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((a,b)=>b.z-a.z)[0];if(!best)return dashEmpty("No games in the last 7 days.");
+  view(w,T){const best=dCurP(T).map(p=>{const r=recentPG(p.n,7);return r?{p,r,z:zOf(r.pg)}:null;}).filter(Boolean).sort((a,b)=>b.z-a.z)[0];if(!best)return dashEmpty("No games in the last 7 days.");
     const pg=best.r.pg,st=[["PTS",K.PTS],["REB",K.REB],["AST",K.AST],["STL",K.STL],["BLK",K.BLK],["3PM",K.TPM]];
     return `<div class="dpow">${dFace(best.p.n,best.p.t,"xl")}<div><b class="dpown">${dashNm(best.p.n)}</b><small class="muted">${esc(best.p.t)} · ${best.r.g} game${best.r.g>1?"s":""} · last 7 days</small></div></div>
       <div class="dpst">${st.map(([l,i])=>`<span><b>${dCount(dRound(pg[i]),1)}</b><small>${l}</small></span>`).join("")}</div>`;}};
@@ -8156,7 +8164,7 @@ DW.aw={name:"Weekly awards",desc:"The awards from the last finished matchup. Con
     return `<p class="dsm muted">${esc(weekName(n))}</p><ul class="dawl${mine?" mine":""}">${a.map(([i,t,v],j)=>`<li class="${String(v).includes(me)?"you":""}" style="--d:${j*90}ms"><span class="dawi">${i}</span><span><b>${esc(t)}</b><small>${esc(v)}</small></span></li>`).join("")}</ul>${mine?'<span class="dconf" aria-hidden="true">'+Array.from({length:14},(_,i)=>`<i style="--i:${i}"></i>`).join("")+"</span>":""}`;}};
 /* ---- 18. injury tracker ---- */
 DW.ij={name:"Injury tracker",desc:"Your injured players and when ESPN expects them back, on a 4-week timeline.",s:"s",
-  view(w,T){const P=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
+  view(w,T){const P=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
     const now=Date.now(),span=28*864e5;
     return `<ol class="dinjl">${P.map(p=>{const ij=injOf(p.n)||{},r=ij.r?new Date(ij.r+"T12:00:00").getTime():null,fr=r?Math.max(.03,Math.min(1,(r-now)/span)):null,k=outKind(p.n);
       return `<li><span>${dashNm(p.n)} ${stTag(p.n,p.st)}<br><small class="muted">${esc(ij.t||outWhy(p.n)||"")}${r?` · back ${retTxt(ij.r)}`:k==="ofs"?" · out for the season":""}</small></span><span class="dinb ${k||"dtd"}"><i class="dg2" style="--w:${fr==null?(k==="ofs"?100:12):(fr*100).toFixed(0)}%"></i></span></li>`;}).join("")}</ol><p class="dsm muted">Bar = time until the expected return (full bar = 4+ weeks)</p>`;}};
@@ -8879,8 +8887,10 @@ DW.fa.view=function(w,T,big){const own=NBA&&NBA.own||{},fa=Object.values(DIR).fi
   if(!fa.length)return dashEmpty("Not enough box scores yet.");
   return `<ol class="dqal">${fa.map(x=>`<li>${dFace(x.D.n,x.D.t,"sm")}<span>${dashNm(x.D.n)}<small class="muted">${esc(x.D.t||"")}${gameOn(x.D.t,TODAY)?' · <b class="okc">plays today</b>':""} · <span class="num">${pra(x.r.pg)}</span></small></span>${own[x.D.n]?`<span class="dqo num"><b>${Math.round(+own[x.D.n][0])}%</b><small class="muted">owned</small></span>`:"<span></span>"}${dAddBtn(x.D.n,T)}</li>`).join("")}</ol><p class="muted dsm">Points / rebounds / assists per game, last 7 days</p>`;};
 // Roster: the season view (today's slots live in Today's lineup)
+// players on the team today: TEAMS[T].P also holds everyone who was ever on it this season (BUG-342)
+function dCurP(T){const sp=Math.min(TODAY,SEASON_END);return TEAMS[T]?TEAMS[T].P.filter(p=>slotOn(p,sp)!=null):[];}
 DW.rr.desc="Your whole roster for the season: games left, season average, form over the last 10 games, plus Move, IR and Drop.";
-DW.rr.view=function(w,T){const sp=TODAY,ed=dCanEdit(T),P=TEAMS[T].P.slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12)),ir=P.filter(p=>slotOn(p,sp)===13).length;
+DW.rr.view=function(w,T){const sp=TODAY,ed=dCanEdit(T),P=dCurP(T).slice().sort((a,b)=>(slotOn(a,sp)??12)-(slotOn(b,sp)??12)),ir=P.filter(p=>slotOn(p,sp)===13).length;
   const left=p=>dDaysLeft().filter(d=>gameOn(p.t,d)).length;
   return `<div class="dkpi"><span class="muted">${P.length} of ${ROSTER_MAX} spots used${ir?` · ${ir} on IR`:""}</span></div>
     <div class="drr drr2" role="table" aria-label="Roster"><div class="drrh" role="row"><span>Slot</span><span></span><span>Player</span><span title="Games left this matchup">GL</span><span>Season</span><span>Form</span>${ed?"<span></span>":""}</div>
@@ -8894,7 +8904,7 @@ dWrap("et",(h,w,T)=>{if(!dCanEdit(T))return h;return h.replace(/(<li><span><span
 dWrap("sm",(h,w,T)=>{let out=h;if(dCanEdit(T))out=out.replace(/(<span class="dcn"><span class="dnm"[^>]*data-pcard="([^"]+)"[^>]*>[^<]*<\/span>)/g,(m,a,n)=>{const nm=n.replace(/&amp;/g,"&").replace(/&#39;/g,"'").replace(/&quot;/g,'"');return a+dAddBtn(nm,T);});
   return out.replace(/(<button class="btn ghost sm dgo" data-dgo="analytics:main")/,'<p class="dsm muted dsmk"><i class="on"></i> fits an open starting spot · <i class="off"></i> plays, but no open spot</p>$1');});
 dWrap("wf",(h,w,T)=>{if(!dCanEdit(T))return h;return h.replace(/(dropped <span class="dnm"[^>]*data-pcard="([^"]+)"[^>]*>[^<]*<\/span>)/g,(m,a,n)=>{const nm=n.replace(/&amp;/g,"&").replace(/&#39;/g,"'").replace(/&quot;/g,'"');return a+(ownerNow(nm)?"":` <button class="btn ghost xs dwfa" data-add="${esc(nm)}">+ Add</button>`);});});
-DW.ij.view=function(w,T){const P=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
+DW.ij.view=function(w,T){const P=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE");if(!P.length)return `<p class="dempty okc">✓ Everyone is healthy.</p>`;
   const now=Date.now(),span=28*864e5,ed=dCanEdit(T);
   return `<ol class="dinjl">${P.map(p=>{const ij=injOf(p.n)||{},r=ij.r?new Date(ij.r+"T12:00:00").getTime():null,fr=r?Math.max(.03,Math.min(1,(r-now)/span)):null,k=outKind(p.n),s=slotOn(p,TODAY),bad=p.st==="OUT"&&s!=null&&s<12;
     return `<li class="${bad?"bad":""}"><span>${dashNm(p.n)} ${stTag(p.n,p.st)}<br><small class="muted">${esc(ij.t||outWhy(p.n)||"")}${r?` · back ${retTxt(ij.r)}`:k==="ofs"?" · out for the season":""}</small>${bad?`<br><small class="badc">In your lineup today${ed?" · tap the slot to move him or put him on IR":""}</small>`:""}</span><span class="dinr">${ed&&s!=null?dSlotBtn(p,T,TODAY):""}<span class="dinb ${k||"dtd"}"><i class="dg2" style="--w:${fr==null?(k==="ofs"?100:12):(fr*100).toFixed(0)}%"></i></span></span></li>`;}).join("")}</ol><p class="dsm muted">Bar = time until the expected return (full bar = 4+ weeks)</p>`;};
@@ -8974,8 +8984,8 @@ dWrap("rd",(h,w,T)=>{const opp=dOpp(T);if(!opp||w.o.op==="0")return h;const S=dS
   return h.replace(/(<polygon class="drp me)/,poly+"$1").replace(/(<p class="dsm muted">)/,`$1<i class="dkey me"></i>${esc(dShort(T))} <i class="dkey op"></i>${esc(dShort(opp))} · `);});
 DW.rd.opts=function(w){return `<p class="muted dsnote">Show your opponent?</p><div class="tabs sm dsrow" role="group"><button data-dopto="op:1" aria-selected="${w.o.op!=="0"}">Yes</button><button data-dopto="op:0" aria-selected="${w.o.op==="0"}">No</button></div>`;};
 // My players' news: photos and each story's player status
-DW.nw.view=function(w,T,big){const mine=new Set(TEAMS[T].P.map(p=>p.n)),list=newsAll().filter(a=>(a.p||[]).some(n=>mine.has(n))).slice(0,big?6:3);
-  const inStory=new Set(list.flatMap(a=>(a.p||[]).filter(n=>mine.has(n)))),inj=TEAMS[T].P.filter(p=>p.st&&p.st!=="ACTIVE"&&!inStory.has(p.n));
+DW.nw.view=function(w,T,big){const mine=new Set(dCurP(T).map(p=>p.n)),list=newsAll().filter(a=>(a.p||[]).some(n=>mine.has(n))).slice(0,big?6:3);
+  const inStory=new Set(list.flatMap(a=>(a.p||[]).filter(n=>mine.has(n)))),inj=dCurP(T).filter(p=>p.st&&p.st!=="ACTIVE"&&!inStory.has(p.n));
   const pl=n=>{const p=TEAMS[T].P.find(q=>q.n===n);return `${dashNm(n)}${p&&p.st&&p.st!=="ACTIVE"?" "+stTag(n,p.st):""}`;};
   return `${list.length?`<ol class="dnews dnews2">${list.map(a=>{const ps=(a.p||[]).filter(n=>mine.has(n)),p0=TEAMS[T].P.find(q=>q.n===ps[0]);return `<li>${dFace(ps[0],p0&&p0.t,"sm")}<span><a href="${esc(a.u||"#")}" target="_blank" rel="noopener noreferrer">${esc(a.h)}</a><small class="muted">${ps.slice(0,2).map(pl).join(", ")} · ${esc(newsSrc(a))} · ${ago(a.at)}</small></span></li>`;}).join("")}</ol>`:dashEmpty("No stories about your players this week.")}
     ${inj.length?`<p class="dsm dinj2"><span class="muted">Also hurt:</span> ${inj.map(p=>`${dashNm(dashLast(p.n))} ${stTag(p.n,p.st)}`).join(" ")}</p>`:""}${dashGo("news","latest","All news")}`;};
@@ -9778,7 +9788,10 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
   const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
   // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
-  const adA=(o.ad||[]).filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
+  // BUG-343: so does every pickup made this matchup that is still on the team (trades aside), until you set your own list
+  const trIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
+  const wkAdd=Object.entries(OWN).filter(([n,ivs])=>!trIn.has(n)&&ivs.some(iv=>iv.team===T&&iv.from>=Math.max(1,DAYS[0]||TODAY)&&iv.from<=TODAY+1)).map(([n])=>n);
+  const adA=[...new Set([...(o.ad||[]),...wkAdd])].filter(n=>act.some(r=>r.n===n)&&!sugg.some(r=>r.n===n));
   // BUG-315: a list whose players have all left the roster (dropped since) goes back to the automatic suggestions
   const dKeep=o.d?o.d.filter(n=>act.some(r=>r.n===n)):null;
   const dAuto=!o.d||(o.d.length>0&&!dKeep.length),dl=dAuto?[...sugg.map(r=>r.n),...adA]:dKeep;
@@ -9791,7 +9804,8 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const posN=pl=>{const c={};days.forEach(sp=>{const d={},inc=n=>{const k=posMain(n);if(limK.includes(k))d[k]=(d[k]||0)+1;};
     act.forEach(r=>{if(pl.drops[r.n]==null||sp<pl.drops[r.n])inc(r.n);});pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to)inc(a.x.n);});limK.forEach(k=>c[k]=Math.max(c[k]||0,d[k]||0));});return c;};
   const pos0=limK.length?posN({drops:{},adds:[]}):{},posOk=pl=>{if(!limK.length)return true;const c=posN(pl);return limK.every(k=>(c[k]||0)<=Math.max(+PLIM[k],pos0[k]||0));};
-  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
+  let minG=.03,soft=false;
+  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>minG)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
       const ok=d=>d>=Math.max(TODAY+plLag(),x.w?x.wd:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay-(d===TODAY?usedDay:0);const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
@@ -9799,9 +9813,12 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
     return out.sort((a,b)=>b.r.s-a.r.s).slice(0,4);};
   const sig=pl=>pl.adds.map(a=>a.x.n+"@"+a.from+"-"+a.to).sort().join("|");
-  let beam=[{pl:{drops:{},adds:[]},r:b0,open:openN}],best=beam[0];
+  let beam,best;const search=()=>{beam=[{pl:{drops:{},adds:[]},r:b0,open:openN}];best=beam[0];
   for(let k=0;k<budget;k++){const pool=[],seen=new Set();beam.forEach(st=>kids(st).forEach(c=>{const s=sig(c.pl);if(!seen.has(s)){seen.add(s);pool.push(c);}}));
-    if(!pool.length)break;pool.sort((a,b)=>b.r.s-a.r.s);beam=pool.slice(0,3);if(beam[0].r.s>best.r.s+1e-9)best=beam[0];}
+    if(!pool.length)break;pool.sort((a,b)=>b.r.s-a.r.s);beam=pool.slice(0,3);if(beam[0].r.s>best.r.s+1e-9)best=beam[0];}};
+  search();
+  // BUG-343 (Arp 2026-11-10: "there are no recommendations"): nothing clears the usual bar, so take any move that helps at all and say it's a small edge
+  if(!best.pl.adds.length&&budget>0){minG=.0005;soft=true;search();if(!best.pl.adds.length)soft=false;}
   const plan=best.pl,cur=best.r;
   // the moves, with what each is worth on its own (plan without it)
   const without=a=>{const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),next=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.from===a.to+1);
@@ -9829,7 +9846,9 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
       const dc=CATS.map((c,i)=>({c,d:dLogit(val(r.tot,c),val(B,c),c)-pA[i]})).filter(x=>Math.abs(x.d)>=.03).sort((p,q)=>q.d-p.d);
       alts.push({x:y,from:f,games:g,d:r.exp-cur.exp,w:wp(r.tot),dc});}
     m.alts=alts.sort((p,q)=>q.d-p.d).slice(0,4);m.w=wp(cur.tot);});
-  return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
+  return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o,soft,
+    // best free agents with games left, shown when no move helps at all
+    top:fa.map(x=>({x,g:days.filter(sp=>sp>=Math.max(TODAY+plLag(),x.w?x.wd:0)&&plays(x,sp)).length})).filter(q=>q.g).slice(0,4)};}
 // BUG-336 (Arp 2026-11-10): a player on waivers can't be added, only claimed. The claim clears at ESPN's 3 AM ET run
 // after his waiver period, so he plays from that day (wvDay). Claim now to get him then; a later start means adding him once he clears.
 const plActDay=m=>m.x.w?(m.from===m.x.wd?TODAY:Math.max(m.x.wd,plAddDay(m.from))):plAddDay(m.from);
@@ -9868,10 +9887,12 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
       return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+plLag()?` <small class="pl-pk">drop from ${esc(dow(plAddDay(x.minD)))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
-  if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
+  if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup raises your expected categories with these settings${r.budget?"":", or you've used your pickups"}.</p>
+    ${r.budget&&r.top&&r.top.length?`<p class="dsm muted">Best free agents with games left, if you want one anyway. To let the planner use them, add more players to Willing to drop.</p><ol class="dqal">${r.top.map(q=>`<li>${dFace(q.x.n,q.x.t,"sm")}<span>${dashNm(q.x.n)}<small class="muted">${esc(q.x.t||"")} · ${q.g} game${q.g===1?"":"s"} left${q.x.w?` · on waivers${q.x.wc?", clears "+esc(fmtET(q.x.wc).replace(/^(\w+), \w+ \d+, /,"$1 ")):""}`:""}</small></span><span></span>${dAddBtn(q.x.n,T)}</li>`).join("")}</ol>`:""}`;
   const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
   const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
-  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const ad=plActDay(m),ea=plEarly(m),today=ad===TODAY||ea===TODAY;
+  const softN=r.soft?`<p class="dsm muted">You're already in good shape this matchup, so these are small edges, not must-do moves.</p>`:"";
+  const mv=`${softN}<ol class="pl-m">${r.moves.map((m,i)=>{const ad=plActDay(m),ea=plEarly(m),today=ad===TODAY||ea===TODAY;
     const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(ad))}</small>`;
     return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(m.x.w&&m.from===m.x.wd?"Claim now":ea!=null?(ea===TODAY?"Now":dn(ea))+"–"+dn(ad):dn(ad))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>${m.x.w&&m.from===m.x.wd?"Claim":"Add"} ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${ea!=null?plEarlyTxt(m,ea,ad):""}${m.x.w?plWvTxt(m):m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}</small>
       ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
