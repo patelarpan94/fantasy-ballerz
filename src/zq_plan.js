@@ -63,7 +63,7 @@ function dPlanBuild(T){const opp=dOpp(T);if(!opp)return null;
   for(let k=0;k<budget;k++){let best=null;
     const tryPlan=(pl,meta)=>{const r=evalPlan(pl);const g=r.exp-cur.exp;if(g>.04&&(!best||g>best.g+1e-9))best={pl,r,g,meta};};
     for(const x of fa){if(plan.adds.some(a=>a.x.n===x.n))continue;
-      const ok=d=>d>=TODAY+plLag()+(x.w?1:0)&&plays(x,d)&&plan.adds.filter(a=>a.from===d).length<perDay;
+      const ok=d=>d>=Math.max(TODAY+plLag(),x.w?wvDay(x.n):0)&&plays(x,d)&&plan.adds.filter(a=>a.from===d).length<perDay;
       const d0=days.find(ok);if(d0==null)continue;const end=days[days.length-1];
       // a new spot: start on his first playable day (a later start only loses games)
       if(openLeft>0)tryPlan({drops:plan.drops,adds:[...plan.adds,{x,from:d0,to:end,spot:"open"+openLeft}]},{kind:"open",d:d0});
@@ -102,7 +102,7 @@ NEP_VER=4;
 // the Game plan's pickup line points at the planner when it's on the board
 {const _gp=dGamePlan;dGamePlan=function(T){const xs=_gp.apply(this,arguments);if(!dashW().some(w=>w.k==="pl"))return xs;let r=null;try{r=dPlan(T);}catch(e){}
   const i=xs.findIndex(x=>x.ic==="+");if(i<0||!r||!r.moves||!r.moves.length)return xs;const m=r.moves[0],ed=dCanEdit(T);
-  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: add ${m.x.n} ${plAddDay(m.from)===TODAY?"today":"on "+dow(plAddDay(m.from))} (he plays from ${dow(m.from)}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&plAddDay(m.from)===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
+  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: ${m.x.w?"claim":"add"} ${m.x.n} ${plActDay(m)===TODAY?"today":"on "+dow(plActDay(m))} (he plays from ${dow(m.from)}${m.x.w&&m.from===m.x.wd?", once his waiver claim clears":""}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&plActDay(m)===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
 
 {const s=document.createElement("style");s.textContent=`
 .pl-h{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:12px}

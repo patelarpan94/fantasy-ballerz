@@ -28,7 +28,14 @@ function waiverMap(){const out={},c=wcfg(),now=Date.now();if(!L||mirror())return
     // past the run time but his claims haven't run yet: still on waivers, so nobody grabs him first
     if((clr>now||CLAIMS.some(c=>c.status==="pending"&&c.add===t.drop&&c.clearAt===clr))&&!ownerNow(t.drop))out[t.drop]=Math.max(out[t.drop]||0,clr);});return out;}
 let WMAP={};
-const onWaivers=n=>!!WMAP[n];
+// BUG-336 (Arp 2026-11-10): in mirror mode ESPN runs waivers. Refresh saves ESPN's waiver list in nba.wv {name: when the claim clears, ms};
+// ESPN clears a dropped player after the 1-day waiver period at its 3 AM ET daily run.
+const wvClear=n=>{if(WMAP&&WMAP[n])return WMAP[n];if(!mirror())return null;const w=NBA&&NBA.wv&&+NBA.wv[n];return w&&w>Date.now()&&!ownerNow(n)?w:null;};
+const onWaivers=n=>!!wvClear(n);
+// first day he can play once his claim clears: the clear day, or the next day if it clears after that day's first tip-off (ESPN roster lock)
+function wvDay(n){const ms=wvClear(n);if(!ms)return null;let d=todaySp(ms);
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date(ms)),mn=(+p.find(x=>x.type==="hour").value%24)*60+ +p.find(x=>x.type==="minute").value;
+  let tip=null;for(const t in SCHED){const g=SCHED[t][d];if(g&&g[2]!=null&&(tip==null||g[2]<tip))tip=g[2];}if(tip!=null&&mn>=tip)d++;return Math.max(d,TODAY);}
 const wdoc=()=>WDOCS.find(d=>d.id===SEASON)||null;
 function priorityOrder(){const c=wcfg(),ids=L.teams.map(t=>tnum(t.id));
   if(c.type==="standings"){try{return standOrder().slice().reverse();}catch(e){}}
@@ -105,8 +112,8 @@ function waiverPanel(){if(!L||mirror())return "";WMAP=waiverMap();const T=actTea
 const fmtHour=h=>{h=+h||0;return `${(h+11)%12+1} ${h<12?"AM":"PM"}`;};
 {const _av=allView;allView=function(){return waiverPanel()+_av();};
  const _ab=actionBtn;actionBtn=function(r){WMAP=WMAP||{};if(r.oid===0&&onWaivers(r.n)&&actTeam()&&!WRITE_BLOCKED&&!mirror())return `<button class="actb add wv" data-wclaimopen="${esc(r.n)}" aria-label="Claim ${esc(r.n)} off waivers" title="On waivers until ${fmtET(WMAP[r.n])}">W</button>`;return _ab(r);};
- const _sa=sheetAdd;sheetAdd=function(n){if(onWaivers(n)&&!isCommish())return sheetClaim(n);return _sa(n);};
- const _pc=playerCard;playerCard=function(n){_pc(n);if(!onWaivers(n))return;const b=$("#sheetBody").querySelector(`[data-add]`);if(b&&!isCommish()){b.removeAttribute("data-add");b.dataset.wclaimopen=n;b.textContent=`Claim off waivers (clears ${fmtET(WMAP[n])})`;}};}
+ const _sa=sheetAdd;sheetAdd=function(n){if(onWaivers(n)&&!isCommish()&&!mirror())return sheetClaim(n);return _sa(n);};
+ const _pc=playerCard;playerCard=function(n){_pc(n);if(!onWaivers(n)||mirror())return;const b=$("#sheetBody").querySelector(`[data-add]`);if(b&&!isCommish()){b.removeAttribute("data-add");b.dataset.wclaimopen=n;b.textContent=`Claim off waivers (clears ${fmtET(WMAP[n])})`;}};}
 document.addEventListener("click",async e=>{const t=e.target.closest("[data-wclaim],[data-wclaimopen],[data-wcancel],[data-wup]");if(!t)return;e.preventDefault();e.stopPropagation();
   if(t.dataset.wclaimopen)return sheetClaim(t.dataset.wclaimopen);
   if(t.dataset.wclaim)return saveClaim(t.dataset.wclaim);
