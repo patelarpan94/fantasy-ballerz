@@ -20,10 +20,10 @@ const plOpen=T=>{const sl=typeof legalSlots==="function"?legalSlots(T):null,ns=s
   return Math.max(0,Math.min(ROSTER_MAX-ns.length,aMax-act)-cl);};
 // BUG-302 (Arp 2026-11-05): a player you picked up can't be dropped on the day you picked him up.
 // Pickup day = the add's day in the move log (mirror mode: the first day ESPN listed him). A planned drop is
-// made after day d0-PL_LAG's games, so it has to be later than the pickup day: d0 >= pickup day + 1 + PL_LAG.
+// made on day d0 before the first tip-off (BUG-327), so it has to be a later day than the pickup: d0 >= pickup day + 1.
 function plPickDay(T,n){for(let i=TXLOG.length-1;i>=0;i--){const t=TXLOG[i];if(t.ok&&t.add===n&&tnum(t.team)===T&&t.type!=="trade")return t.day??t.addDay??null;}
   const iv=(OWN[n]||[]).find(i=>i.team===T&&i.to===Infinity);return iv?iv.from:null;}
-const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1+PL_LAG;};
+const plMinDrop=(T,n)=>{const P=plPickDay(T,n);return P==null?0:P+1;};
 const PLO=()=>{const o=(UI.dash&&UI.dash.plan)||{};return {x:o.x||[],d:Array.isArray(o.d)?o.d:null,c:o.c||{},n:o.n||0,ad:o.ad||[]};};
 function dPlanSave(o){if(prefKey())dashBoardSet({plan:o});else UI={...UI,dash:{...(UI.dash||{}),plan:o}};DPL_K="";}
 function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
@@ -31,7 +31,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const B=fcProj(opp).fin,now=score(T),K=now.length,lim=+L.addLimit||0,mode=L.addMode||"matchup";
   // BUG-306: pickups already made this matchup count against the limit in mirror mode too (the move log is empty there)
   const usedWk=typeof plUsedWk==="function"?plUsedWk(T):0;
-  let cap=mode==="day"&&lim?lim*days.length:Math.max(0,(lim||PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
+  const usedDay=mode==="day"&&lim?plUsedDay(T,TODAY):0;let cap=mode==="day"&&lim?Math.max(0,lim*days.length-usedDay):Math.max(0,(lim?addLimitFor(TODAY):PL_MAX)-usedWk);cap=Math.max(0,Math.min(cap,PL_MAX));
   const budget=o.n?Math.min(o.n,cap):cap,perDay=mode==="day"&&lim?lim:99;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
@@ -57,7 +57,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const b0=evalPlan({drops:{},adds:[]});
   const skip=new Set(o.x);
   const fa=Object.values(DIR).filter(D=>!ownerNow(D.n)&&!skip.has(D.n)&&INJ[D.n]!=="OUT"&&D.t&&days.some(sp=>gameOn(D.t,sp))).map(D=>{const r=recentPG(D.n,14),pj=pgLine(D.pj)||(r&&r.pg);if(!pj)return null;
-      return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:typeof onWaivers==="function"&&onWaivers(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,18);
+      return {n:D.n,t:D.t,el:(D.el&&D.el.length?D.el:[11]),pj,z:zOf(pj),w:onWaivers(D.n),wd:wvDay(D.n),wc:wvClear(D.n)};}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,18);
   const openN=plOpen(T);
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
@@ -70,9 +70,15 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const dropC=dAuto?[...sugg,...act.filter(r=>adA.includes(r.n)).map(r=>({...r,zs:zs(r.n)}))]:act.filter(r=>dl.includes(r.n)).map(r=>({...r,zs:-99})).slice(0,8);
   const end=days[days.length-1];
   // every next move from a plan, scored
-  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
+  // position limits (BUG-326, ESPN: max 4 C off IR): the roster on any day left can't go over a limit it isn't already over
+  const PLIM=typeof posMaxL==="function"?posMaxL():{},limK=Object.keys(PLIM).filter(k=>+PLIM[k]>0);
+  // counted on every day left, so a pickup can't arrive before the center it replaces is gone
+  const posN=pl=>{const c={};days.forEach(sp=>{const d={},inc=n=>{const k=posMain(n);if(limK.includes(k))d[k]=(d[k]||0)+1;};
+    act.forEach(r=>{if(pl.drops[r.n]==null||sp<pl.drops[r.n])inc(r.n);});pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to)inc(a.x.n);});limK.forEach(k=>c[k]=Math.max(c[k]||0,d[k]||0));});return c;};
+  const pos0=limK.length?posN({drops:{},adds:[]}):{},posOk=pl=>{if(!limK.length)return true;const c=posN(pl);return limK.every(k=>(c[k]||0)<=Math.max(+PLIM[k],pos0[k]||0));};
+  const kids=st=>{const out=[],pl=st.pl;const push=(np,kind)=>{if(!posOk(np))return;const r=evalPlan(np);const g=r.s-st.r.s;if(g>.03)out.push({pl:np,r,open:st.open-(kind==="open"?1:0)});};
     for(const x of fa){if(pl.adds.some(a=>a.x.n===x.n))continue;
-      const ok=d=>d>=TODAY+PL_LAG+(x.w?1:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay;const d0=days.find(ok);if(d0==null)continue;
+      const ok=d=>d>=Math.max(TODAY+plLag(),x.w?x.wd:0)&&plays(x,d)&&pl.adds.filter(a=>a.from===d).length<perDay-(d===TODAY?usedDay:0);const d0=days.find(ok);if(d0==null)continue;
       if(st.open>0)push({drops:pl.drops,adds:[...pl.adds,{x,from:d0,to:end,spot:"open"+st.open}]},"open");
       for(const p of dropC){if(pl.drops[p.n]!=null||p.zs>=zs(x.n))continue;const dd=(p.minD||0)>d0?days.find(d=>d>=p.minD&&ok(d)):d0;if(dd==null)continue;push({drops:{...pl.drops,[p.n]:dd},adds:[...pl.adds,{x,from:dd,to:end,spot:p.n}]},"drop");}
       pl.adds.forEach((a,i)=>days.forEach(d=>{if(a.to!==end||d<=a.from||!ok(d))return;push({drops:pl.drops,adds:[...pl.adds.map((b,j)=>j===i?{...b,to:d-1}:b),{x,from:d,to:end,spot:a.spot}]},"swap");}));}
@@ -89,12 +95,45 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const moves=plan.adds.map(a=>{const g=days.filter(sp=>sp>=a.from&&sp<=a.to&&cur.use[sp].used.has(a.x.n));
     const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),drop=prev?prev.x.n:String(a.spot).startsWith("open")?null:a.spot;
     let wo=null;try{wo=without(a);}catch(e){}const dc=wo?CATS.map(c=>({c,d:dLogit(val(cur.tot,c),val(B,c),c)-dLogit(val(wo.tot,c),val(B,c),c)})).filter(x=>x.d>=.04).sort((x,y)=>y.d-x.d):[];
-    return {x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
+    // BUG-337 (Arp 2026-11-10): the earliest day the move costs nothing: the player you drop doesn't start again before the pickup's first game
+    let early=null;if(!a.x.w){let e=TODAY+plLag();if(drop){const ls=days.filter(sp=>sp<a.from&&cur.use[sp].used.has(drop)).pop();if(ls!=null)e=Math.max(e,ls+1);
+      if(prev)e=Math.max(e,prev.from+1);const rg=regs.find(x=>x.n===drop);if(rg&&rg.minD)e=Math.max(e,rg.minD);}if(e<a.from)early=e;}
+    return {a,x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc,early};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
   const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
   const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
+  // BUG-338 (Arp 2026-11-10: "build this information in so the manager can make the call"): for each move, the best other free agents
+  // for the same spot and days, scored the same way (the rest of the plan unchanged), with the categories each one helps vs the pick
+  const inPlan=new Set(plan.adds.map(a=>a.x.n));
+  moves.forEach(m=>{const a=m.a,alts=[];
+    // the spot opens on the move's earliest day (the player dropped has no start left before it), so an option can use those days too
+    const lo=m.early!=null?m.early:a.from,pv=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1);
+    for(const y of fa){if(inPlan.has(y.n))continue;const f=days.find(d=>d>=lo&&d<=a.to&&d>=(y.w?y.wd:0)&&plays(y,d));if(f==null)continue;
+      const fs=Math.min(f,a.from),dr=!pv&&plan.drops[a.spot]!=null&&fs<a.from?{...plan.drops,[a.spot]:fs}:plan.drops;
+      const np={drops:dr,adds:plan.adds.map(b=>b===a?{...a,x:y,from:f}:pv&&b===pv&&f<a.from?{...b,to:f-1}:b)};if(!posOk(np))continue;
+      const r=evalPlan(np),g=days.filter(sp=>sp>=f&&sp<=a.to&&r.use[sp].used.has(y.n));if(!g.length)continue;
+      const dc=CATS.map((c,i)=>({c,d:dLogit(val(r.tot,c),val(B,c),c)-pA[i]})).filter(x=>Math.abs(x.d)>=.03).sort((p,q)=>q.d-p.d);
+      alts.push({x:y,from:f,games:g,d:r.exp-cur.exp,w:wp(r.tot),dc});}
+    m.alts=alts.sort((p,q)=>q.d-p.d).slice(0,4);m.w=wp(cur.tot);});
   return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
+// BUG-336 (Arp 2026-11-10): a player on waivers can't be added, only claimed. The claim clears at ESPN's 3 AM ET run
+// after his waiver period, so he plays from that day (wvDay). Claim now to get him then; a later start means adding him once he clears.
+const plActDay=m=>m.x.w?(m.from===m.x.wd?TODAY:Math.max(m.x.wd,plAddDay(m.from))):plAddDay(m.from);
+const plWvTxt=m=>{const c=m.x.wc?fmtET(m.x.wc).replace(/^(\w+), \w+ \d+, /,"$1 "):"";return m.from===m.x.wd
+  ?` · on waivers: claim now, it clears ${esc(c)} · plays from ${esc(m.from===TODAY?"today":dow(m.from))} if no team ahead of you in waiver order claims him`
+  :` · on waivers until ${esc(c)}: add him once he clears · plays from ${esc(dow(m.from))}`;};
+// earliest action day when it's earlier than the planned one (the move has to be in before that day's first tip-off)
+const plEarly=m=>{if(m.early==null)return null;const e=plAddDay(m.early);return e<plActDay(m)?e:null;};
+const plEarlyTxt=(m,ea,ad)=>` · make it ${ea===TODAY?"now":"from "+esc(dow(ea))} or any time up to ${esc(ad===TODAY?"today":dow(ad))} night: ${m.drop?`${esc(dashLast(m.drop))} doesn't start again before ${esc(dow(m.from))}`:"you lose nothing by adding him early"}, and nobody else can grab him first`;
+// other options under a move (BUG-338): same spot, same days; the Add button pre-picks the same drop
+const plAltHtml=(m,canAdd,dn)=>{if(!m.alts||!m.alts.length)return "";const why=m.dc.length?`${esc(dashLast(m.x.n))} is the pick because he helps ${m.dc.slice(0,3).map(x=>esc(x.c[0])).join(", ")} most.`:"";
+  return `<details class="pl-alt"><summary>Other options <small class="muted">${m.alts.length} close behind</small></summary>${why?`<p class="dsm muted">${why} The difference is in expected categories won with the rest of the plan the same. Under 0.1 is close to a coin flip, so it's your call.</p>`:""}
+    <table class="pl-at"><thead><tr><th>Player</th><th>Games</th><th>vs pick</th><th>Win</th><th>Categories vs pick</th><th></th></tr></thead><tbody>
+    <tr class="pick"><td><b>${esc(dashLast(m.x.n))}</b> <small class="muted">${esc(m.x.t)} · pick</small></td><td class="num">${m.games.length} <small class="muted">${esc(m.games.map(sp=>dn(sp).slice(0,3)).join(" "))}</small></td><td class="num">–</td><td class="num">${m.w!=null?dPct(m.w)+"%":""}</td><td>${m.dc.slice(0,3).map(x=>`<i class="up">${esc(x.c[0])}</i>`).join("")}</td><td></td></tr>
+    ${m.alts.map(a=>`<tr><td>${dashNm(a.x.n)} <small class="muted">${esc(a.x.t)}${a.x.w?" · waivers":""}</small></td><td class="num">${a.games.length} <small class="muted">${esc(a.games.map(sp=>dn(sp).slice(0,3)).join(" "))}</small></td><td class="num ${a.d>=0?"up":"dn"}">${a.d>=0?"+":"−"}${Math.abs(a.d).toFixed(2)}</td><td class="num">${a.w!=null?dPct(a.w)+"%":""}</td>
+      <td>${a.dc.slice(0,3).map(x=>`<i class="${x.d>0?"up":"dn"}">${esc(x.c[0])} ${x.d>0?"+":"−"}${dPct(Math.abs(x.d))}</i>`).join("")}</td>
+      <td>${canAdd&&!a.x.w?`<button class="btn sm" data-pladd="${esc(a.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`:""}</td></tr>`).join("")}</tbody></table></details>`;};
 let DPL_BUSY=false;
-dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
+dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
   if(k===DPL_K)return DPL;if(!sync){if(!DPL_BUSY){DPL_BUSY=true;setTimeout(()=>{DPL_BUSY=false;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}DPL_K=k;if(nav==="dash")dashDraw();},30);}return undefined;}
   DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
 
@@ -103,7 +142,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
   if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
   const o=r.o,ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp),who=prefKey();
   const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
-    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">A pickup plays from the next day, and only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
+    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
   // controls
   const sx=r.strat,nm=k=>sx.filter(x=>x.eff===k).map(x=>esc(x.c[0])),safe=sx.filter(x=>x.eff==="n"&&x.p>=.85).map(x=>esc(x.c[0]));
   const path=`<div class="pl-path"><b>Best path vs ${esc(on)}</b>${nm("t").length?`<span class="t">★ Target ${nm("t").join(", ")}</span>`:""}${safe.length?`<span class="s">✓ Safe ${safe.join(", ")}</span>`:""}${nm("p").length?`<span class="p">✕ Punt ${nm("p").join(", ")}</span>`:""}<small class="muted">${sx.some(x=>x.own)?"Your changes are marked; the rest is picked for you.":"Picked for you from where each category stands. Tap a category below to change it."}</small></div>`;
@@ -111,18 +150,18 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
     <div class="pl-row"><span class="pl-lab">Pickups</span><span class="pl-step"><button data-pln="-1" aria-label="Fewer pickups"${(o.n||r.cap)<=1?" disabled":""}>−</button><b class="num">${o.n?Math.min(o.n,r.cap):r.cap}</b><button data-pln="1" aria-label="More pickups"${(o.n||r.cap)>=r.cap?" disabled":""}>+</button></span><small class="muted">of ${r.cap} you can use</small>
       ${o.x.length||o.d||Object.keys(o.c).length||o.n?`<button class="pl-reset" data-plreset>Reset all</button>`:""}</div>
     ${(()=>{const dn2=new Set(r.dl),mine=r.regs.filter(x=>!x.ir&&!dn2.has(x.n)).sort((a,b)=>a.z-b.z);
-      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+PL_LAG?` <small class="pl-pk">drop from ${esc(dow(x.minD-PL_LAG))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
+      return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+plLag()?` <small class="pl-pk">drop from ${esc(dow(plAddDay(x.minD)))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
   const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
   const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
-  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const today=m.from-PL_LAG===TODAY;
-    const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(m.from-PL_LAG))}</small>`;
-    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(dn(m.from-PL_LAG))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>Add ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"} · plays from ${esc(dow(m.from))}${m.x.w?" · on waivers":""}</small>
+  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const ad=plActDay(m),ea=plEarly(m),today=ad===TODAY||ea===TODAY;
+    const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(ad))}</small>`;
+    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(m.x.w&&m.from===m.x.wd?"Claim now":ea!=null?(ea===TODAY?"Now":dn(ea))+"–"+dn(ad):dn(ad))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>${m.x.w&&m.from===m.x.wd?"Claim":"Add"} ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${ea!=null?plEarlyTxt(m,ea,ad):""}${m.x.w?plWvTxt(m):m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}</small>
       ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
       <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
-      ${btn}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
+      ${btn}${plAltHtml(m,ed&&today,dn)}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;
   // who plays when
   const rows=[...r.regs.map(x=>({x,k:"reg"})),...r.moves.map(m=>({x:m.x,k:"add",m}))];
   const cell=(row,sp)=>{const u=r.cur.use[sp];const n=row.x.n;
@@ -164,6 +203,10 @@ document.addEventListener("change",e=>{if(nav!=="dash")return;const k=e.target.c
 .pl-hint{margin:0}
 .pl-imp{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pl-imp b{font-size:.74rem;color:#22c55e;margin-right:2px}.pl-imp i{font-style:normal;font-size:.68rem;padding:1px 6px;border-radius:6px;background:rgba(34,197,94,.12);color:#22c55e;font-weight:700}
 .pl-m li{grid-template-columns:62px 30px minmax(0,1fr) auto auto auto}
+.pl-alt{grid-column:1/-1;margin-top:2px}.pl-alt summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--accent)}.pl-alt summary small{font-weight:500;margin-left:6px}.pl-alt p{margin:6px 0}
+.pl-at{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px}.pl-at th{text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800;padding:4px 6px}.pl-at td{padding:5px 6px;border-top:1px solid var(--line);vertical-align:middle}
+.pl-at tr.pick td{background:color-mix(in srgb,#22c55e 8%,transparent)}.pl-at .up{color:#22c55e}.pl-at .dn{color:#ef4444}.pl-at td i{font-style:normal;font-size:.68rem;font-weight:700;margin-right:6px;white-space:nowrap}.pl-at td small{font-size:.66rem}
+@media (max-width:760px){.pl-at th:nth-child(4),.pl-at td:nth-child(4){display:none}.pl-at td small.muted{display:block}}
 .pl-acts{display:flex;gap:6px}.pl-acts:empty{display:none}.pl-x{font:inherit;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.pl-x:hover{color:#ef4444;border-color:#ef4444}
 .pl-wg{margin:6px 0 10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.pl-wg summary{cursor:pointer;font-weight:700;font-size:.9rem}.pl-wg summary small{font-weight:500;margin-left:8px}
 .pl-wgw{overflow-x:auto;margin-top:10px}.pl-tab{border-collapse:separate;border-spacing:3px;width:100%;font-size:.8rem}

@@ -1,7 +1,7 @@
 /* ============================================================================
    2.46 (2026-11-05). Arp picked "1 and 3":
    - Opponent watch (ow): your opponent's moves this matchup, what each did to
-     your win odds and categories, and the counter (target those categories in
+     your win chance and categories, and the counter (target those categories in
      the planner). New moves also show as a dashboard alert until you tap Got it.
    - Team identity (id): the punt build your roster fits, where you rank in each
      category, who on your team doesn't fit (sell), and trade targets and pickups
@@ -34,11 +34,11 @@ function dOppWatch(T){const opp=dOpp(T);if(!opp||!DAYS.length)return null;const 
   const hurt=CATS.map((c,i)=>({c,a:cp(all)[i],b:cp(op)[i]})).filter(x=>x.a-x.b>=.04).sort((x,y)=>(y.a-y.b)-(x.a-x.b));
   return {opp,moves:moves.sort((a,b)=>(b.t.at||0)-(a.t.at||0)),wpNow:wp(op),wpBefore:wp(all),hurt};}
 const owLine=t=>t.type==="trade"?`traded for ${(tnum(t.from)===dOpp(dashT())?t.get:t.give).map(dashLast).join(", ")}`:`${t.add?`added ${t.add}`:""}${t.add&&t.drop?", ":""}${t.drop?`dropped ${t.drop}`:""}`;
-DW.ow={name:"Opponent watch",desc:"Your opponent's moves this matchup, what each one did to your win odds and categories, and how to answer in the planner.",s:"w",
+DW.ow={name:"Opponent watch",desc:"Your opponent's moves this matchup, what each one did to your win chance and categories, and how to answer in the planner.",s:"w",
   view(w,T){const r=dOppWatch(T);if(!r)return dashEmpty("No matchup this week.");const on=dShort(r.opp);
     if(!r.moves.length)return `<p class="dempty okc">✓ ${esc(on)} hasn't made a move this matchup.</p>`;
     const seen=new Set(owSeen()),fresh=r.moves.filter(m=>!seen.has(m.k));
-    const head=`<div class="ow-h"><span><small>Before their moves</small><b class="num">${r.wpBefore!=null?dPct(r.wpBefore)+"%":"–"}</b></span><span class="pl-arr" aria-hidden="true">→</span><span class="${r.wpNow<r.wpBefore-.02?"dn":"ok"}"><small>Your win odds now</small><b class="num">${r.wpNow!=null?dPct(r.wpNow)+"%":"–"}</b></span>
+    const head=`<div class="ow-h"><span><small>Before their moves</small><b class="num">${r.wpBefore!=null?dPct(r.wpBefore)+"%":"–"}</b></span><span class="pl-arr" aria-hidden="true">→</span><span class="${r.wpNow<r.wpBefore-.02?"dn":"ok"}"><small>Your win chance now</small><b class="num">${r.wpNow!=null?dPct(r.wpNow)+"%":"–"}</b></span>
       <p>${esc(on)} made <b>${r.moves.length} move${r.moves.length>1?"s":""}</b> this matchup${fresh.length?` · <b class="ow-new">${fresh.length} new</b>`:""}.</p></div>`;
     const list=`<ol class="ow-l">${r.moves.map(m=>{const dw=m.wpWith!=null&&m.wpWo!=null?m.wpWith-m.wpWo:0,n=m.t.add||(m.t.get||[])[0]||m.t.drop;
       return `<li class="${seen.has(m.k)?"":"new"}">${n?dFace(n,(DIR[n]||{}).t,"sm"):""}<span><b>${esc(owLine(m.t))}</b><small class="muted">${esc(m.t.day===TODAY?"today":dow(m.t.day))}${m.cats.length?` · helps them in ${m.cats.slice(0,3).map(x=>esc(x.c[0])).join(", ")}`:""}</small></span><b class="num ${dw<=-.01?"dn":"ok"}">${dw<=-.005?"−":dw>=.005?"+":"±"}${Math.abs(dPct(dw))}%</b></li>`;}).join("")}</ol>`;
@@ -46,10 +46,10 @@ DW.ow={name:"Opponent watch",desc:"Your opponent's moves this matchup, what each
     const counter=cats.length?`<div class="ow-c"><p><b>Answer:</b> their moves hit your ${cats.map(x=>`<b>${esc(x.c[0])}</b> (${dPct(x.a)}→${dPct(x.b)}%)`).join(", ")}.${typeof DPL!=="undefined"&&DPL&&DPL.moves&&DPL.moves[0]?` Planner's first move: add ${esc(DPL.moves[0].x.n)}.`:""}</p>
       ${ed&&typeof dPlanSave==="function"?`<button class="btn sm" data-owt="${esc(cats.map(x=>x.c[0]).join("|"))}">Target ${cats.map(x=>esc(x.c[0])).join(", ")} in the planner</button>`:""}${fresh.length?`<button class="btn sm ghost" data-owseen="1">Got it</button>`:""}</div>`
       :`<div class="ow-c"><p class="okc">✓ Their moves don't change any category much.</p>${fresh.length?`<button class="btn sm ghost" data-owseen="1">Got it</button>`:""}</div>`;
-    return head+list+counter+`<p class="dsm muted">Odds change = your win odds with the move vs without it. Uses real box scores for games already played and projections for the rest.</p>`;}};
+    return head+list+counter+`<p class="dsm muted">Chance change = your win chance with the move vs without it. Uses real box scores for games already played and projections for the rest.</p>`;}};
 // new opponent moves become a dashboard alert until you tap Got it
 {const _a=dashAlerts;dashAlerts=function(T){const out=_a.apply(this,arguments);try{if(T&&T===myTeamNum()){const r=dOppWatch(T);if(r&&r.moves.length){const seen=new Set(owSeen()),f=r.moves.filter(m=>!seen.has(m.k));
-  if(f.length){const m=f[0],dw=m.wpWith!=null&&m.wpWo!=null?m.wpWith-m.wpWo:0;out.push({lv:"warn",t:`${dShort(r.opp)} ${owLine(m.t)}${f.length>1?` (+${f.length-1} more)`:""}. Your win odds ${dw<-.005?"dropped "+Math.abs(dPct(dw))+"%":dw>.005?"went up "+dPct(dw)+"%":"barely moved"}. See Opponent watch.`,go:["dash",""]});}}}}catch(e){}return out;};}
+  if(f.length){const m=f[0],dw=m.wpWith!=null&&m.wpWo!=null?m.wpWith-m.wpWo:0;out.push({lv:"warn",t:`${dShort(r.opp)} ${owLine(m.t)}${f.length>1?` (+${f.length-1} more)`:""}. Your win chance ${dw<-.005?"dropped "+Math.abs(dPct(dw))+"%":dw>.005?"went up "+dPct(dw)+"%":"barely moved"}. See Opponent watch.`,go:["dash",""]});}}}}catch(e){}return out;};}
 document.addEventListener("click",e=>{if(nav!=="dash")return;let b;
   if((b=e.target.closest("[data-owseen]"))){e.stopPropagation();const r=dOppWatch(dashT());if(r)owMark(r.moves.map(m=>m.k));dashDraw();try{dashBadge();}catch(x){}return;}
   if((b=e.target.closest("[data-owt]"))){e.stopPropagation();const o=PLO(),c={...o.c};b.dataset.owt.split("|").forEach(k=>c[k]="t");dPlanSave({...o,c});const r=dOppWatch(dashT());if(r)owMark(r.moves.map(m=>m.k));dashDraw();try{dashBadge();}catch(x){}return;}

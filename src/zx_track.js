@@ -59,7 +59,7 @@ function plhAuto(T,claimed,skip){const lo=DAYS[0]||TODAY,out=[],usedDrop=new Set
   return out;}
 // pickups made this matchup: the move log's count (app mode), or the roster joins this week (mirror mode), whichever is more
 function plUsedWk(T){if(!TEAMS[T])return 0;const m=L&&(L.addMode||"matchup");let a=0;try{a=plhAuto(T).length;}catch(e){}
-  const b=m==="matchup"&&typeof pickupsUsed==="function"?pickupsUsed(T,TODAY):0;return Math.max(a,b);}
+  const b=(m==="matchup"||m==="mday")&&typeof pickupsUsed==="function"?pickupsUsed(T,TODAY):0;return Math.max(a,b);}
 function plhView(T){if(!plhOn(T))return "";
   const wk=DAYS[0];const logged=plhFor(T).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(Boolean);
   const seen=new Set(logged.map(m=>m.e.a+"|"+m.from));
@@ -67,7 +67,7 @@ function plhView(T){if(!plhOn(T))return "";
   const auto=plhAuto(T,logged.filter(m=>m.drop).map(m=>m.drop.n),seen).map(e=>{try{return plhMatch(T,e);}catch(x){return null;}}).filter(m=>m&&!seen.has(m.e.a+"|"+m.from));
   const now=[...logged.filter(m=>m.e.wk===wk),...auto].sort((a,b)=>b.from-a.from),old=logged.filter(m=>m.e.wk!==wk).sort((a,b)=>b.from-a.from);
   const pm=logged.length,starts=logged.reduce((s,m)=>s+m.st.g,0);
-  const lim=+L.addLimit||PL_MAX,used=plUsedWk(T),wkOnly=!(L.addMode&&L.addMode!=="matchup");
+  const lim=addLimitFor(TODAY)||PL_MAX,used=plUsedWk(T),wkOnly=!L.addMode||L.addMode==="matchup"||L.addMode==="mday";
   return `<div class="plh"><p class="plh-h"><b>Your pickups</b>${wkOnly?`<span class="plh-cnt"><b class="num">${used}</b> pickup${used===1?"":"s"} this matchup · <b class="num">${Math.max(0,lim-used)}</b> left of ${lim}</span>`:""}<small class="muted">${pm} planner pick${pm===1?"":"s"} this season${pm?` · ${starts} start${starts===1?"":"s"} from them`:""}</small></p>
     ${now.length?`<ol class="plh-l">${now.map(plhRow).join("")}</ol>`:`<p class="dsm muted">No pickups this matchup yet. When you add someone, he shows up here with his starts and stats for you, what the player you dropped did since, and the difference in each category.</p>`}
     ${old.length?`<details class="plh-old"><summary>Planner picks in earlier matchups (${old.length})</summary><ol class="plh-l">${old.map(plhRow).join("")}</ol></details>`:""}

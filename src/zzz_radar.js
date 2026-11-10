@@ -7,7 +7,7 @@
    right (lineup, streaming, late scratches) and the rare, high-impact ones right
    (trades, build, playoff planning). The app already covers the daily side
    (planner, closer, First to the wire, auto lineup) and the season side (Season
-   win plan, playoff odds). The gap: trades only appear after you pick ONE team
+   win plan, playoff chances). The gap: trades only appear after you pick ONE team
    in Analytics, so most managers never see the deal that fixes their team.
    Trade radar scans every team in the league for trades that help BOTH sides
    (so they get accepted), ranked by how many more categories a week you'd win,

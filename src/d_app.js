@@ -2,7 +2,7 @@
 /* ============================================================================
    NAVIGATION AND RENDERING
    ============================================================================ */
-const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["tgt","Trade targets"],["pkg","Trade packages"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],news:[["latest","Latest news"],["inj","Injury report"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"],["trash","Trash talk"],["bets","Side bets"]]};
+const SUBTABS={analytics:[["main","Insights"],["cmp","Compare"],["tgt","Trade targets"],["pkg","Trade packages"],["hist","History"]],team:[["sched","Schedule"],["stats","Stats"],["charts","Season charts"]],matchup:[["sched","Rosters"],["stats","Stats"],["track","Tracker"]],league:[["score","Scoreboard"],["stand","Standings"],["sched","Schedule"],["trades","Trades"],["tx","Transactions"],["draft","Draft results"],["nba","NBA schedule"],["setup","Settings"]],news:[["latest","Latest news"],["inj","Injury report"]],pickem:[["pick","Pick'em"],["records","Records"],["wrapped","Wrapped"],["trivia","Trivia"],["wham","Who had more?"],["trash","Trash talk"]]};
 const NAVS=["team","matchup","players","league","news","draft","analytics","pickem"];
 let navSaved=false;try{const n=localStorage.getItem("dfNav");if(NAVS.includes(n)){nav=n;navSaved=true;}Object.assign(SUB,JSON.parse(localStorage.getItem("dfSub")||"{}"));}catch(e){}
 function setNav(n,sub){nav=n;if(sub)SUB[n]=sub;MOVING=null;try{localStorage.setItem("dfNav",nav);localStorage.setItem("dfSub",JSON.stringify(SUB));}catch(e){}render();window.scrollTo({top:0});}
@@ -258,6 +258,8 @@ async function syncEspnSettings(mcp,LG){
   const pt=+st.scheduleSettings?.playoffTeamCount;if(pt>=2)next.playoffTeams=pt;
   const lc=st.rosterSettings?.lineupSlotCounts;if(lc){const sl={};SLOT_KEYS.forEach(k=>sl[k]=0);for(const [id,c] of Object.entries(lc))if(ESPN_SLOT[id])sl[ESPN_SLOT[id]]=+c||0;
     if(Object.values(sl).some(Boolean)){next.slots=sl;next.maxRoster=Object.values(sl).reduce((a,b)=>a+b,0);}}
+  const acq=st.acquisitionSettings;if(acq){const ml=+acq.matchupAcquisitionLimit,sl=+acq.acquisitionLimit;next.addLimit=ml>0?ml:sl>0?sl:0;next.addMode=ml>0?(acq.matchupLimitPerScoringPeriod?"mday":"matchup"):sl>0?"season":"matchup";}
+  const plim=st.rosterSettings?.positionLimits;if(plim){const pm={};for(const [id,c] of Object.entries(plim))if(ESPN_POS[id]&&+c>0)pm[ESPN_POS[id]]=+c;next.posMax=pm;}
   const items=st.scoringSettings?.scoringItems;if(items?.length){const ks=items.map(x=>ESPN_CAT[x.statId]).filter(Boolean);const cats=Object.keys(CATDEF).filter(k=>ks.includes(k));if(cats.length)next.cats=DEFAULT_CATS.filter(k=>cats.includes(k)).concat(cats.filter(k=>!DEFAULT_CATS.includes(k)));}
   (j.teams||[]).forEach(t=>{const tm=next.teams.find(x=>x.id==="t"+t.id),nm=(t.name||[t.location,t.nickname].filter(Boolean).join(" ")).trim();if(tm&&nm)tm.name=nm;else if(!tm&&nm&&next.teams.length<MAX_TEAMS)next.teams.push({id:"t"+t.id,name:nm});});
   const reg=+st.scheduleSettings?.matchupPeriodCount;
@@ -372,7 +374,7 @@ async function refresh(){
       news.forEach(a=>{if(!seen.has(a.id)&&Date.now()-a.at<7*864e5){seen.add(a.id);out.push(a);}});news=out.sort((a,b)=>b.at-a.at).slice(0,120);}
     catch(e){if(e?.code&&!["tool_error","bad_page"].includes(e.code))throw e;}
     const pi=NBA?.inj||{},wa=NBA?.outAt||{},outAt={};Object.keys(inj).forEach(n=>{if(inj[n]==="OUT")outAt[n]=pi[n]==="OUT"?(wa[n]&&Date.now()-wa[n]<7*864e5?wa[n]:0):Date.now();});
-    await Store.set("nba",SEASON,{season:SEASON,inj,injd,news,live:live||NBA?.live||null,own:NBA?.own||null,ownAt:NBA?.ownAt||null,outAt,injAt:inj===pi?(NBA?.injAt||0):Date.now(),at:Date.now()});
+    await Store.set("nba",SEASON,{season:SEASON,inj,injd,news,live:live||NBA?.live||null,own:NBA?.own||null,ownAt:NBA?.ownAt||null,wv:NBA?.wv||{},outAt,injAt:inj===pi?(NBA?.injAt||0):Date.now(),at:Date.now()});
     if(days.length&&days[days.length-1]<last)toast("Loaded 10 days. Press Refresh again for the rest.");
     if(lgErr){showUpdated(ERR.not_league,true);busy=false;btn.disabled=false;return;}
   }catch(e){showUpdated((e?.code==="server_not_connected"?(L.espn?.task?ERR.cloud:ERR.host_missing):ERR[e?.code])||(e?.code?`Refresh failed (${e.code}). Try again.`:"Refresh failed. Try again."),true);busy=false;btn.disabled=false;return;}

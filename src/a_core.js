@@ -44,6 +44,8 @@ const POOL_RAW=/*POOL*/;
 
 // the pickup limit counts per matchup (default), per day or per season (League › Settings, 2.14)
 const addPeriod=d=>{const m=L?.addMode||"matchup";return m==="day"?"d"+d:m==="season"?"s":"w"+weekOf(d)[0];};
+// ESPN "1 per scoring period" (BUG-328): the matchup's limit is the limit times its days (7 per 7-day matchup), used on any day
+const addLimitFor=sp=>{const lim=+L?.addLimit||0;if(!lim)return 0;return L.addMode==="mday"?lim*weekDaysAll(weekOf(Math.min(Math.max(sp,1),SEASON_END))[0]).length:lim;};
 const addWhen=()=>({day:"today",season:"this season"}[L?.addMode]||"this matchup");
 const tnum=id=>+String(id).replace(/\D/g,"");
 const tkey=n=>"t"+n;
