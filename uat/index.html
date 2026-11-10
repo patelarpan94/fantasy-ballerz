@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261110225520"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261110230027"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1331,6 +1331,8 @@ html.nbat .mainnav button:hover{color:#fff}
 html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
 html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent) 0 72%,var(--nbaline) 72% 100%);z-index:1}
+/* on the matchup card the stripe is the win chance split, not a fixed 72/28 (BUG-341) */
+html.nbat .panel.hero::before{background:linear-gradient(90deg,var(--accent) 0 var(--hp,72%),var(--nbaline) var(--hp,72%) 100%)}
 html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in oklab,var(--accent) 13%,var(--surface)) 0%,var(--surface) 70%)}
 html.nbat .teamhead .tn{color:var(--accent)}
 html.nbat .grid thead th,html.nbat .lg thead th{color:var(--accent)}
@@ -3966,7 +3968,7 @@ function matchupHero(){
   const me=cur,opp=M.opp;if(!TEAMS[me])return "";
   if(!opp||!TEAMS[opp])return `<section class="panel hero"><div class="hrow solo">${heroSide(me,"me",null)}</div><p class="hnote">${esc(noOppText())}</p></section>`;
   const a=fcProj(me),b=fcProj(opp),p=winProb(a,b),now=started()?h2h(a.now,b.now):null,pr=h2h(a.fin,b.fin);
-  return `<section class="panel hero" aria-label="Matchup summary"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
+  return `<section class="panel hero" aria-label="Matchup summary" style="--hp:${Math.round(p*100)}%"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
 // ESPN-style category board: one row per category, the leader highlighted, projected finish underneath
 function catBoard(){
   const me=cur,opp=M.opp;if(!TEAMS[me]||!opp||!TEAMS[opp])return "";
@@ -4438,6 +4440,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.74",date:"2026-11-10",title:"Matchup card stripe matches the win chance",notes:[
+    ["341","Fix","With an NBA team look on, the colored stripe across the top of the Matchup card was always split 72/28, so it looked like a win chance bar that disagreed with the percentages (for example 41% next to a stripe that was mostly that team's color). The stripe now splits at the real win chance."]]},
   {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[
     ["340","Fix","The win chance on the dashboard is now the same for everyone looking at a matchup. Before, a manager's own login also counted the pickups their opponent usually makes, so the same matchup showed 31% to the manager and 59% to everyone else. That forecast is now off unless you tick it in the Opponent move forecast widget. \"Win chance up/down since yesterday\" on the Matchup arena now shows only what the last day of games did, so it no longer jumps by 60."]]},
   {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[

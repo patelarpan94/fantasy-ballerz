@@ -40,7 +40,7 @@ function matchupHero(){
   const me=cur,opp=M.opp;if(!TEAMS[me])return "";
   if(!opp||!TEAMS[opp])return `<section class="panel hero"><div class="hrow solo">${heroSide(me,"me",null)}</div><p class="hnote">${esc(noOppText())}</p></section>`;
   const a=fcProj(me),b=fcProj(opp),p=winProb(a,b),now=started()?h2h(a.now,b.now):null,pr=h2h(a.fin,b.fin);
-  return `<section class="panel hero" aria-label="Matchup summary"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
+  return `<section class="panel hero" aria-label="Matchup summary" style="--hp:${Math.round(p*100)}%"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
 // ESPN-style category board: one row per category, the leader highlighted, projected finish underneath
 function catBoard(){
   const me=cur,opp=M.opp;if(!TEAMS[me]||!opp||!TEAMS[opp])return "";
