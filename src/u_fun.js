@@ -55,7 +55,7 @@ function trkLine(title,labels,A,B,nameA,nameB,o){
   return `<figure class="mini trkx"><figcaption><b>${title}</b><span class="vals num"><span class="vk me"></span><span class="me-t">${ea?fmt(ea[1]):"–"}</span><span class="vk op"></span><span class="op-t">${eb?fmt(eb[1]):"–"}</span></span></figcaption>
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${o.mid!=null?`<line class="midl" x1="${Lm}" x2="${W-R}" y1="${y(o.mid)}" y2="${y(o.mid)}"/>`:""}${ticks}${xl}${line(B,"op",nameB)}${line(A,"me",nameA)}${endl(eb,yB,"op")}${endl(ea,yA,"me")}</svg>${o.note?`<p class="trkn">${o.note}</p>`:""}</figure>`;}
 function trkExtra(){const me=cur,op=M.opp;if(!TEAMS[me]||!op||!TEAMS[op])return "";
-  const rem=(T,after)=>{const r=new Array(11).fill(0);TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(sp>after&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>r[i]+=v);});});return r;};
+  const rem=(T,after)=>{const r=new Array(11).fill(0);TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(sp>after&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>r[i]+=v);});});return r;};
   const run={me:new Array(11).fill(0),op:new Array(11).fill(0)},lab=[["Start","Before the matchup"]],wa=[],wb=[];
   const p0=winProb({fin:rem(me,DAYS[0]-1)},{fin:rem(op,DAYS[0]-1)});wa.push(p0);wb.push(1-p0);
   DAYS.filter(sp=>sp<TODAY).forEach(sp=>{[["me",me],["op",op]].forEach(([k,T])=>{const d=dayTotals(T,[sp]);if(d)d.forEach((v,i)=>run[k][i]+=v);});

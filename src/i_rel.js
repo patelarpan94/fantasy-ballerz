@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.77",date:"2026-11-10",title:"New pickups count in the win chance; Advanced matchup sides match",notes:[
+    ["344","Fix","Win chance and projected score: a player ESPN has no projection for (often a brand-new pickup) used to count as zero for the rest of the matchup, which could drop a team's win chance by 20 points right after a move. He now counts at his season average, or his last 30 days if he has no season line. The planner uses the same line."],
+    ["345","Change","Advanced matchup board: the team you're viewing is now on the left and the opponent on the right, the same sides as the score card above it. It used to be the other way round."]]},
   {v:"2.76",date:"2026-11-10",title:"Planner always has recommendations",notes:[
     ["343","Fix","Win-the-week planner: every pickup you made this matchup now joins Willing to drop on its own (until you set your own list), not only the ones the planner suggested. When no move clears the usual bar because you are already far ahead, the planner now shows the small edges it can still find and says so. If nothing helps at all, it lists the best free agents with games left, with waiver times, so there is always something to look at."]]},
   {v:"2.75",date:"2026-11-10",title:"Roster widget shows only your current players",notes:[

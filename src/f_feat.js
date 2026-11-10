@@ -28,7 +28,7 @@ function openFit(T,sp,el){
 }
 function catNeeds(T){
   const opp=opponentOf(T),w={};CATS.forEach(c=>w[c[0]]=1);if(!opp||!TEAMS[opp])return {w,why:{}};
-  const proj=id=>{const now=score(id),rem=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});return now.map((v,i)=>v+rem[i]);};
+  const proj=id=>{const now=score(id),rem=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});return now.map((v,i)=>v+rem[i]);};
   const a=proj(T),b=proj(opp),why={};
   CATS.forEach(c=>{const va=val(a,c),vb=val(b,c),rel=Math.abs(va-vb)/Math.max(Math.abs(va),Math.abs(vb),1e-9);
     w[c[0]]=rel<.04?1.6:rel<.12?1.25:.5;why[c[0]]=rel<.12?(va>=vb?"close lead":"close deficit"):(va>vb?"safe":"out of reach");});

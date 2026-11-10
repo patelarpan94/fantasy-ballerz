@@ -25,7 +25,7 @@ function dSeason(){const ids=Object.keys(TEAMS).map(Number).filter(x=>TEAMS[x].P
 const dRanks=(T,{ids,S})=>CATS.map(c=>({c,r:1+ids.filter(y=>val(S[y],c)>val(S[T],c)+1e-9).length,v:val(S[T],c)}));
 // the matchup day by day: running totals for both teams, projected finish and win chance after each day
 function dMatchDays(T,opp){const days=dDays().filter(sp=>sp<TODAY||(sp===TODAY&&hasDayData(sp)));
-  const rem=(id,after)=>{const r=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pgLine(p.pj);if(!pg)return;DAYS.forEach(d=>{if(d>after&&gameOn(p.t,d)&&startedOn(p,d))pg.forEach((v,i)=>r[i]+=v);});});return r;};
+  const rem=(id,after)=>{const r=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(d=>{if(d>after&&gameOn(p.t,d)&&startedOn(p,d))pg.forEach((v,i)=>r[i]+=v);});});return r;};
   const pts=[{sp:null,a:ZERO(),b:ZERO()}].concat(days.map(sp=>{const ds=DAYS.filter(d=>d<=sp);return {sp,a:dayTotals(T,ds)||ZERO(),b:dayTotals(opp,ds)||ZERO()};}));
   return pts.map(x=>{const after=x.sp==null?DAYS[0]-1:x.sp,ra=rem(T,after),rb=rem(opp,after),A={now:x.a,fin:x.a.map((v,i)=>v+ra[i]),done:false},B={now:x.b,fin:x.b.map((v,i)=>v+rb[i]),done:false};
     return {...x,p:winProb(A,B),w:h2h(x.a,x.b)};});}

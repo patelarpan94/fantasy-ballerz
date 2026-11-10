@@ -152,7 +152,7 @@ DW.nw.view=function(w,T,big){const mine=new Set(dCurP(T).map(p=>p.n)),list=newsA
     ${inj.length?`<p class="dsm dinj2"><span class="muted">Also hurt:</span> ${inj.map(p=>`${dashNm(dashLast(p.n))} ${stTag(p.n,p.st)}`).join(" ")}</p>`:""}${dashGo("news","latest","All news")}`;};
 // Daily production: projected bars before anyone has played
 dWrap("dp",(h,w,T)=>{const opp=dOpp(T);if(!opp||!/No games played yet/.test(h))return h;const k=w.o.k||"PTS",i=K[k==="3PM"?"TPM":k]??K.PTS;
-  const pj=(id,sp)=>TEAMS[id].P.filter(p=>healthy(p)&&gameOn(p.t,sp)&&startedOn(p,sp)).reduce((s,p)=>{const g=pgLine(p.pj);return s+(g?+g[i]||0:0);},0);
+  const pj=(id,sp)=>TEAMS[id].P.filter(p=>healthy(p)&&gameOn(p.t,sp)&&startedOn(p,sp)).reduce((s,p)=>{const g=pjOf(p);return s+(g?+g[i]||0:0);},0);
   const g=dDays().filter(sp=>sp>=TODAY).map(sp=>({l:dow(sp),v:[pj(T,sp),pj(opp,sp)]}));if(!g.some(x=>x.v[0]||x.v[1]))return h;
   return h.replace(/<p class="dempty[^"]*">No games played yet this matchup.<\/p>/,`<div class="dpj">${DCH.bars(g,{cls:["me","op"]})}</div><p class="dsm muted">Projected from today's lineups until games are played.</p>`);});
 
