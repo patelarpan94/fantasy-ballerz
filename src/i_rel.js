@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.76",date:"2026-11-10",title:"Planner always has recommendations",notes:[
+    ["343","Fix","Win-the-week planner: every pickup you made this matchup now joins Willing to drop on its own (until you set your own list), not only the ones the planner suggested. When no move clears the usual bar because you are already far ahead, the planner now shows the small edges it can still find and says so. If nothing helps at all, it lists the best free agents with games left, with waiver times, so there is always something to look at."]]},
   {v:"2.75",date:"2026-11-10",title:"Roster widget shows only your current players",notes:[
     ["342","Fix","Dashboard Roster widget: players you had dropped earlier in the season were still listed, with no slot, a cut-off name and numbers on top of the chart. It now lists only the players on the team today, and the spots-used count is right. The injuries, news, hottest player and season line widgets also stop counting dropped players."]]},
   {v:"2.74",date:"2026-11-10",title:"Matchup card stripe matches the win chance",notes:[
