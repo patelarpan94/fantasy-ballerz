@@ -85,10 +85,11 @@ function wnOppF(T){const O=dOpp(T);if(!O||!DAYS.length)return null;const k=T+":"
   const boost=add.map(v=>v*exp);
   WNO_K=k;WNO={O,h,exp,cap,boost,left:left.length};return WNO;}
 let WNO_IN=false;
-const wnOfcOn=()=>!(UI&&UI.dash&&UI.dash.ofc===false);
+// off unless the manager ticks it (BUG-340): the headline win chance is the same for every viewer
+const wnOfcOn=()=>!!(UI&&UI.dash&&UI.dash.ofc===true);
 {const _f=fcProj;fcProj=function(T){const r=_f.apply(this,arguments);if(WNO_IN||!wnOfcOn())return r;try{const me=myTeamNum();if(!me||T===me||dOpp(me)!==T||wk[0]!==wnCur()[0]||r.done)return r;
   WNO_IN=true;const f=wnOppF(me);WNO_IN=false;if(!f||!(f.exp>0))return r;return {...r,fin:r.fin.map((v,i)=>v+(f.boost[i]||0)),ofc:f.exp};}catch(e){WNO_IN=false;return r;}};}
-DW.of={name:"Opponent move forecast",desc:"How your opponent usually streams and the moves they're likely to make before Sunday, counted in your win chance and the planner.",s:"w",
+DW.of={name:"Opponent move forecast",desc:"How your opponent usually streams and the moves they're likely to make before Sunday. Tick the box to count them in your win chance and the planner.",s:"w",
   view(w,T){WNO_IN=true;let f;try{f=wnOppF(T);}finally{WNO_IN=false;}if(!f)return dashEmpty("No matchup this week.");const on=dShort(f.O),h=f.h;
     const me=fcProj(T).fin;WNO_IN=true;let opRaw;try{opRaw=fcProj(f.O).fin;}finally{WNO_IN=false;}const opF=opRaw.map((v,i)=>v+(f.boost[i]||0));
     const wp=X=>{try{return winProb({fin:me},{fin:X});}catch(e){return null;}},a=wp(opRaw),b=wp(opF);

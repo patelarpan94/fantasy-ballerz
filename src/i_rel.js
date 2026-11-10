@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[
+    ["340","Fix","The win chance on the dashboard is now the same for everyone looking at a matchup. Before, a manager's own login also counted the pickups their opponent usually makes, so the same matchup showed 31% to the manager and 59% to everyone else. That forecast is now off unless you tick it in the Opponent move forecast widget. \"Win chance up/down since yesterday\" on the Matchup arena now shows only what the last day of games did, so it no longer jumps by 60."]]},
   {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[
     ["339","Fix","The iPhone app is back with everything since 2.60. Its server now saves ESPN's waiver list (so the planner knows when each waiver claim clears) and copies ESPN's pickup limit (7 per 7-day matchup, any day) like the Refresh in the backup app already did."]]},
   {v:"2.71",date:"2026-11-10",title:"Planner shows the other options",notes:[

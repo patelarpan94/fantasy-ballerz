@@ -19,8 +19,9 @@ const dRemDays=t=>DAYS.filter(sp=>upcoming(t,sp)&&gameOn(t,sp));
 DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win chance ring, momentum since yesterday, every category battle and the games-left duel.",s:"f",
   view(w,T){const opp=dOpp(T);if(!opp)return dashEmpty("No matchup this week.");const u=++NEP_U;
     const a=fcProj(T),b=fcProj(opp),p=winProb(a,b),now=h2h(a.now,b.now),pr=h2h(a.fin,b.fin),pc=dPct(p);
-    let prev=null;try{const D=dMatchDays(T,opp);if(D.length>1)prev=D[D.length-2].p;}catch(e){}
-    const mom=prev==null?null:Math.round((p-prev)*100),live=dLiveOn(),ga=gamesLeft(T),gb=gamesLeft(opp),gt=Math.max(1,ga+gb);
+    // momentum = what the last day of games did, both ends worked out the same way (BUG-340)
+    let mom=null;try{const D=dMatchDays(T,opp);if(D.length>1)mom=Math.round((D[D.length-1].p-D[D.length-2].p)*100);}catch(e){}
+    const live=dLiveOn(),ga=gamesLeft(T),gb=gamesLeft(opp),gt=Math.max(1,ga+gb);
     const side=(id,cls)=>{const r=STAND[id]&&STAND[id].rec||[0,0,0];let sk="";try{sk=streakOf(id)||"";}catch(e){}
       return `<div class="xa-team ${cls}"><span class="xa-crest ${cls}">${esc(tmInit(id))}</span><b>${esc(PHONE()?dShort(id):TEAMS[id].name)}</b><small>${r.join("-")}${sk?` · ${esc(sk)}`:""}</small></div>`;};
     const chip=(c,i)=>{const x=val(a.now,c),y=val(b.now,c),fx=val(a.fin,c),fy=val(b.fin,c),pp=dLogit(fx,fy,c),s=x+y>0?x/(x+y):.5,st=pp>=.7?"safe":pp<=.3?"lost":"swing";
@@ -34,7 +35,7 @@ DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win cha
           <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" stroke="url(#xag${u})" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
           <div class="xa-num"><b>${dCount(pc,0,"xa"+T)}<small>%</small></b><span>to win</span></div></div>
         ${side(opp,"op")}</div>
-      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected</span></div>
+      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected${b.ofc?" · with their likely moves":""}</span></div>
       <div class="xa-cats">${CATS.map(chip).join("")}</div>
       <div class="xa-gl"><span><b class="num">${ga}</b> games left</span><i class="xa-glb"><i style="--w:${(ga/gt*100).toFixed(1)}%"></i></i><span><b class="num">${gb}</b> games left</span></div></div>`;}};
 
