@@ -95,7 +95,10 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const moves=plan.adds.map(a=>{const g=days.filter(sp=>sp>=a.from&&sp<=a.to&&cur.use[sp].used.has(a.x.n));
     const prev=plan.adds.find(b=>b!==a&&b.spot===a.spot&&b.to===a.from-1),drop=prev?prev.x.n:String(a.spot).startsWith("open")?null:a.spot;
     let wo=null;try{wo=without(a);}catch(e){}const dc=wo?CATS.map(c=>({c,d:dLogit(val(cur.tot,c),val(B,c),c)-dLogit(val(wo.tot,c),val(B,c),c)})).filter(x=>x.d>=.04).sort((x,y)=>y.d-x.d):[];
-    return {x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
+    // BUG-337 (Arp 2026-11-10): the earliest day the move costs nothing: the player you drop doesn't start again before the pickup's first game
+    let early=null;if(!a.x.w){let e=TODAY+plLag();if(drop){const ls=days.filter(sp=>sp<a.from&&cur.use[sp].used.has(drop)).pop();if(ls!=null)e=Math.max(e,ls+1);
+      if(prev)e=Math.max(e,prev.from+1);const rg=regs.find(x=>x.n===drop);if(rg&&rg.minD)e=Math.max(e,rg.minD);}if(e<a.from)early=e;}
+    return {x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc,early};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
   const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
   const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
   return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o};}
@@ -105,6 +108,9 @@ const plActDay=m=>m.x.w?(m.from===m.x.wd?TODAY:Math.max(m.x.wd,plAddDay(m.from))
 const plWvTxt=m=>{const c=m.x.wc?fmtET(m.x.wc).replace(/^(\w+), \w+ \d+, /,"$1 "):"";return m.from===m.x.wd
   ?` · on waivers: claim now, it clears ${esc(c)} · plays from ${esc(m.from===TODAY?"today":dow(m.from))} if no team ahead of you in waiver order claims him`
   :` · on waivers until ${esc(c)}: add him once he clears · plays from ${esc(dow(m.from))}`;};
+// earliest action day when it's earlier than the planned one (the move has to be in before that day's first tip-off)
+const plEarly=m=>{if(m.early==null)return null;const e=plAddDay(m.early);return e<plActDay(m)?e:null;};
+const plEarlyTxt=(m,ea,ad)=>` · make it ${ea===TODAY?"now":"from "+esc(dow(ea))} or any time up to ${esc(ad===TODAY?"today":dow(ad))} night: ${m.drop?`${esc(dashLast(m.drop))} doesn't start again before ${esc(dow(m.from))}`:"you lose nothing by adding him early"}, and nobody else can grab him first`;
 let DPL_BUSY=false;
 dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+":"+(LIVE&&LIVE.at||0)+":"+(typeof REV!=="undefined"?REV:"")+":"+JSON.stringify(o);
   if(k===DPL_K)return DPL;if(!sync){if(!DPL_BUSY){DPL_BUSY=true;setTimeout(()=>{DPL_BUSY=false;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}DPL_K=k;if(nav==="dash")dashDraw();},30);}return undefined;}
@@ -129,9 +135,9 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
   if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup helps with these settings. Your open spots are covered${r.budget?"":", or you've used your pickups"}.</p>`;
   const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
   const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
-  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const ad=plActDay(m),today=ad===TODAY;
+  const mv=`<ol class="pl-m">${r.moves.map((m,i)=>{const ad=plActDay(m),ea=plEarly(m),today=ad===TODAY||ea===TODAY;
     const btn=ed&&today?(m.x.w?`<button class="btn sm" data-add="${esc(m.x.n)}">Claim</button>`:`<button class="btn sm" data-pladd="${esc(m.x.n)}"${m.drop?` data-pldrop="${esc(m.drop)}"`:""}>Add</button>`):today?"":`<small class="pl-when muted">${esc(dn(ad))}</small>`;
-    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(m.x.w&&m.from===m.x.wd?"Claim now":dn(ad))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>${m.x.w&&m.from===m.x.wd?"Claim":"Add"} ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${m.x.w?plWvTxt(m):m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}</small>
+    return `<li style="--d:${i*80}ms"><span class="pl-day">${esc(m.x.w&&m.from===m.x.wd?"Claim now":ea!=null?(ea===TODAY?"Now":dn(ea))+"–"+dn(ad):dn(ad))}</span>${dFace(m.x.n,m.x.t,"sm")}<span class="pl-who"><b>${m.x.w&&m.from===m.x.wd?"Claim":"Add"} ${dashNm(m.x.n)}</b><small class="muted">${esc(m.x.t)}${m.drop?` · drop ${esc(dashLast(m.drop))}`:" · open roster spot"}${ea!=null?plEarlyTxt(m,ea,ad):""}${m.x.w?plWvTxt(m):m.from===TODAY?` · plays today if you add him before the first tip-off${plTipTxt()?` (${esc(plTipTxt())})`:""}`:` · plays from ${esc(dow(m.from))}`}</small>
       ${m.dc.length||m.worth!=null?`<span class="pl-imp">${m.worth!=null?`<b class="num">+${Math.max(0,m.worth).toFixed(2)}</b>`:""}${m.dc.slice(0,4).map(x=>`<i>${esc(x.c[0])} +${dPct(x.d)}</i>`).join("")}</span>`:""}</span>
       <span class="pl-g" aria-label="${m.games.length} games">${r.days.map(sp=>`<i class="${m.games.includes(sp)?"on":sp>=m.from&&sp<=m.to&&gameOn(m.x.t,sp)?"no":""}" title="${esc(dn(sp))}"></i>`).join("")}<small>${m.games.length} g</small></span>
       ${btn}<span class="pl-acts">${who&&m.drop&&r.regs.some(x=>x.n===m.drop)?`<button class="pl-x pl-kp" data-plk1="${esc(m.drop)}" aria-label="Keep ${esc(m.drop)}" title="Keep ${esc(dashLast(m.drop))}: take him off your drop list">🔒</button>`:""}${who?`<button class="pl-x" data-plx="${esc(m.x.n)}" aria-label="Skip ${esc(m.x.n)} and re-plan" title="Skip him">✕</button>`:""}</span></li>`;}).join("")}</ol>`;

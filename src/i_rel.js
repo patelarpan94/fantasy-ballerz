@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.70",date:"2026-11-10",title:"Planner shows how early you can make each move",notes:[
+    ["337","New","Win-the-week planner: each move now says how early you can make it without losing a game (for example \"Now–Tue: make it now or any time up to Tue night, Shead doesn't start again before Wed\"). Moving early means nobody else grabs the player. The Add button shows as soon as the move can be made."]]},
   {v:"2.69",date:"2026-11-10",title:"Planner knows waiver claim timing",notes:[
     ["336","Fix","Win-the-week planner: a player on waivers only counts from the day his claim clears (ESPN runs claims at 3 AM ET after the 1-day waiver period), not right away. Waiver moves say Claim now, when the claim clears and that a team ahead of you in waiver order could get him first. Refresh now saves ESPN's waiver list, so \"on waivers\" also shows in mirror mode."]]},
   {v:"2.68",date:"2026-11-09",title:"Win-more tools on New Era +",notes:[

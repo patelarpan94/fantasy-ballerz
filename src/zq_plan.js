@@ -102,7 +102,7 @@ NEP_VER=4;
 // the Game plan's pickup line points at the planner when it's on the board
 {const _gp=dGamePlan;dGamePlan=function(T){const xs=_gp.apply(this,arguments);if(!dashW().some(w=>w.k==="pl"))return xs;let r=null;try{r=dPlan(T);}catch(e){}
   const i=xs.findIndex(x=>x.ic==="+");if(i<0||!r||!r.moves||!r.moves.length)return xs;const m=r.moves[0],ed=dCanEdit(T);
-  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: ${m.x.w?"claim":"add"} ${m.x.n} ${plActDay(m)===TODAY?"today":"on "+dow(plActDay(m))} (he plays from ${dow(m.from)}${m.x.w&&m.from===m.x.wd?", once his waiver claim clears":""}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&plActDay(m)===TODAY?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
+  xs[i]={...xs[i],t:`Planner: ${r.moves.length} pickup${r.moves.length>1?"s":""} for ${r.games} extra game${r.games>1?"s":""} this week. First: ${m.x.w?"claim":"add"} ${m.x.n} ${plActDay(m)===TODAY?"today":plEarly(m)===TODAY?"now (or by "+dow(plActDay(m))+" night)":"on "+dow(plActDay(m))} (he plays from ${dow(m.from)}${m.x.w&&m.from===m.x.wd?", once his waiver claim clears":""}).`,imp:`+${r.gain.toFixed(1)}`,act:ed&&(plActDay(m)===TODAY||plEarly(m)===TODAY)?`<button class="btn sm" data-add="${esc(m.x.n)}">Add</button>`:""};return xs;};}
 
 {const s=document.createElement("style");s.textContent=`
 .pl-h{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:12px}
