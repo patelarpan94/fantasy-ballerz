@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.74",date:"2026-11-10",title:"Matchup card stripe matches the win chance",notes:[
+    ["341","Fix","With an NBA team look on, the colored stripe across the top of the Matchup card was always split 72/28, so it looked like a win chance bar that disagreed with the percentages (for example 41% next to a stripe that was mostly that team's color). The stripe now splits at the real win chance."]]},
   {v:"2.73",date:"2026-11-10",title:"One win chance for everyone",notes:[
     ["340","Fix","The win chance on the dashboard is now the same for everyone looking at a matchup. Before, a manager's own login also counted the pickups their opponent usually makes, so the same matchup showed 31% to the manager and 59% to everyone else. That forecast is now off unless you tick it in the Opponent move forecast widget. \"Win chance up/down since yesterday\" on the Matchup arena now shows only what the last day of games did, so it no longer jumps by 60."]]},
   {v:"2.72",date:"2026-11-10",title:"Back on the iPhone app",notes:[

@@ -965,6 +965,8 @@ html.nbat .mainnav button:hover{color:#fff}
 html.nbat .mainnav button[aria-selected="true"]{color:#fff;border-bottom-color:var(--nba2);background:rgba(255,255,255,.13)}
 html.nbat .panel{border-top:0;position:relative;overflow:clip}
 html.nbat .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent) 0 72%,var(--nbaline) 72% 100%);z-index:1}
+/* on the matchup card the stripe is the win chance split, not a fixed 72/28 (BUG-341) */
+html.nbat .panel.hero::before{background:linear-gradient(90deg,var(--accent) 0 var(--hp,72%),var(--nbaline) var(--hp,72%) 100%)}
 html.nbat .teamhead{background:linear-gradient(100deg,color-mix(in oklab,var(--accent) 13%,var(--surface)) 0%,var(--surface) 70%)}
 html.nbat .teamhead .tn{color:var(--accent)}
 html.nbat .grid thead th,html.nbat .lg thead th{color:var(--accent)}
