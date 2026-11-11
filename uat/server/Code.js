@@ -962,7 +962,9 @@ function syncRosters_(LG, last, now, done) {
   var saved = {}, ids = Object.keys(getCol_('espn')).map(function (k) { var d = +k.split('_d')[1] || 0; saved[d] = 1; return d; });
   var have = Math.max(done || 0, ids.length ? Math.max.apply(null, ids) : 0);
   var first = Math.max(1, Math.min(have, last)), n = 0, want = [], gaps = [];
-  for (var sp = 1; sp <= last; sp++) { if (sp >= first) want.push(sp); else if (!saved[sp]) gaps.push(sp); }
+  // BUG-346: also tomorrow, so an ESPN move made after tonight's lock (it counts from tomorrow) shows up right away
+  var end = Math.min(last + 1, SEASON_END);
+  for (var sp = 1; sp <= end; sp++) { if (sp >= first) want.push(sp); else if (!saved[sp]) gaps.push(sp); }
   want = gaps.reverse().slice(0, 10).concat(want);
   for (var w = 0; w < want.length; w++) { sp = want[w];
     var jr = getJson_(LG + '?view=mRoster&scoringPeriodId=' + sp), r = {}, any = false;

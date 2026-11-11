@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.78",date:"2026-11-10",title:"ESPN moves for tomorrow show right away",notes:[
+    ["346","Fix","Mirror mode: an add, drop or lineup change made on ESPN after the day's first tip-off counts from tomorrow, and the app only copied today's ESPN rosters, so the move didn't show until after midnight. Each ESPN pull now also copies tomorrow's rosters and lineups: tomorrow on My Team, the matchup and the planner shows the move, and today stays as ESPN had it."]]},
   {v:"2.77",date:"2026-11-10",title:"New pickups count in the win chance; Advanced matchup sides match",notes:[
     ["344","Fix","Win chance and projected score: a player ESPN has no projection for (often a brand-new pickup) used to count as zero for the rest of the matchup, which could drop a team's win chance by 20 points right after a move. He now counts at his season average, or his last 30 days if he has no season line. The planner uses the same line."],
     ["345","Change","Advanced matchup board: the team you're viewing is now on the left and the opponent on the right, the same sides as the score card above it. It used to be the other way round."]]},
