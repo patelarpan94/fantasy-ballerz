@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.79",date:"2026-11-11",title:"New Era + dashboard reorganized",notes:[
+    ["347","Change","New Era + goes from 30 tiles to 16, in six sections in the order you act: Tonight, Pickups, Your opponent, Next week, Trades and The season. Tiles that answered the same question are now one tile with tabs: Opponent (Moves, Forecast, Scout), Pickup alerts (Injuries, Role changes, Opportunity) and Protect your ratios (Tonight, Close out). The tip-off countdown is a line in the Matchup arena. A row of chips under the arena jumps to each section and stays at the top as you scroll. Section titles show a count when something needs you, like 1 to fix. On the last three days of a matchup, Next week moves up under Tonight, and once the day's last game has tipped off, Tonight folds itself until tomorrow (tap Show to open it). Every tile that left the default is still in + Add widget. The board resets once to the new layout; your other boards aren't touched."],
+    ["348","Fix","Dashboard: looking at a past or next matchup with a stage theme on New Era + showed today-only tiles (lineups, planner, alerts) for that other matchup. They now step aside like they do on the other looks."]]},
   {v:"2.78",date:"2026-11-10",title:"ESPN moves for tomorrow show right away",notes:[
     ["346","Fix","Mirror mode: an add, drop or lineup change made on ESPN after the day's first tip-off counts from tomorrow, and the app only copied today's ESPN rosters, so the move didn't show until after midnight. Each ESPN pull now also copies tomorrow's rosters and lineups: tomorrow on My Team, the matchup and the planner shows the move, and today stays as ESPN had it."]]},
   {v:"2.77",date:"2026-11-10",title:"New pickups count in the win chance; Advanced matchup sides match",notes:[
