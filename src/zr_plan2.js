@@ -61,7 +61,10 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   const openN=plOpen(T);
   const keepRk=Object.keys(TEAMS).length*13,zs=n=>{const r=recentPG(n,400);return r?zOf(r.pg):-9;};
   // players you're willing to drop: your list, or until you set one, the 3 weakest who aren't top-ranked (Arp 2026-11-05)
-  const sugg=act.filter(r=>!r.out&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=keepRk)).map(r=>({...r,zs:zs(r.n)})).sort((a,b)=>a.zs-b.zs).slice(0,3);
+  // BUG-349 (Arp 2026-11-16: "no pickups for cloud team"): the draft rank (rk) kept Brook Lopez/Julian Champagnie (rk 112-113, weakest this season) off the list,
+  // so no free agent beat anyone left. Now only true stars by rank (top 3 per team) and the team's 8 best this season are kept off
+  const actZ=act.filter(r=>!r.out).map(r=>({...r,zs:zs(r.n)})),core=new Set(actZ.slice().sort((a,b)=>b.zs-a.zs).slice(0,8).map(r=>r.n)),starRk=Object.keys(TEAMS).length*3;
+  const sugg=actZ.filter(r=>!core.has(r.n)&&!(DIR[r.n]&&DIR[r.n].rk&&DIR[r.n].rk<=starRk)).sort((a,b)=>a.zs-b.zs).slice(0,3);
   // planner pickups you made join the list automatically (BUG-301, zx_track.js sets o.ad / o.d)
   // BUG-343: so does every pickup made this matchup that is still on the team (trades aside), until you set your own list
   const trIn=new Set(TXLOG.filter(t=>t.ok&&t.type==="trade").flatMap(t=>tnum(t.from)===T?t.get:tnum(t.to)===T?t.give:[]));
