@@ -36,14 +36,16 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
   let W=CATS.map(()=>1);
   const score2=tot=>CATS.reduce((s,c,i)=>s+W[i]*dLogit(val(tot,c),val(B,c),c),0);
   const zOfP=p=>{const r=recentPG(p.n,14),pj=pgLine(p.pj);return pj?zOf(pj):r?zOf(r.pg):-5;};
-  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pjOf(p),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",minD:plMinDrop(T,p.n)}));
+  const regs=dNowP(T).map(p=>({n:p.n,t:p.t,el:(p.el&&p.el.length?p.el:(DIR[p.n]&&DIR[p.n].el)||[11]),pj:pjOf(p),z:zOfP(p),ir:slotOn(p,TODAY)===13,out:p.st==="OUT",on0:startedOn(p,TODAY),minD:plMinDrop(T,p.n)}));
   const act=regs.filter(x=>!x.ir);
   const fits=(el,slot)=>slot===11||el.includes(slot);
   const MEMO=new Map();const dayLine=(sp,xs)=>{const mk=sp+"|"+xs.map(x=>x.n).sort().join(",");const hit=MEMO.get(mk);if(hit)return hit;const owner=new Array(LINEUP.length).fill(null),tot=new Array(K).fill(0);
     const tryA=(x,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!fits(x.el,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=x;return true;}}return false;};
-    xs.slice().sort((a,b)=>b.z-a.z).forEach(x=>{if(tryA(x,[])&&x.pj)x.pj.forEach((v,i)=>tot[i]+=+v||0);});
+    // BUG-351: a player whose game today has started stays in his spot (counted first) and adds only the part of the game left
+    const lk=x=>sp===TODAY&&x.on0&&locked({t:x.t},sp)?1:0;
+    xs.slice().sort((a,b)=>(lk(b)-lk(a))||b.z-a.z).forEach(x=>{if(tryA(x,[])&&x.pj){const f=lk(x)?liveLeft(x.t,sp):1;x.pj.forEach((v,i)=>tot[i]+=(+v||0)*f);}});
     const out={tot,used:new Set(owner.filter(Boolean).map(x=>x.n)),free:owner.filter(v=>v==null).length};MEMO.set(mk,out);return out;};
-  const plays=(x,sp)=>!x.out&&gameOn(x.t,sp)&&(sp>TODAY||!locked({t:x.t},sp));
+  const plays=(x,sp)=>!x.out&&gameOn(x.t,sp)&&(sp>TODAY||!locked({t:x.t},sp)||(x.on0&&upcoming(x.t,sp)));
   const evalPlan=pl=>{const tot=now.slice(),use={};
     days.forEach(sp=>{const xs=act.filter(r=>!(pl.drops[r.n]!=null&&sp>=pl.drops[r.n])&&plays(r,sp));
       pl.adds.forEach(a=>{if(sp>=a.from&&sp<=a.to&&plays(a.x,sp))xs.push(a.x);});
@@ -109,7 +111,9 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
     let early=null;if(!a.x.w){let e=TODAY+plLag();if(drop){const ls=days.filter(sp=>sp<a.from&&cur.use[sp].used.has(drop)).pop();if(ls!=null)e=Math.max(e,ls+1);
       if(prev)e=Math.max(e,prev.from+1);const rg=regs.find(x=>x.n===drop);if(rg&&rg.minD)e=Math.max(e,rg.minD);}if(e<a.from)early=e;}
     return {a,x:a.x,from:a.from,to:a.to,games:g,drop,worth:wo?cur.exp-wo.exp:null,dc,early};}).filter(m=>m.games.length).sort((a,b)=>a.from-b.from||b.games.length-a.games.length);
-  const pB=CATS.map(c=>dLogit(val(b0.tot,c),val(B,c),c)),pA=CATS.map(c=>dLogit(val(cur.tot,c),val(B,c),c));
+  // BUG-351: category chances shown use the same model as the matchup card (wpCat, BUG-350)
+  const cP=(tot,c)=>typeof wpCat==="function"?wpCat({now,fin:tot},{now:score(opp),fin:B},c):dLogit(val(tot,c),val(B,c),c);
+  const pB=CATS.map(c=>cP(b0.tot,c)),pA=CATS.map(c=>cP(cur.tot,c));
   const wp=tot=>{try{return winProb({now,fin:tot,done:false},{now:score(opp),fin:B,done:false});}catch(e){return null;}};
   // BUG-338 (Arp 2026-11-10: "build this information in so the manager can make the call"): for each move, the best other free agents
   // for the same spot and days, scored the same way (the rest of the plan unchanged), with the categories each one helps vs the pick

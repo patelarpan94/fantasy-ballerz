@@ -22,8 +22,17 @@ function streakOf(id){let s="",k=0;
     if(!s){s=x;k=1;}else if(x===s)k++;else break;}
   return s?k+s:"";}
 // box scores so far plus ESPN per-game projections for each starter's remaining games this matchup
+// BUG-351 (Arp 2026-11-16): share of a team's game today still to play. A game in progress already has its stats in "now",
+// so only the part left counts on top (it used to count the whole game again). From the live clock, e.g. "6:43 - 2nd".
+function liveLeft(t,sp){if(sp!==TODAY)return 1;if(typeof finalToday==="function"&&finalToday(t))return 0;
+  const g=typeof LIVE!=="undefined"&&LIVE&&LIVE.day===TODAY&&LIVE.g?LIVE.g[t]:null;
+  if(!g)return locked({t},sp)?.5:1;if(g.s==="post")return 0;if(g.s!=="in")return 1;
+  const d=String(g.d||"");if(/half/i.test(d))return .5;
+  const pm=/(\d)(st|nd|rd|th)/i.exec(d),n=pm?+pm[1]:/OT/i.test(d)?5:null;if(n==null)return .5;if(n>4)return .03;
+  const mc=/(\d+):(\d+)/.exec(d),ms=/^\s*([\d.]+)\s*-/.exec(d),mm=/end/i.test(d)?0:mc?+mc[1]+mc[2]/60:ms?+ms[1]/60:6;
+  return Math.max(0,Math.min(1,((4-n)*12+mm)/48));}
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
-  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
+  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)){const f=liveLeft(p.t,sp);pg.forEach((v,i)=>rem[i]+=v*f);}});});
   return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's chance from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
