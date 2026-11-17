@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.82",date:"2026-11-16",title:"Planner and matchup card agree",notes:[
+    ["351","Fix","Once a night's games tipped off, the matchup card and the planner disagreed (Cloud Team: 89% on the card, 44% in the planner). The card counted a game in progress twice (the stats so far plus the whole game's projection), and the planner left your players already in games out completely. Both now count what's been played plus only the part of the game still to go, read from the live clock, so the card and the planner's \"No moves\" number match. The planner's category chances also use the same model as the card."]]},
   {v:"2.81",date:"2026-11-16",title:"Steadier win chance early in the week",notes:[
     ["350","Fix","Win chance: each category's chance came from a fixed curve on the projected margin, so on the first night of a matchup it was as sure of a 4% lead as it would be on Sunday night (Cloud Team showed 95% and 8-0-0 with three categories close). Each category's chance now weighs the projected margin against how much a week of games still swings (game-to-game ups and downs plus projection misses), so a lead firms up as the week goes on. Cloud Team's Monday number goes from 95% to 88%. The matchup card also says how many projected category wins are close (the leader wins them less than 65% of the time)."]]},
   {v:"2.80",date:"2026-11-16",title:"Planner finds pickups again",notes:[
