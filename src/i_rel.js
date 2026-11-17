@@ -4,6 +4,20 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.85",date:"2026-11-17",title:"Better iPhone Duo layout",notes:[
+    ["354","Fix","The ‹ › matchup arrows on the dashboard were invisible on the dark New Era + stages. They show now."],
+    ["355","Fix","League › Draft results: the draft board piled every pick into the first column. It's a grid again, on every screen."],
+    ["356","Change","iPhone Duo held open sideways: the 8 big section tiles on the right are now one slim row of icons, and the section you're on shows its name. The team, matchup and Refresh rows are tighter, so each page's own buttons fit without scrolling."],
+    ["357","Change","iPhone Duo held open sideways: chat is an icon with its count next to the team picker, so the chat bar no longer covers the bottom of the right side."],
+    ["358","New","iPhone Duo held open sideways: Matchup › Score shows both rosters under the category board, using the day you pick on the board. Players and Tracker are still one tap away."],
+    ["359","Change","iPhone Duo held open sideways: the right side turns dark with the New Era + dashboard, and Jump to sits above the alerts."],
+    ["360","Change","iPhone Duo held open sideways: Players filters sit at the top of the right side with Waivers under them, and the player table is tighter so names fit."],
+    ["361","New","iPhone Duo held open sideways: tap a team in League › Scoreboard to see its matchup on the right, or in Standings to see its roster, without leaving the list. Tapping a news story opens its player's card next to it."],
+    ["362","Change","Phones and the folded Duo: My Team's starters line and its Auto-set and history links share one row, so more of your roster shows."],
+    ["363","Change","The dashboard tab is called Dashboard everywhere (it said Home on phones, which matched the Home board's name)."],
+    ["364","Change","iPhone Duo open upright: News shows two columns of stories."],
+    ["365","New","Display › Two-pane split: pick Book to split the Duo half and half on the fold line, for using it half open like a book."],
+    ["366","New","Display › Game night: with the Duo open upright, Matchup keeps the score on the top half and both rosters scroll on the bottom half."]]},
   {v:"2.84",date:"2026-11-16",title:"Plus/minus as a player stat",notes:[
     ["353","New","Plus/minus (+/-) is now shown as player data: a +/- column in Players (Season, per game or totals; tap the header to sort, and move or hide it with the ⚙ column picker), a +/- number at the top of each player card and in its game log, and a +/- row in Players › Compare. It is the team's scoring margin while the player was on the court, from this season's box scores. It is data only: it is not a matchup category and doesn't change win chance, the planner or rankings."]]},
   {v:"2.83",date:"2026-11-16",title:"Why projected and expected differ",notes:[

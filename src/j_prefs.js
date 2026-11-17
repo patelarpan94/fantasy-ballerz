@@ -32,7 +32,7 @@ const prefsLocalAt=k=>{try{const x=JSON.parse(localStorage.getItem("dfPrefsAt")|
 let PREFS_Q=null,PREFS_AGAIN=false;
 function pushPrefs(){if(PREFS_Q){PREFS_AGAIN=true;return PREFS_Q;}
   PREFS_Q=(async()=>{try{do{PREFS_AGAIN=false;const k=prefKey();if(!k||WRITE_BLOCKED)break;
-    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",nbas:typeof NBASTR==="string"?NBASTR:"bold",style:typeof STYLE==="string"?STYLE:"classic",cols:typeof COLS==="object"&&COLS?COLS:{},ui:typeof UI==="object"&&UI?UI:{},at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
+    await Store.set("prefs",k,{theme:THEME,layout:LAYOUT,mlay:MLAY,rstyle:typeof RSTYLE==="string"?RSTYLE:"table",nba:typeof NBATHEME==="string"?NBATHEME:"",nbas:typeof NBASTR==="string"?NBASTR:"bold",style:typeof STYLE==="string"?STYLE:"classic",cols:typeof COLS==="object"&&COLS?COLS:{},ui:typeof UI==="object"&&UI?UI:{},split:typeof DSPLIT==="string"?DSPLIT:"rail",livem:typeof DLIVEM==="boolean"?DLIVEM:false,at:prefsLocalAt(k)||Date.now()});}while(PREFS_AGAIN);}
     catch(e){}finally{PREFS_Q=null;}})();return PREFS_Q;}
 async function savePrefs(){const k=prefKey();if(!k||WRITE_BLOCKED)return;try{localStorage.setItem("dfPrefsAt",JSON.stringify({k,at:Date.now()}));}catch(e){}return pushPrefs();}
 async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.get("prefs",k).catch(()=>null);
@@ -45,6 +45,8 @@ async function loadPrefs(){const k=prefKey();if(!k)return;const p=await Store.ge
   if(p.mlay&&p.mlay!==MLAY&&MLAYS.some(([k])=>k===p.mlay)){MLAY=p.mlay;try{localStorage.setItem("dfMLay",MLAY);}catch(e){}if(L)try{render();}catch(e){}}
   if(p.cols&&typeof colsLoad==="function"&&JSON.stringify(p.cols)!==JSON.stringify(COLS))colsLoad(p.cols);
   if(p.ui&&typeof uiLoad==="function"&&JSON.stringify(p.ui)!==JSON.stringify(UI))uiLoad(p.ui);
+  if(p.split&&typeof setSplit==="function"&&p.split!==DSPLIT)setSplit(p.split);
+  if(p.livem!=null&&typeof setLiveM==="function"&&!!p.livem!==DLIVEM)setLiveM(!!p.livem);
   if(p.style&&typeof setStyle==="function"&&p.style!==STYLE)setStyle(p.style);
   if(p.nbas&&typeof setNbaStr==="function"&&p.nbas!==NBASTR)setNbaStr(p.nbas);
   if(p.nba!=null&&typeof setNbaTheme==="function"&&p.nba!==NBATHEME)setNbaTheme(p.nba);}
@@ -57,6 +59,7 @@ function displaySheet(){
   openSheet("Display",`<h3>Theme</h3>${row("theme",[["auto","Match device"],["light","Light"],["dark","Dark"]],THEME)}
     ${typeof nbaThemeHtml==="function"?nbaThemeHtml():""}
     <h3>Layout</h3>${row("layout",LAYOUTS,LAYOUT)}
+    ${typeof duoPrefsHtml==="function"?duoPrefsHtml(row):""}
     <h3>Roster style (phones)</h3>${typeof RSTYLES!=="undefined"?row("rstyle",RSTYLES,RSTYLE):""}
     <p class="muted dsnote"><b>Stats table</b> shows My Team and Matchup › Players as one table like ESPN (player on the left, stats slide sideways). <b>Cards</b> is the earlier layout with a card per player.</p>
 
@@ -69,6 +72,8 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-ds]");if(!
   else if(k==="rstyle"){RSTYLE=v;try{localStorage.setItem("dfRStyle",v);}catch(x){}if(L)render();}
   else if(k==="nbastr"){setNbaStr(v);}
   else if(k==="style"){if(typeof setStyle==="function")setStyle(v);}
+  else if(k==="split"){if(typeof setSplit==="function")setSplit(v);}
+  else if(k==="livem"){if(typeof setLiveM==="function")setLiveM(v==="on");}
   else if(k==="mlay"){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(L)render();}
   else{LAYOUT=v;try{localStorage.setItem("dfLayout",v);}catch(x){}applyLayout();}
   b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected",x===b));savePrefs();});

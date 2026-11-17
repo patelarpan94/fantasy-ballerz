@@ -26,7 +26,7 @@ function dDuoScore(){
 function dDuoSecs(){
   const g=$("#dgrid");if(!g)return [];const out=[];let s=null;
   [...g.children].forEach(t=>{if(!t.classList.contains("dtile")||!t.dataset.dw)return;
-    if(t.classList.contains("dk-hd")){const h=t.querySelector(".dth h3");s={id:t.dataset.dw,t:(h?h.textContent:"Section").replace(/^\s*\d+\s*/,"").trim()||"Section",n:0,f:t.classList.contains("folded")};out.push(s);}
+    if(t.classList.contains("dk-hd")){const h=t.querySelector(".dth h3");s={id:t.dataset.dw,t:(h?(()=>{const c=h.cloneNode(true);c.querySelectorAll(".og-bd,.nep-no").forEach(x=>x.remove());return c.textContent;})():"Section").replace(/^\s*\d+\s*/,"").trim()||"Section",n:0,f:t.classList.contains("folded")};out.push(s);}
     else if(s)s.n++;});
   return out;}
 function dDuoRail(){
