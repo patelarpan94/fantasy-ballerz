@@ -128,7 +128,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
       const dc=CATS.map((c,i)=>({c,d:dLogit(val(r.tot,c),val(B,c),c)-pA[i]})).filter(x=>Math.abs(x.d)>=.03).sort((p,q)=>q.d-p.d);
       alts.push({x:y,from:f,games:g,d:r.exp-cur.exp,w:wp(r.tot),dc});}
     m.alts=alts.sort((p,q)=>q.d-p.d).slice(0,4);m.w=wp(cur.tot);});
-  return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o,soft,
+  return {B,opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o,soft,
     // best free agents with games left, shown when no move helps at all
     top:fa.map(x=>({x,g:days.filter(sp=>sp>=Math.max(TODAY+plLag(),x.w?x.wd:0)&&plays(x,sp)).length})).filter(q=>q.g).slice(0,4)};}
 // BUG-336 (Arp 2026-11-10): a player on waivers can't be added, only claimed. The claim clears at ESPN's 3 AM ET run
@@ -154,11 +154,14 @@ dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+
   DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
 
 DW.pl.desc="Plans every pickup for the rest of this matchup inside your pickup limit, looking several moves ahead: who to add, who to drop, when to swap streamers. Picks the categories to target or punt for you (you can change them), only drops players you say you're willing to drop, lets you skip players, and see who plays each day.";
+// BUG-352 (Arp 2026-11-16: card said 8-0-0 projected, planner said 6.1): the big number is now the projected record, the same
+// count as the matchup card; the expected categories won (close ones counted by their chance) moves underneath as "exp."
+const plRec=(r,x)=>{try{return r.B?h2h(x.tot,r.B).join("-"):dRound(x.exp).toFixed(1);}catch(e){return dRound(x.exp).toFixed(1);}};
 DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="pl-wait"><i></i><i></i><i></i><span>Planning your week…</span></div>`;
   if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
   const o=r.o,ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp),who=prefKey();
-  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
-    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
+  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${plRec(r,r.b0)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""} · ${dRound(r.b0.exp).toFixed(1)} exp.</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${plRec(r,r.cur)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""} · ${dRound(r.cur.exp).toFixed(1)} exp.</i></span></div>
+    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · projected category record vs ${esc(on)}, like the matchup card (exp. = categories you can expect to win, close ones counted by their chance)`:`Projected category record vs ${esc(on)}, like the matchup card (exp. = categories you can expect to win, close ones counted by their chance)`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
   // controls
   const sx=r.strat,nm=k=>sx.filter(x=>x.eff===k).map(x=>esc(x.c[0])),safe=sx.filter(x=>x.eff==="n"&&x.p>=.85).map(x=>esc(x.c[0]));
   const path=`<div class="pl-path"><b>Best path vs ${esc(on)}</b>${nm("t").length?`<span class="t">★ Target ${nm("t").join(", ")}</span>`:""}${safe.length?`<span class="s">✓ Safe ${safe.join(", ")}</span>`:""}${nm("p").length?`<span class="p">✕ Punt ${nm("p").join(", ")}</span>`:""}<small class="muted">${sx.some(x=>x.own)?"Your changes are marked; the rest is picked for you.":"Picked for you from where each category stands. Tap a category below to change it."}</small></div>`;
