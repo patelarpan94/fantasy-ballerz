@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261117005704"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261117010117"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4451,8 +4451,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
-  {v:"2.83",date:"2026-11-16",title:"Planner shows the same record as the card",notes:[
-    ["352","Change","Win-the-week planner: the big numbers for No moves and With the plan are now the projected category record (like 8-0-0), the same count as the matchup card. The expected categories won (6.1 and so on, where a close category counts by its chance) moves underneath as \"exp.\"."]]},
+  {v:"2.83",date:"2026-11-16",title:"Planner shows the same numbers as the card",notes:[
+    ["352","Change","Win-the-week planner: No moves and With the plan now show the same two numbers as the matchup card, your chance to win big (like 89% → 96%) and the projected category record under it (like 8-0-0). The \"expected categories won\" number (like 6.1), which counted close categories by their chance and looked like it disagreed with the card, is gone from here."]]},
   {v:"2.82",date:"2026-11-16",title:"Planner and matchup card agree",notes:[
     ["351","Fix","Once a night's games tipped off, the matchup card and the planner disagreed (Cloud Team: 89% on the card, 44% in the planner). The card counted a game in progress twice (the stats so far plus the whole game's projection), and the planner left your players already in games out completely. Both now count what's been played plus only the part of the game still to go, read from the live clock, so the card and the planner's \"No moves\" number match. The planner's category chances also use the same model as the card."]]},
   {v:"2.81",date:"2026-11-16",title:"Steadier win chance early in the week",notes:[
@@ -9906,14 +9906,14 @@ dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+
   DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
 
 DW.pl.desc="Plans every pickup for the rest of this matchup inside your pickup limit, looking several moves ahead: who to add, who to drop, when to swap streamers. Picks the categories to target or punt for you (you can change them), only drops players you say you're willing to drop, lets you skip players, and see who plays each day.";
-// BUG-352 (Arp 2026-11-16: card said 8-0-0 projected, planner said 6.1): the big number is now the projected record, the same
-// count as the matchup card; the expected categories won (close ones counted by their chance) moves underneath as "exp."
+// BUG-352 (Arp 2026-11-16: card said 8-0-0 projected, planner said 6.1 expected categories): the planner now shows the card's
+// two numbers, win % big and the projected record under it; expected categories won is no longer shown here
 const plRec=(r,x)=>{try{return r.B?h2h(x.tot,r.B).join("-"):dRound(x.exp).toFixed(1);}catch(e){return dRound(x.exp).toFixed(1);}};
 DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="pl-wait"><i></i><i></i><i></i><span>Planning your week…</span></div>`;
   if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
   const o=r.o,ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp),who=prefKey();
-  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${plRec(r,r.b0)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""} · ${dRound(r.b0.exp).toFixed(1)} exp.</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${plRec(r,r.cur)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""} · ${dRound(r.cur.exp).toFixed(1)} exp.</i></span></div>
-    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · projected category record vs ${esc(on)}, like the matchup card (exp. = categories you can expect to win, close ones counted by their chance)`:`Projected category record vs ${esc(on)}, like the matchup card (exp. = categories you can expect to win, close ones counted by their chance)`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
+  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${r.w0!=null?dPct(r.w0)+"%":plRec(r,r.b0)}</b><i>${r.w0!=null?plRec(r,r.b0)+" projected":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${r.w1!=null?dPct(r.w1)+"%":plRec(r,r.cur)}</b><i>${r.w1!=null?plRec(r,r.cur)+" projected":""}</i></span></div>
+    <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · chance to beat ${esc(on)} and projected category record, the same numbers as the matchup card`:`Chance to beat ${esc(on)} and projected category record, the same numbers as the matchup card`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
   // controls
   const sx=r.strat,nm=k=>sx.filter(x=>x.eff===k).map(x=>esc(x.c[0])),safe=sx.filter(x=>x.eff==="n"&&x.p>=.85).map(x=>esc(x.c[0]));
   const path=`<div class="pl-path"><b>Best path vs ${esc(on)}</b>${nm("t").length?`<span class="t">★ Target ${nm("t").join(", ")}</span>`:""}${safe.length?`<span class="s">✓ Safe ${safe.join(", ")}</span>`:""}${nm("p").length?`<span class="p">✕ Punt ${nm("p").join(", ")}</span>`:""}<small class="muted">${sx.some(x=>x.own)?"Your changes are marked; the rest is picked for you.":"Picked for you from where each category stands. Tap a category below to change it."}</small></div>`;
