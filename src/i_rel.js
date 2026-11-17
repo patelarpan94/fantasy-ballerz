@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.83",date:"2026-11-16",title:"Why projected and expected differ",notes:[
+    ["352","Change","The matchup card's projected record (like 8-0-0) and the planner's expected categories (like 6.1) answer different questions, and now both say so. The planner adds a short note: the card counts who's ahead if every player hits his projection, the planner counts each category by your chance of holding it, and it names the close categories. On the card, hover projected or \"N close\" to see the same explanation and which categories are close. Win % is the same on both."]]},
   {v:"2.82",date:"2026-11-16",title:"Planner and matchup card agree",notes:[
     ["351","Fix","Once a night's games tipped off, the matchup card and the planner disagreed (Cloud Team: 89% on the card, 44% in the planner). The card counted a game in progress twice (the stats so far plus the whole game's projection), and the planner left your players already in games out completely. Both now count what's been played plus only the part of the game still to go, read from the live clock, so the card and the planner's \"No moves\" number match. The planner's category chances also use the same model as the card."]]},
   {v:"2.81",date:"2026-11-16",title:"Steadier win chance early in the week",notes:[
