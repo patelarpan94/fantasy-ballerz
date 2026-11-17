@@ -4,8 +4,6 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
-  {v:"2.83",date:"2026-11-16",title:"Planner shows the same numbers as the card",notes:[
-    ["352","Change","Win-the-week planner: No moves and With the plan now show the same two numbers as the matchup card, your chance to win big (like 89% → 96%) and the projected category record under it (like 8-0-0). The \"expected categories won\" number (like 6.1), which counted close categories by their chance and looked like it disagreed with the card, is gone from here."]]},
   {v:"2.82",date:"2026-11-16",title:"Planner and matchup card agree",notes:[
     ["351","Fix","Once a night's games tipped off, the matchup card and the planner disagreed (Cloud Team: 89% on the card, 44% in the planner). The card counted a game in progress twice (the stats so far plus the whole game's projection), and the planner left your players already in games out completely. Both now count what's been played plus only the part of the game still to go, read from the live clock, so the card and the planner's \"No moves\" number match. The planner's category chances also use the same model as the card."]]},
   {v:"2.81",date:"2026-11-16",title:"Steadier win chance early in the week",notes:[
