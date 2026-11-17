@@ -37,16 +37,16 @@ function pcxTeamTot(D){
 }
 // one player's numbers over a set of History lines (rows from hLines)
 function pcxAgg(rows,D){
-  const X={gp:0,full:true,min:0,pts:0,fgm:0,fga:0,tpm:0,tpa:0,ftm:0,fta:0,reb:0,ast:0,stl:0,blk:0,to:0,un:0,ud:0,rows};
+  const X={gp:0,full:true,min:0,pts:0,fgm:0,fga:0,tpm:0,tpa:0,ftm:0,fta:0,reb:0,ast:0,stl:0,blk:0,to:0,pm:0,un:0,ud:0,rows};
   const tt=D?pcxTeamTot(D):null;
   rows.forEach(r=>{const L=r.L;if(!L[4])return;X.gp++;X.min+=L[4];X.pts+=L[5];X.fgm+=L[6];X.fga+=L[7];X.tpm+=L[8];X.tpa+=L[9];X.ftm+=L[10];X.fta+=L[11];
-    X.reb+=L[14];X.ast+=L[15];X.stl+=L[16];X.blk+=L[17];X.to+=L[18];
+    X.reb+=L[14];X.ast+=L[15];X.stl+=L[16];X.blk+=L[17];X.to+=L[18];X.pm+=+L[20]||0;
     const t=tt&&tt.get(L[0]+"|"+L[2]);if(t&&t[0]){X.un+=(L[7]+.44*L[11]+L[18])*(t[0]/5);X.ud+=L[4]*(t[1]+.44*t[2]+t[3]);}});
   X.usg=X.ud?X.un/X.ud:null;return X;
 }
 // fallback from the plain stats feed: no 3PA, turnovers or usage
 function pcxFeed(n,R){
-  const d=DAYLINES[n]||{},X={gp:0,full:false,min:0,pts:0,fgm:0,fga:0,tpm:0,tpa:null,ftm:0,fta:0,reb:0,ast:0,stl:0,blk:0,to:null,usg:null,rows:[]};
+  const d=DAYLINES[n]||{},X={gp:0,full:false,min:0,pts:0,fgm:0,fga:0,tpm:0,tpa:null,ftm:0,fta:0,reb:0,ast:0,stl:0,blk:0,to:null,pm:null,usg:null,rows:[]};
   Object.entries(d).forEach(([sp,l])=>{sp=+sp;if(sp<R.a||sp>R.b||!(l[K.MIN]>0))return;if(sp>=TODAY&&!(STATS[sp]&&STATS[sp].final))return;X.gp++;
     X.min+=l[K.MIN];X.pts+=l[K.PTS];X.fgm+=l[K.FGM];X.fga+=l[K.FGA];X.tpm+=l[K.TPM];X.ftm+=l[K.FTM];X.fta+=l[K.FTA];X.reb+=l[K.REB];X.ast+=l[K.AST];X.stl+=l[K.STL];X.blk+=l[K.BLK];});
   return X;
@@ -70,11 +70,12 @@ const PCXS={
   fgm:{l:"FGM",f:(X,t)=>X.fgm/(t?1:X.gp)},ftm:{l:"FTM",f:(X,t)=>X.ftm/(t?1:X.gp)},
   fgp:{l:"FG%",f:X=>X.fga?X.fgm/X.fga:null,pct:1},ftp:{l:"FT%",f:X=>X.fta?X.ftm/X.fta:null,pct:1},
   tpp:{l:"3P%",f:X=>X.tpa?X.tpm/X.tpa:null,pct:1},ts:{l:"TS%",f:X=>X.fga+X.fta?X.pts/(2*(X.fga+.44*X.fta)):null,pct:1},
-  to:{l:"TO",f:(X,t)=>X.to==null?null:X.to/(t?1:X.gp)}};
+  to:{l:"TO",f:(X,t)=>X.to==null?null:X.to/(t?1:X.gp)},
+  pm:{l:"+/-",f:(X,t)=>X.pm==null?null:X.pm/(t?1:X.gp),sg:1}};
 const PCX_CAT={FGP:"fgp",FTP:"ftp",TPM:"tpm",REB:"reb",AST:"ast",STL:"stl",BLK:"blk",PTS:"pts",FGM:"fgm",FTM:"ftm"};
 const CAT_KEY=c=>Object.keys(CATDEF).find(k=>CATDEF[k]===c);
 const pcxV=(X,k,t)=>!X||!X.gp?null:PCXS[k].f(X,t);
-const pcxF=(v,k,t)=>{if(v==null)return "–";const s=PCXS[k];if(s.p)return (v*100).toFixed(1)+"%";if(s.pct)return pct(v);return t?String(Math.round(v)):v.toFixed(1);};
+const pcxF=(v,k,t)=>{if(v==null)return "–";const s=PCXS[k];if(s.p)return (v*100).toFixed(1)+"%";if(s.pct)return pct(v);if(s.sg)return pmFmt(v,t?0:1);return t?String(Math.round(v)):v.toFixed(1);};
 const pcxMA=(m,a,X,t)=>a==null?"":`<small class="pcxma">${t?Math.round(m):(m/X.gp).toFixed(1)}-${t?Math.round(a):(a/X.gp).toFixed(1)}</small>`;
 const pcxSub=(k,X,t)=>!X||!X.gp?"":k==="fgp"?pcxMA(X.fgm,X.fga,X,t):k==="ftp"?pcxMA(X.ftm,X.fta,X,t):k==="tpp"?pcxMA(X.tpm,X.tpa,X,t):"";
 function pcxControls(R){
@@ -102,7 +103,7 @@ function pcxTable(sel,XS,t){
     ${head("Categories")}${catKs.map(k=>row(PCXS[k].l,k,1)).join("")}
     <tr class="tot"><th>Categories won</th>${wins.map(w=>`<td class="r num${multi&&w&&w===Math.max(...wins)?" best":""}">${multi?w+" of "+catKs.length:"–"}</td>`).join("")}</tr>
     ${extraShoot.length?head("Shooting")+extraShoot.map(k=>row(PCXS[k].l,k,0,"","TS% counts threes and free throws: points ÷ (2 × (FGA + 0.44 × FTA))")).join(""):""}
-    ${head("Not a category")}${row("TO","to",0," pcxoff")}
+    ${head("Not a category")}${row("TO","to",0," pcxoff")}${row("+/-","pm",0," pcxoff","Plus/minus: the team's scoring margin while he was on the court. Shown as data only, it is not a league category")}
   </tbody></table></div>`;
 }
 // one short game log per player, best game (8-category value) starred
@@ -157,6 +158,15 @@ function pcxUsgOf(n){const D=HDATA[HNOW];if(!D){if(!PCX_HN){PCX_HN=true;histNow(
   if(!D._usgN){const tt=pcxTeamTot(D),a=new Map();D.l.forEach(l=>{if(!l[4]||D.G[l[0]].ty!==2)return;const t=tt.get(l[0]+"|"+l[2]);if(!t||!t[0])return;const k=hNorm(D.p[l[1]][1]);let x=a.get(k);if(!x)a.set(k,x=[0,0,0,0]);x[2]+=l[4];x[3]++;
     x[0]+=(l[7]+.44*l[11]+l[18])*(t[0]/5);x[1]+=l[4]*(t[1]+.44*t[2]+t[3]);});D._usgN=new Map([...a].map(([k,x])=>[k,x[1]&&x[2]>=30&&x[2]/x[3]>=10?x[0]/x[1]:null]));}
   return D._usgN.get(hNorm(n))??null;}
+// Plus/minus (2.84, BUG-353, Arp: "i just want it as data"): display only, never a matchup category,
+// never used by win chance, the planner or rankings. From this season's box scores (regular season).
+const pmFmt=(v,d=1)=>v==null?"–":(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
+function pcxPmIx(){const D=HDATA[HNOW];if(!D){if(!PCX_HN){PCX_HN=true;histNow().then(()=>{if(nav==="players")renderRosters();});}return null;}
+  if(!D._pmN){const a=new Map();D.l.forEach(l=>{if(!l[4]||D.G[l[0]].ty!==2)return;const k=hNorm(D.p[l[1]][1]);let x=a.get(k);if(!x)a.set(k,x={s:0,g:0,d:{}});const v=+l[20]||0;x.s+=v;x.g++;x.d[D.G[l[0]].d]=v;});D._pmN=a;}
+  return D._pmN;}
+// {s: season total, g: games, d: {iso date: +/-}} or null
+const pcxPm=n=>pcxPmIx()?.get(hNorm(n))||null;
+const pcxPmOf=(n,tot)=>{const x=pcxPm(n);return x&&x.g?(tot?x.s:x.s/x.g):null;};
 {const _cv=compareView;compareView=function(list){return apMode==="proj"?_cv(list):pcmpView(list);};}
 // player cards: Compare adds him to Players › Compare
 {const _pc=playerCard;playerCard=function(n){_pc(n);

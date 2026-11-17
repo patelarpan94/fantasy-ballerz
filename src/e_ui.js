@@ -153,8 +153,9 @@ document.addEventListener("click",e=>{
 function pcGameLog(n,t){
   const d=DAYLINES[n]||{},days=Object.keys(d).map(Number).sort((a,b)=>b-a);
   if(!days.length)return `<p class="muted">No box scores yet this season.</p>`;
-  return `<div class="scroll"><table class="lg pcstats"><thead><tr><th class="nm">Date</th><th class="nm">Opp</th><th>MIN</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead><tbody>${days.map(sp=>{const l=d[sp],g=gameOn(t,sp);
-    return `<tr><td class="nm">${dow(sp)} ${md(sp)}</td><td class="nm">${g?`${g[1]?"":"@"}${esc(g[0])}`:"–"}</td><td class="num">${l[K.MIN]??"–"}</td>${CATS.map(c=>`<td class="num">${c[1]==="pct"?`${l[c[2]]}/${l[c[3]]}`:l[c[2]]}</td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;}
+  const pm=typeof pcxPm==="function"?pcxPm(n):null,pmd=sp=>{const v=pm?.d[isoOf(sp)];return v==null?"–":pmFmt(v,0);};
+  return `<div class="scroll"><table class="lg pcstats"><thead><tr><th class="nm">Date</th><th class="nm">Opp</th><th>MIN</th>${CATS.map(c=>`<th>${c[0]}</th>`).join("")}<th title="Plus/minus (data only, not a category)">+/-</th></tr></thead><tbody>${days.map(sp=>{const l=d[sp],g=gameOn(t,sp);
+    return `<tr><td class="nm">${dow(sp)} ${md(sp)}</td><td class="nm">${g?`${g[1]?"":"@"}${esc(g[0])}`:"–"}</td><td class="num">${l[K.MIN]??"–"}</td>${CATS.map(c=>`<td class="num">${c[1]==="pct"?`${l[c[2]]}/${l[c[3]]}`:l[c[2]]}</td>`).join("")}<td class="num">${pmd(sp)}</td></tr>`;}).join("")}</tbody></table></div>`;}
 
 // ---- docked league chat bar (phones): latest message one tap away, like Sleeper
 const _renderChat=renderChat;
