@@ -35,7 +35,7 @@ DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win cha
           <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" stroke="url(#xag${u})" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
           <div class="xa-num"><b>${dCount(pc,0,"xa"+T)}<small>%</small></b><span>to win</span></div></div>
         ${side(opp,"op")}</div>
-      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected${b.ofc?" · with their likely moves":""}${(()=>{const k=typeof wpClose==="function"?wpClose(a,b):0;return k?` · <em title="Categories the projected leader wins less than 65% of the time">${k} close</em>`:"";})()}</span></div>
+      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span title="Projected = who's ahead in each category if every player hits his projection. Players run hot and cold over a week, so a close category can still flip: the win % counts each category by the chance of holding it.">projected${b.ofc?" · with their likely moves":""}${(()=>{const k=typeof wpClose==="function"?wpClose(a,b):0;if(!k)return "";const cl=CATS.filter(c=>{const p=wpCat(a,b,c);return p>.35&&p<.65;}).map(c=>c[0]).join(", ");return ` · <em title="${esc(cl)}: the leader holds these less than 65% of the time, so they can still flip">${k} close ⓘ</em>`;})()}</span></div>
       <div class="xa-cats">${CATS.map(chip).join("")}</div>
       <div class="xa-gl"><span><b class="num">${ga}</b> games left</span><i class="xa-glb"><i style="--w:${(ga/gt*100).toFixed(1)}%"></i></i><span><b class="num">${gb}</b> games left</span></div></div>`;}};
 

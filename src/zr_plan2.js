@@ -128,7 +128,7 @@ function dPlanBuild2(T,o){const opp=dOpp(T);if(!opp)return null;
       const dc=CATS.map((c,i)=>({c,d:dLogit(val(r.tot,c),val(B,c),c)-pA[i]})).filter(x=>Math.abs(x.d)>=.03).sort((p,q)=>q.d-p.d);
       alts.push({x:y,from:f,games:g,d:r.exp-cur.exp,w:wp(r.tot),dc});}
     m.alts=alts.sort((p,q)=>q.d-p.d).slice(0,4);m.w=wp(cur.tot);});
-  return {opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o,soft,
+  return {B,opp,days,budget,cap,lim,mode,moves,b0,cur,pB,pA,strat,dl,dAuto,w0:wp(b0.tot),w1:wp(cur.tot),gain:cur.exp-b0.exp,games:moves.reduce((s,m)=>s+m.games.length,0),regs,plan,o,soft,
     // best free agents with games left, shown when no move helps at all
     top:fa.map(x=>({x,g:days.filter(sp=>sp>=Math.max(TODAY+plLag(),x.w?x.wd:0)&&plays(x,sp)).length})).filter(q=>q.g).slice(0,4)};}
 // BUG-336 (Arp 2026-11-10): a player on waivers can't be added, only claimed. The claim clears at ESPN's 3 AM ET run
@@ -154,11 +154,17 @@ dPlan=function(T,sync){const o=PLO(),k=T+":"+TODAY+":"+plLag()+":"+TXLOG.length+
   DPL_K=k;try{DPL=dPlanBuild2(T,o);}catch(e){console.warn(e);DPL=null;}return DPL;};
 
 DW.pl.desc="Plans every pickup for the rest of this matchup inside your pickup limit, looking several moves ahead: who to add, who to drop, when to swap streamers. Picks the categories to target or punt for you (you can change them), only drops players you say you're willing to drop, lets you skip players, and see who plays each day.";
+// BUG-352 (Arp 2026-11-16: the card said 8-0-0 projected while the planner said 6.1, "explain the luck thing"): keep both numbers,
+// and say why they differ: the record is who's ahead if everyone plays to projection, the planner's number counts each category
+// by the chance of holding it, so close ones count less
+function plWhy(r){try{if(!r.B)return "";const rec=h2h(r.b0.tot,r.B),cl=CATS.map((c,i)=>({c,p:r.pB[i]})).filter(x=>x.p>.35&&x.p<.65);
+  return `<p class="dsm muted pl-why">ⓘ The matchup card's <b>${rec.join("-")} projected</b> counts who's ahead in each category if every player hits his projection. These numbers count each category by your chance of holding it, since players run hot and cold over a week${cl.length?`: ${cl.map(x=>`${esc(x.c[0])} ${dPct(x.p)}%`).join(", ")} ${cl.length>1?"are":"is"} close, so ${cl.length>1?"they count":"it counts"} for about half`:""}. Win % is the same on both.</p>`;}catch(e){return "";}}
 DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="pl-wait"><i></i><i></i><i></i><span>Planning your week…</span></div>`;
   if(!r)return dashEmpty("No matchup this week.");if(r.done)return dashEmpty("This matchup is over. The planner wakes up for the next one.");
   const o=r.o,ed=dCanEdit(T),on=dShort(r.opp),phone=PHONE(),dn=sp=>sp===TODAY?"Today":dow(sp),who=prefKey();
-  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.b0.exp).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.cur.exp).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
+  const head=`<div class="pl-h"><div class="pl-ba"><span><small>No moves</small><b class="num">${dRound(r.pB.reduce((t,v)=>t+v,0)).toFixed(1)}</b><i>${r.w0!=null?dPct(r.w0)+"% win":""}</i></span><span class="pl-arr" aria-hidden="true">→</span><span class="pl-after"><small>With the plan</small><b class="num">${dRound(r.pA.reduce((t,v)=>t+v,0)).toFixed(1)}</b><i>${r.w1!=null?dPct(r.w1)+"% win":""}</i></span></div>
     <p class="pl-sum">${r.moves.length?`<b>${r.moves.length} pickup${r.moves.length>1?"s":""}, ${r.games} extra game${r.games>1?"s":""}</b> · expected categories won vs ${esc(on)} out of ${CATS.length}`:`Expected categories won vs ${esc(on)} out of ${CATS.length}`}<br><small class="muted">A free agent plays the same day if you add him before the first tip-off. A player on waivers only counts from the day his claim clears. Each pickup only counts on days he has a game and fits an open spot. Looks several moves ahead.</small></p></div>`;
+  const headW=head+plWhy(r);
   // controls
   const sx=r.strat,nm=k=>sx.filter(x=>x.eff===k).map(x=>esc(x.c[0])),safe=sx.filter(x=>x.eff==="n"&&x.p>=.85).map(x=>esc(x.c[0]));
   const path=`<div class="pl-path"><b>Best path vs ${esc(on)}</b>${nm("t").length?`<span class="t">★ Target ${nm("t").join(", ")}</span>`:""}${safe.length?`<span class="s">✓ Safe ${safe.join(", ")}</span>`:""}${nm("p").length?`<span class="p">✕ Punt ${nm("p").join(", ")}</span>`:""}<small class="muted">${sx.some(x=>x.own)?"Your changes are marked; the rest is picked for you.":"Picked for you from where each category stands. Tap a category below to change it."}</small></div>`;
@@ -169,7 +175,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
       return `<div class="pl-row pl-keep"><span class="pl-lab">Willing to drop</span>${r.dl.map(n=>`<button class="pl-lock" data-plunk="${esc(n)}" title="Tap to keep him">${esc(dashLast(n))}${typeof plhList==="function"&&plhList().some(e=>e.dl&&e.a===n)?` <small class="pl-pk">planner pickup</small>`:""}${(()=>{const x=r.regs.find(q=>q.n===n);return x&&x.minD>TODAY+plLag()?` <small class="pl-pk">drop from ${esc(dow(plAddDay(x.minD)))}</small>`:"";})()} ✕</button>`).join("")||`<small class="muted">Nobody, so the plan only uses open spots.</small>`}${who&&mine.length?`<select class="pl-add" data-plk aria-label="Add a player you'd drop"><option value="">+ Add a player</option>${mine.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join("")}</select>`:""}${r.dAuto&&r.dl.length?`<small class="muted pl-sg">suggested</small>`:""}</div>`;})()}
     ${o.x.length?`<div class="pl-row"><span class="pl-lab">Skipped</span>${o.x.map(n=>`<button class="pl-skip" data-plux="${esc(n)}" title="Bring back">${esc(dashLast(n))} ↺</button>`).join("")}</div>`:""}
     <p class="dsm muted pl-hint">Tap a category: <b>★ target</b> counts it 1.5×, <b>✕ punt</b> ignores it. ✕ on a move skips that player and re-plans. The plan only drops players on your Willing to drop list; 🔒 on a move takes that player off it.${who?"":" Log in to keep your settings."}</p></div>`;
-  if(!r.moves.length)return head+path+ctl+`<p class="dempty okc">✓ No pickup raises your expected categories with these settings${r.budget?"":", or you've used your pickups"}.</p>
+  if(!r.moves.length)return headW+path+ctl+`<p class="dempty okc">✓ No pickup raises your expected categories with these settings${r.budget?"":", or you've used your pickups"}.</p>
     ${r.budget&&r.top&&r.top.length?`<p class="dsm muted">Best free agents with games left, if you want one anyway. To let the planner use them, add more players to Willing to drop.</p><ol class="dqal">${r.top.map(q=>`<li>${dFace(q.x.n,q.x.t,"sm")}<span>${dashNm(q.x.n)}<small class="muted">${esc(q.x.t||"")} · ${q.g} game${q.g===1?"":"s"} left${q.x.w?` · on waivers${q.x.wc?", clears "+esc(fmtET(q.x.wc).replace(/^(\w+), \w+ \d+, /,"$1 ")):""}`:""}</small></span><span></span>${dAddBtn(q.x.n,T)}</li>`).join("")}</ol>`:""}`;
   const flips=CATS.map((c,i)=>({c,a:r.pB[i],b:r.pA[i]})).filter(x=>Math.abs(x.b-x.a)>=.05);
   const cats=flips.length?`<div class="pl-cats">${flips.map(x=>`<span class="${x.a<.5&&x.b>=.5?"flip":""}"><b>${esc(x.c[0])}</b><i class="num">${dPct(x.a)}→${dPct(x.b)}%</i></span>`).join("")}</div>`:"";
@@ -190,7 +196,7 @@ DW.pl.view=function(w,T){const r=dPlan(T);if(r===undefined)return `<div class="p
   const grid=`<details class="pl-wg"><summary>Who plays when <small class="muted">● starts · ○ has a game but no open spot · ✕ dropped</small></summary><div class="pl-wgw"><table class="pl-tab"><thead><tr><th></th>${r.days.map(sp=>`<th class="${sp===TODAY?"tdy":""}">${esc(sp===TODAY?"Today":dow(sp).slice(0,3))}</th>`).join("")}</tr></thead>
     <tbody>${rows.map(row=>`<tr class="${row.k}"><th>${row.k==="add"?'<i class="pl-new">+</i>':""}${row.k==="reg"&&r.dl.includes(row.x.n)?'<i class="pl-lk" title="Willing to drop">↓</i>':""}${esc(dashLast(row.x.n))}</th>${r.days.map(sp=>cell(row,sp)).join("")}</tr>`).join("")}</tbody>
     <tfoot><tr><th>Spots filled</th>${r.days.map(sp=>`<td class="num">${filled(sp)}</td>`).join("")}</tr></tfoot></table></div></details>`;
-  return head+path+cats+mv+ctl+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Add opens the add sheet with the planned drop already picked.</p>`;};
+  return headW+path+cats+mv+ctl+grid+`<p class="dsm muted">Plans from ESPN projections and today's roster. Make each move after that day's games so the player you drop still plays. Add opens the add sheet with the planned drop already picked.</p>`;};
 
 // controls
 document.addEventListener("click",e=>{if(nav!=="dash")return;let b;const o=PLO();
