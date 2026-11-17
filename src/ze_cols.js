@@ -17,7 +17,7 @@ let COLS_K;const colsSync=()=>{const lk=colsLk();if(lk!==COLS_K){COLS_K=lk;colsR
 function colsSave(){const lk=colsLk();if(!lk)return;try{localStorage.setItem(lk,JSON.stringify(COLS));}catch(e){}if(typeof savePrefs==="function")savePrefs();}
 // called by loadPrefs with the server's copy
 function colsLoad(c){if(!c||typeof c!=="object")return;colsSync();COLS=c;try{const lk=colsLk();if(lk)localStorage.setItem(lk,JSON.stringify(c));}catch(e){}if(L)try{render();}catch(e){}}
-const COL_STATS=()=>new Set([...(typeof CATS!=="undefined"?CATS.map(c=>String(c[0]).toUpperCase()):[]),"GP","MIN","USG%","PTS","REB","AST","STL","BLK","TO","3PM","FG%","FT%","3P%","TS%","FG","FT","FGA","FTA","3PA"]);
+const COL_STATS=()=>new Set([...(typeof CATS!=="undefined"?CATS.map(c=>String(c[0]).toUpperCase()):[]),"GP","MIN","USG%","+/-","PTS","REB","AST","STL","BLK","TO","3PM","FG%","FT%","3P%","TS%","FG","FT","FGA","FTA","3PA"]);
 const COL_DAY=/^(MON|TUE|WED|THU|FRI|SAT|SUN|MO|TU|WE|TH|FR|SA|SU)\b/;
 const colLabel=th=>{const c=th.cloneNode(true);c.querySelectorAll(".pvh,small,.colg,svg").forEach(x=>x.remove());return c.textContent.replace(/[↑↓▲▼]/g,"").replace(/\s+/g," ").trim();};
 // the player/team column, blank tool columns (compare tick, + − ⇄), Slot and day columns never move

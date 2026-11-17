@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.84",date:"2026-11-16",title:"Plus/minus as a player stat",notes:[
+    ["353","New","Plus/minus (+/-) is now shown as player data: a +/- column in Players (Season, per game or totals; tap the header to sort, and move or hide it with the ⚙ column picker), a +/- number at the top of each player card and in its game log, and a +/- row in Players › Compare. It is the team's scoring margin while the player was on the court, from this season's box scores. It is data only: it is not a matchup category and doesn't change win chance, the planner or rankings."]]},
   {v:"2.83",date:"2026-11-16",title:"Why projected and expected differ",notes:[
     ["352","Change","The matchup card's projected record (like 8-0-0) and the planner's expected categories (like 6.1) answer different questions, and now both say so. The planner adds a short note: the card counts who's ahead if every player hits his projection, the planner counts each category by your chance of holding it, and it names the close categories. On the card, hover projected or \"N close\" to see the same explanation and which categories are close. Win % is the same on both."]]},
   {v:"2.82",date:"2026-11-16",title:"Planner and matchup card agree",notes:[

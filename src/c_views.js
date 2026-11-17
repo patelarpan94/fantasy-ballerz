@@ -242,7 +242,7 @@ function allView(){
   const tot=pjMode==="tot",all=allPlayers(),sr=seasonRanked();
   let list=all.filter(r=>matches(r.n)&&(!apTop||(rankOf(r,sr)!=null&&rankOf(r,sr)<=apTop))&&(apPos==="all"||(r.el||[]).includes(SLOT_ID[apPos]))&&(apOwn==="all"||(apOwn==="fa"?r.oid===0:apOwn==="ros"?r.oid!==0:String(r.oid)===apOwn)));
   const leftOf=r=>DAYS.filter(sp=>upcoming(r.t,sp)&&gameOn(r.t,sp)).length;
-  const keyOf={rank:r=>-(rankOf(r,sr)??9999),name:r=>r.n,team:r=>r.own,left:leftOf,rost:r=>rostPct(r.n)??-1,gp:r=>statOf(apSrc(r),"gp",tot)??-1,min:r=>statOf(apSrc(r),"min",tot)??-1,usg:r=>apMode==="proj"?-1:(pcxUsgOf(r.n)??-1)};
+  const keyOf={rank:r=>-(rankOf(r,sr)??9999),name:r=>r.n,team:r=>r.own,left:leftOf,rost:r=>rostPct(r.n)??-1,gp:r=>statOf(apSrc(r),"gp",tot)??-1,min:r=>statOf(apSrc(r),"min",tot)??-1,usg:r=>apMode==="proj"?-1:(pcxUsgOf(r.n)??-1),pm:r=>apMode==="proj"?-1e9:(pcxPmOf(r.n,tot)??-1e9)};
   CATS.forEach(c=>keyOf[c[0]]=r=>statOf(apSrc(r),c,tot)??-1);
   const desc=!apSort.startsWith("-"),k=apSort.replace(/^-/,""),f=keyOf[k]||keyOf.rank;
   list.sort((a,b)=>{const x=f(a),y=f(b);const c=typeof x==="string"?x.localeCompare(y):(y-x);return desc?c:-c;});
@@ -266,8 +266,9 @@ function allView(){
     rostC={w:116,h:()=>th("rost","Rost %"),d:r=>`<td class="r num rost${rostPct(r.n)==null?" zero":""}">${rostTxt(r.n)}</td>`},
     leftC={w:50,h:()=>th("left","Left","c"),d:r=>`<td class="c"><span class="left">${leftOf(r)}</span></td>`},
     usgC={w:ph?56:64,h:()=>th("usg","USG%"),d:r=>{const v=pcxUsgOf(r.n);return `<td class="r num${v==null?" zero":""}" title="Usage rate this season">${v==null?"–":(v*100).toFixed(1)}</td>`;}},
+    pmC={w:ph?56:60,h:()=>th("pm","+/-"),d:r=>{const v=pcxPmOf(r.n,tot);return `<td class="r num${v==null?" zero":""}" title="Plus/minus ${tot?"this season":"per game"}: the team's scoring margin while he was on the court (data only, not a category)">${pmFmt(v,tot?0:1)}</td>`;}},
     statC=c=>({w:ph?(c==="min"?52:50):c==="gp"?48:c==="min"?60:64,h:()=>typeof c==="string"?th(c,c.toUpperCase()):th(c[0],c[0]),d:r=>{const v=statOf(apSrc(r),c,tot);return `<td class="r num${v==null?" zero":""}">${fmtStat(v,c,tot)}</td>`;}});
-  const U=apMode==="proj"?[]:[usgC];
+  const U=apMode==="proj"?[]:[usgC,pmC];
   const cols=ph?[plC,...CATS.map(statC),leftC,rankC,rostC,teamC,statC("gp"),statC("min"),...U,cmpC]:[cmpC,plC,actC,teamC,rankC,rostC,leftC,statC("gp"),statC("min"),...U,...CATS.map(statC)];
   const rows=shown.map(r=>`<tr${CMP.includes(r.k)?' class="cmpon"':""}>${cols.map(c=>c.d(r)).join("")}</tr>`).join("");
   const who=T?`Acting for <b>${esc(TEAMS[T]?.name||"")}</b> · ${rosterNow(T).length}/${ROSTER_MAX} on the roster${+L.addLimit?` · ${pickupTxt(T)}`:""}`:"Log in with your team code to add, drop and trade";
@@ -275,7 +276,7 @@ function allView(){
   return ctl+compareView(all)+`<section class="panel team"><div class="teamhead"><span class="tn">${apOwn==="fa"?"Free agents":"Players"}</span><span class="sum">${who} · ${list.length} players · ${apMode==="proj"?projTag+" full season":"season so far"} ${tot?"totals":"per game"}</span></div>
   ${shown.length?`<div class="scroll apscroll"><table class="grid fa ap${ph?" apph":""}" style="width:${cols.reduce((t,c)=>t+c.w,0)}px;min-width:100%"><colgroup>${cols.map(c=>`<col style="width:${c.w}px">`).join("")}</colgroup>
   <thead><tr>${cols.map(c=>c.h()).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`:noMatch()}
-  <p class="foot-note">${list.length>shown.length?`Showing the first ${shown.length}. Narrow with filters or search. `:""}Rank = ${apMode==="proj"||!sr?"ESPN preseason rank":"our season rank from per-game category stats"}. Rost % = share of all ESPN leagues that roster him, with the daily change. Left = games left this week. + adds a free agent, − drops one of yours, ⇄ offers a trade. Tick the box on the left to compare up to 4 players. Tap a column to sort; tap again to reverse.</p></section>`;
+  <p class="foot-note">${list.length>shown.length?`Showing the first ${shown.length}. Narrow with filters or search. `:""}Rank = ${apMode==="proj"||!sr?"ESPN preseason rank":"our season rank from per-game category stats"}. Rost % = share of all ESPN leagues that roster him, with the daily change. Left = games left this week. + adds a free agent, − drops one of yours, ⇄ offers a trade. +/- = plus/minus, the team's scoring margin with him on the court (data only, not a category). Tick the box on the left to compare up to 4 players. Tap a column to sort; tap again to reverse.</p></section>`;
 }
 
 /* ---- sheets: add, drop, trade ---- */
@@ -1023,7 +1024,7 @@ function playerCard(n){
   const nw=newsFor(n);
   const T=actTeam(),act=T&&!WRITE_BLOCKED&&!mirror()?(o===0&&DIR[n]?`<button class="btn" data-add="${esc(n)}">Add to ${esc(TEAMS[T].name)}</button>`:o===T?`<button class="btn ghost" data-drop="${esc(n)}">Drop</button>`:o?`<button class="btn ghost" data-trade="${esc(n)}">Offer a trade</button>`:""):"";
   const sg=ss||pj&&{t:pj,g:1},rk=D.srk||D.rk,key=(v,l)=>`<div><b class="num">${v}</b><span>${l}</span></div>`;
-  const keys=key(rk?"#"+rk:"–",D.srk?"Season rank":"ESPN rank")+[[K.PTS,"PTS"],[K.REB,"REB"],[K.AST,"AST"]].map(([i,l])=>key(sg?(sg.t[i]/sg.g).toFixed(1):"–",l)).join("")+key(sg&&sg.t[K.MIN]!=null?(sg.t[K.MIN]/sg.g).toFixed(1):"–","MIN");
+  const keys=key(rk?"#"+rk:"–",D.srk?"Season rank":"ESPN rank")+[[K.PTS,"PTS"],[K.REB,"REB"],[K.AST,"AST"]].map(([i,l])=>key(sg?(sg.t[i]/sg.g).toFixed(1):"–",l)).join("")+key(sg&&sg.t[K.MIN]!=null?(sg.t[K.MIN]/sg.g).toFixed(1):"–","MIN")+(typeof pcxPmOf==="function"?key(pmFmt(pcxPmOf(n)),"+/-"):"");
   const tabs=[["ov","Overview"],["nw",`News${nw.length?` (${nw.length})`:""}`],["gl","Game log"]];
   openSheet(n,`<div class="pcard"><div class="pchead"><span class="hav ${o?"me":"fa"}">${esc(initials(n))}</span><div><p class="pcmeta">${esc(D.t||P.t||"")} · ${esc(pos)} · ${o?`<b>${esc(teamName(o))}</b>`:"Free agent"} ${rostPct(n)!=null?`<span class="pown"><b>${rostTxt(n)}</b> rostered on ESPN</span> `:""}${stPill(st,n)}</p><div class="pckeys">${keys}</div><span class="muted pcsrc">${ss?`Season per game (${ss.g} gp)`:pj?"ESPN projection per game":""}</span></div></div>
     <div class="pctabs" role="tablist">${tabs.map(([k,l],i)=>`<button role="tab" data-pctab="${k}" aria-selected="${!i}">${l}</button>`).join("")}</div>
