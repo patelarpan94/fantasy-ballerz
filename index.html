@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261116234444"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261117000141"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -3970,7 +3970,7 @@ function matchupHero(){
   const me=cur,opp=M.opp;if(!TEAMS[me])return "";
   if(!opp||!TEAMS[opp])return `<section class="panel hero"><div class="hrow solo">${heroSide(me,"me",null)}</div><p class="hnote">${esc(noOppText())}</p></section>`;
   const a=fcProj(me),b=fcProj(opp),p=winProb(a,b),now=started()?h2h(a.now,b.now):null,pr=h2h(a.fin,b.fin);
-  return `<section class="panel hero" aria-label="Matchup summary" style="--hp:${Math.round(p*100)}%"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
+  return `<section class="panel hero" aria-label="Matchup summary" style="--hp:${Math.round(p*100)}%"><div class="hrow">${heroSide(me,"me",p)}<div class="hmid"><span class="hvs">VS</span>${now?`<span class="hrec num" data-tk="hrec">${now.join("-")}</span><span class="hlab">now</span>`:""}<span class="hproj num">${pr.join("-")}</span><span class="hlab">projected${(()=>{const k=typeof wpClose==="function"?wpClose(a,b):0;return k?` · ${k} close`:"";})()}</span></div>${heroSide(opp,"op",1-p)}</div></section>`;}
 // ESPN-style category board: one row per category, the leader highlighted, projected finish underneath
 function catBoard(){
   const me=cur,opp=M.opp;if(!TEAMS[me]||!opp||!TEAMS[opp])return "";
@@ -4442,6 +4442,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.81",date:"2026-11-16",title:"Steadier win chance early in the week",notes:[
+    ["350","Fix","Win chance: each category's chance came from a fixed curve on the projected margin, so on the first night of a matchup it was as sure of a 4% lead as it would be on Sunday night (Cloud Team showed 95% and 8-0-0 with three categories close). Each category's chance now weighs the projected margin against how much a week of games still swings (game-to-game ups and downs plus projection misses), so a lead firms up as the week goes on. Cloud Team's Monday number goes from 95% to 88%. The matchup card also says how many projected category wins are close (the leader wins them less than 65% of the time)."]]},
   {v:"2.80",date:"2026-11-16",title:"Planner finds pickups again",notes:[
     ["349","Fix","Win-the-week planner showed no pickups for some teams. It only offered to drop players outside the top 130 of ESPN's preseason ranks, so a team whose weakest players this season were ranked higher (Cloud Team: Brook Lopez, Julian Champagnie) had nobody it could drop, and no free agent beat the ones left. Now only true stars by rank and your 8 best players this season are kept off the drop list; the 3 weakest of the rest are offered, like before."]]},
   {v:"2.79",date:"2026-11-11",title:"New Era + dashboard reorganized",notes:[
@@ -9097,7 +9099,7 @@ DW.xa={name:"Matchup arena",desc:"Your matchup as a big live scoreboard: win cha
           <circle class="xa-rt" cx="60" cy="60" r="52"/><circle class="xa-rv" stroke="url(#xag${u})" cx="60" cy="60" r="52" pathLength="100" style="--p:${pc}" transform="rotate(-90 60 60)"/></svg>
           <div class="xa-num"><b>${dCount(pc,0,"xa"+T)}<small>%</small></b><span>to win</span></div></div>
         ${side(opp,"op")}</div>
-      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected${b.ofc?" · with their likely moves":""}</span></div>
+      <div class="xa-score"><b class="num">${now.join("-")}</b><span>now</span><i></i><b class="num">${pr.join("-")}</b><span>projected${b.ofc?" · with their likely moves":""}${(()=>{const k=typeof wpClose==="function"?wpClose(a,b):0;return k?` · <em title="Categories the projected leader wins less than 65% of the time">${k} close</em>`:"";})()}</span></div>
       <div class="xa-cats">${CATS.map(chip).join("")}</div>
       <div class="xa-gl"><span><b class="num">${ga}</b> games left</span><i class="xa-glb"><i style="--w:${(ga/gt*100).toFixed(1)}%"></i></i><span><b class="num">${gb}</b> games left</span></div></div>`;}};
 
@@ -11512,6 +11514,38 @@ const ORG_PAIRS=[["pa","is"],["sb","id"],["po","ps"]];
 .og-bd{margin-left:10px;font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--loss,#d32f2f);color:#fff;vertical-align:3px}
 body.ddrail .dtile.dk-jc{display:none!important}
 `;document.head.appendChild(s);}
+/* ============================================================================
+   2.81 (BUG-350, Arp 2026-11-16 "this cant be right": 95% to win and 8-0-0
+   projected on the first night of the matchup, with four categories within a
+   few percent). Each category's chance used a fixed curve on the relative margin
+   (same answer on Monday as on Sunday night), which was too sure of FG%, BLK and
+   STL leads with a whole week left. Now each category's chance comes from how
+   much is still to be played: the projected margin against the spread a week of
+   games really has (game-to-game swings plus projection error), so leads firm up
+   as the week goes on. Used wherever a live matchup (with "now") is scored; other
+   callers keep the old curve. The card also says how many projected category
+   wins are close (under 65%).
+   ============================================================================ */
+// game-to-game spread of a counting stat, as variance per unit of total (roughly Poisson, points swing more)
+const WP_DISP={PTS:2.6,REB:1.4,AST:1.1,STL:.9,BLK:1,"3PM":.95,FGM:1.2,FTM:1.4};
+// projection error: share of what's left that a team's projection can be off by (minutes, rest days, injuries)
+const WP_ERR=.07,WP_PCTERR=.012;
+const wpPhi=z=>{const x=Math.abs(z)/Math.SQRT2,t=1/(1+.3275911*x),e=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return z>=0?(1+e)/2:(1-e)/2;};
+function wpCat(a,b,c){
+  const rem=(s,k)=>Math.max(0,(+s.fin[k]||0)-(+s.now[k]||0)),x=val(a.fin,c),y=val(b.fin,c);let v=0;
+  if(c[1]==="pct")[a,b].forEach(s=>{const A=+s.fin[c[3]]||0;if(!A)return;const ra=rem(s,c[3]),p=Math.min(.95,Math.max(.05,val(s.fin,c)||.5));
+    v+=(ra*p*(1-p)*1.2+Math.pow(WP_PCTERR*ra,2))/(A*A);});
+  else [a,b].forEach(s=>{const r=rem(s,c[2]);v+=(WP_DISP[c[0]]||1.2)*r+Math.pow(WP_ERR*r,2);});
+  if(!(v>1e-12))return x>y?1:x<y?0:.5;
+  return wpPhi((x-y)/Math.sqrt(v));}
+const winProbRel=winProb;
+winProb=function(a,b){
+  if(!a||!b||!a.now||!b.now||(a.done&&b.done))return winProbRel(a,b);
+  const ps=CATS.map(c=>wpCat(a,b,c));
+  let d={0:1};ps.forEach(p=>{const n={};for(const k in d){n[+k+1]=(n[+k+1]||0)+d[k]*p;n[+k-1]=(n[+k-1]||0)+d[k]*(1-p);}d=n;});
+  let w=0;for(const k in d)w+=+k>0?d[k]:+k===0?d[k]/2:0;return w;};
+// projected categories that are close: the projected leader wins it less than 65% of the time
+const wpClose=(a,b)=>{try{if(!a.now||!b.now||(a.done&&b.done))return 0;return CATS.filter(c=>{const p=wpCat(a,b,c);return p>.35&&p<.65;}).length;}catch(e){return 0;}};
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
    Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with
