@@ -101,10 +101,10 @@ document.addEventListener("click",e=>{let b;
 
 {const s=document.createElement("style");s.textContent=`
 .dboards{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.dbc{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:.84rem;font-weight:650;background:var(--chip,#eef);color:var(--ink);white-space:nowrap}
-.dbc[aria-selected="true"]{background:var(--accent);color:#fff}
-.dbc.add{background:none;border:1px dashed var(--line);color:var(--accent)}
-.dbc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.dbc{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:.84rem;font-weight:650;background:var(--chip,#eef);color:var(--ink);white-space:nowrap}
+button.dbc[aria-selected="true"]{background:var(--accent);color:#fff}
+button.dbc.add{background:none;border:1px dashed var(--line);color:var(--accent)}
+button.dbc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dbsp{flex:1}
 .dbedit{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.84rem}
 .dlivep{margin:-4px 0 0;font-size:.76rem;color:var(--muted);display:flex;align-items:center;gap:6px}.dlivep b{color:var(--loss,#c62828)}
@@ -124,8 +124,8 @@ document.addEventListener("click",e=>{let b;
 .num.dflash.up{--fl:var(--win,#1a7f37)}.num.dflash.down{--fl:var(--loss,#c62828)}
 @keyframes dflash{0%{background:color-mix(in srgb,var(--fl) 35%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--fl) 35%,transparent);border-radius:4px}100%{background:transparent;box-shadow:0 0 0 3px transparent}}
 .dshl{width:100%;box-sizing:border-box;font:inherit;font-size:.8rem;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--chip,#eef);color:var(--ink)}
-html.arp .dbc{border-radius:999px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent)}
-html.arp .dbc[aria-selected="true"]{background:var(--accent);box-shadow:0 6px 16px -8px var(--accent)}
+html.arp button.dbc{border-radius:999px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent)}
+html.arp button.dbc[aria-selected="true"]{background:var(--accent);box-shadow:0 6px 16px -8px var(--accent)}
 html.arp .dalerts li{border-radius:16px;backdrop-filter:blur(10px)}
 @media (prefers-reduced-motion:reduce){.dalerts li,.dnb.pop,.num.dflash{animation:none}}
 `;document.head.appendChild(s);}
