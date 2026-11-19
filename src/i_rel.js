@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.92",date:"2026-11-19",title:"Claude sees the whole league",notes:[
+    ["385","New","The Claude connector can now look up any player (who has him, up to 15 recent box scores, news), every pickup of the season with what it really did, this week's scoreboard for every matchup, and league analytics: season category standings with each team's rank, power rankings, category strengths for trade ideas, playoff chances and the playoff schedule."],
+    ["386","Change","The connector's instructions now tell Claude how to use all of it: pull data generously, compare options with numbers, and offer trade, streaming and playoff ideas. It also knows it can open any team, not just yours and your opponent."]]},
   {v:"2.91",date:"2026-11-19",title:"Fresher data for Claude",notes:[
     ["384","Fix","Claude kept reading old data after you made a move or changed the planner, because the app only sent new data every 20 minutes. Now an open app sends it within about 2 minutes of anything changing."]]},
   {v:"2.90",date:"2026-11-19",title:"Claude through the connector",notes:[
