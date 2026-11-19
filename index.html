@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261119203707", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/live"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261119203836", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/live"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -2024,7 +2024,7 @@ body.fold .pkhead .hf select{max-width:100%}
 <dialog id="helpDlg" class="help" aria-labelledby="helpTitle">
   <div class="hhead"><h2 id="helpTitle">How the app works</h2><button class="hx" id="helpClose" aria-label="Close help" autofocus>✕</button></div>
   <div class="hsearch"><input type="search" id="helpQ" placeholder="Search help, like waivers or IR" aria-label="Search help" autocomplete="off"></div>
-  <nav class="htoc"><a href="#h-start">Start here</a><a href="#h-install">Install &amp; refresh</a><a href="#h-lineup">Lineup</a><a href="#h-adds">Adds &amp; waivers</a><a href="#h-trades">Trades</a><a href="#h-matchup">Matchup</a><a href="#h-league">League</a><a href="#h-fun">Fun</a><a href="#h-analytics">Analytics</a><a href="#h-rules">Rules</a><a href="#h-app">Your app</a><a href="#h-terms">Terms</a><a href="#h-keys">Shortcuts</a></nav>
+  <nav class="htoc"><a href="#h-start">Start here</a><a href="#h-claude">Claude</a><a href="#h-install">Install &amp; refresh</a><a href="#h-lineup">Lineup</a><a href="#h-adds">Adds &amp; waivers</a><a href="#h-trades">Trades</a><a href="#h-matchup">Matchup</a><a href="#h-league">League</a><a href="#h-fun">Fun</a><a href="#h-analytics">Analytics</a><a href="#h-rules">Rules</a><a href="#h-app">Your app</a><a href="#h-terms">Terms</a><a href="#h-keys">Shortcuts</a></nav>
   <div class="hbody">
   <section id="h-start"><h3>Start here</h3>
     <p>Indian Ballerz is a head-to-head categories league, and <b>this app runs it</b>. Make every move here, not on ESPN. ESPN only supplies NBA box scores, games, injuries and news.</p>
@@ -2036,6 +2036,15 @@ body.fold .pkhead .hf select{max-width:100%}
       <li><b>Talk</b>: the chat button opens league chat and direct messages. A red number means unread messages.</li>
     </ol>
     <p>Tap any player's name for his card: health, projection, recent stats and news. A blue dot by a name means news in the last 2 days.</p></section>
+  <section id="h-claude"><h3>Ask Claude about the league</h3>
+    <p>Add the league to your own Claude app once, and Claude can read it whenever you ask: your matchup by category, every roster with stats, the moves each team made this matchup and how they're really going, standings and every free agent. It's free on every Claude plan and read-only (no passcodes).</p>
+    <ol>
+      <li>In the Claude app or on claude.ai, open <b>Settings › Connectors</b> (on some plans it's <b>Customize › Connectors</b>).</li>
+      <li>Tap <b>Add custom connector</b>. Name it <b>Indian Ballerz</b>. URL: <span class="hcl-url"><code id="hClaudeUrl">the league's connector link</code> <button type="button" class="btn sm ghost" id="hClaudeCp">Copy link</button></span></li>
+      <li>Leave Advanced settings empty and tap <b>Add</b>. No sign-in is needed.</li>
+      <li>In any chat, turn the connector on in the tools menu and ask, for example: <i>"Using Indian Ballerz, I'm Cloud Team. Who should I pick up today?"</i> or <i>"How are my pickups this week going?"</i></li>
+    </ol>
+    <p>The data refreshes about every 20 minutes while anyone in the league has the app open.</p></section>
   <section id="h-install"><h3>Install &amp; refresh</h3>
     <p><b>Put the app on your iPhone</b> (about a minute):</p>
     <ol>
@@ -4453,6 +4462,9 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.90",date:"2026-11-19",title:"Claude through the connector",notes:[
+    ["382","Change","The Ask Claude buttons are gone (✳ on every screen, on player cards and in the planner). Use the league's Claude connector instead: Claude reads the league itself from any chat."],
+    ["383","New","Help (?) has a new section, Ask Claude about the league, with the one-time steps to add the connector to your own Claude app and the link to copy."]]},
   {v:"2.89",date:"2026-11-19",title:"Claude sees your moves",notes:[
     ["381","New","Ask Claude and the Claude connector now see every pickup each team made this matchup: who was added and dropped and when, and what each one really did from the box scores (from Pickup impact), so Claude can tell you how your moves are going."]]},
   {v:"2.88",date:"2026-11-19",title:"Fantasy Ballerz in Claude",notes:[
@@ -12275,6 +12287,19 @@ async function aiFeedPush(force){try{
   await Store._call("set",{c:"ai",i:SEASON,v:aiFeedBuild()});return true;}catch(e){console.warn("ai feed",e);return false;}}
 // first push a minute after load (data and the planner are ready by then), then every few minutes it checks the clock
 setTimeout(()=>{aiFeedPush();setInterval(()=>{if(!document.hidden)aiFeedPush();},3*60e3);},60e3);
+/* ============================================================================
+   CONNECTOR ONLY (2.90, 2026-11-19). Arp: "remove the claude button as we will use
+   the connector. Make instructions available somewhere." The Ask Claude buttons
+   (✳ on every screen, player cards, planner box) are hidden; the ai feed that the
+   connector reads keeps running. Setup steps live in Help › Ask Claude about the league.
+   ============================================================================ */
+{const s=document.createElement("style");s.textContent=`.askfab,.askx-pc,.ask-c{display:none!important}.hcl-url{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}.hcl-url code{word-break:break-all}`;document.head.appendChild(s);
+  const rm=()=>document.getElementById("askFab")?.remove();if(document.body)rm();else document.addEventListener("DOMContentLoaded",rm);}
+(function(){const u=(window.DF_CONFIG&&window.DF_CONFIG.mcp)||"";
+  const fill=()=>{const c=document.getElementById("hClaudeUrl"),b=document.getElementById("hClaudeCp");if(!c)return;
+    if(!u){c.textContent="ask the commissioner for the link";if(b)b.hidden=true;return;}c.textContent=u;
+    if(b&&!b.dataset.on){b.dataset.on=1;b.onclick=()=>{try{navigator.clipboard.writeText(u).then(()=>toast("Connector link copied."),()=>toast(u));}catch(e){toast(u);}};}};
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fill);else fill();})();
 /* ============================================================================
    NEW ERA LOOK (2.18, Arp 2026-10-30: "modernize the UI a bit more. Make it a theme called NEW ARP"; Arp renamed it New Era the same day).
    Display › Look: Classic | New Era, saved per login (prefs.style, localStorage dfStyle). Works with
