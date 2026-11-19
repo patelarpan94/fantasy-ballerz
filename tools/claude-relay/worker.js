@@ -19,6 +19,12 @@ export default {
     if (path.startsWith("/.well-known")) return new Response("Not found", { status: 404, headers: CORS });   // no sign-in
     const site = path === "/uat" ? "uat" : path === "/" || path === "/live" ? "live" : null;
     if (!site) return new Response("Not found", { status: 404, headers: CORS });
+    // live data page for the Ask Claude link: /uat?ai=6 (add &all=1 for every team)
+    if (req.method === "GET" && url.searchParams.get("ai")) {
+      const q = new URLSearchParams({ ai: url.searchParams.get("ai") }); if (url.searchParams.get("all")) q.set("all", "1");
+      const r = await fetch(SERVERS[site] + "?" + q, { redirect: "follow" });
+      return new Response(await r.text(), { status: 200, headers: { ...CORS, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+    }
     if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: { ...CORS, Allow: "POST" } });
     const body = await req.text();
     let msg; try { msg = JSON.parse(body); } catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, 400); }
