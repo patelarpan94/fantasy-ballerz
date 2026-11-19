@@ -1297,17 +1297,25 @@ var MCP_TOOLS = [
    inputSchema: {type: 'object', properties: {team: {type: 'string', description: 'Team name (or part of it) or team number from list_teams'}}, required: ['team']}},
   {name: 'get_free_agents', description: 'The standings and free agents with a game left (up to 80, best ESPN projection first) with projection, season, last 14 and last 7 days per game, games this week and next, % rostered on ESPN, waiver status and injury notes. Optional position filter. For any other free agent, use get_player.',
    inputSchema: {type: 'object', properties: {position: {type: 'string', description: 'Optional: PG, SG, SF, PF, C, G or F'}}}},
-  {name: 'get_player', description: 'One player in depth: who has him (team, today\'s slot, IR, free agent or waivers), projection, season, last 14 and last 7 days, games this week and next, injury, up to 15 recent game box scores and recent news. Works for every rostered player and the best 200 free agents.',
+  {name: 'get_player', description: 'One player in depth: who has him (team, today\'s slot, IR, free agent or waivers), projection, season, last 14 and last 7 days, games this week and next, injury, up to 30 recent game box scores, recent news and last NBA season\'s averages. Full detail for every rostered player and the best 200 free agents; a one-line summary for every other free agent who has played.',
    inputSchema: {type: 'object', properties: {name: {type: 'string', description: 'Player name or part of it'}}, required: ['name']}},
   {name: 'get_moves', description: 'Every free-agent and waiver pickup of the season by team, week by week: who was added, who was dropped, how many starts, and whether it won or cost the team a category (real box scores). Leave team empty for every team.',
    inputSchema: {type: 'object', properties: {team: {type: 'string', description: 'Optional team name or number'}}}},
   {name: 'get_scoreboard', description: 'This week\'s scoreboard for every matchup in the league: categories won now, projected final, chance to win, and every category\'s score.',
    inputSchema: {type: 'object', properties: {}}},
+  {name: 'get_transactions', description: 'The full transaction log of the season: every add, drop and trade by every team, by date and week. Optional team filter.',
+   inputSchema: {type: 'object', properties: {team: {type: 'string', description: 'Optional team name or number'}}}},
+  {name: 'get_results', description: 'Week-by-week matchup results for the season: for every matchup, both teams\' real totals in every category and who won each, plus every team\'s rank in each category that week (the current week shows totals so far). Use it for trends like which categories a team keeps losing, and category standings by week. Optional team and week filters.',
+   inputSchema: {type: 'object', properties: {team: {type: 'string', description: 'Optional team name or number'}, week: {type: 'number', description: 'Optional week number'}}}},
+  {name: 'get_schedule', description: 'Who plays whom in every remaining regular-season week, and how many NBA games each NBA team plays in each of the next six fantasy weeks (for streaming and planning).',
+   inputSchema: {type: 'object', properties: {}}},
+  {name: 'get_draft', description: 'This season\'s draft results: every pick by number and round, the team, the player, and who has him now.',
+   inputSchema: {type: 'object', properties: {}}},
   {name: 'get_league_analytics', description: 'League analytics from the app: season category standings for every team (real totals with league rank in each category, and each category\'s head-to-head W-L-T), power rankings, every team\'s rank in each category (for trade fits: who needs what, who has surplus), playoff chances from a simulation of the weeks left, and the NBA schedule in our fantasy playoff weeks.',
    inputSchema: {type: 'object', properties: {}}}
 ];
 var MCP_INSTR = 'You are the analyst for the Fantasy Ballerz league, a 10-team ESPN head-to-head categories fantasy basketball league among friends (8 categories: FG%, FT%, 3PM, REB, AST, STL, BLK, PTS). The data is live from the league app.\n' +
-  'How to work: 1) Find out which team is the user\'s (list_teams, then ask; remember it). 2) Pull what the question needs, and pull generously: get_team for the user\'s team, their opponent or any other team; get_free_agents and get_player to compare pickups and check game logs and news; get_scoreboard for the whole week; get_moves for what pickups really did this season; get_league_analytics for season category standings by team, power rankings, category strength ranks, playoff chances and playoff schedules. 3) Give specific, numbers-backed answers: name players, days and categories, compare options side by side, and say why.\n' +
+  'How to work: 1) Find out which team is the user\'s (list_teams, then ask; remember it). 2) Pull what the question needs, and pull generously: get_team for the user\'s team, their opponent or any other team; get_free_agents and get_player to compare pickups and check game logs and news; get_scoreboard for the whole week; get_moves for what pickups really did this season; get_transactions for every add, drop and trade; get_results for week-by-week category results (trends, what a team keeps losing); get_schedule for future opponents and NBA games per week; get_draft for draft picks; get_league_analytics for season category standings by team, power rankings, category strength ranks, playoff chances and playoff schedules. 3) Give specific, numbers-backed answers: name players, days and categories, compare options side by side, and say why.\n' +
   'Rules that matter: IR slots are separate from the 13 active spots (dropping an IR player does not open an active spot). Respect the pickup limit, waivers, same-day drop rule and roster lock in get_team. Categories are won per week, so weigh what is still winnable or lost, games left and FG%/FT% volume. The planner\'s moves are a projection model\'s suggestion, not gospel.\n' +
   'Ideas welcome: trades that fit both teams\' category needs, streaming plans, punt strategies, playoff-schedule targets, sell-high and buy-low. Mention the data age if it is over an hour old. Never talk about betting or money.';
 function mcpOut_(b) {
@@ -1320,7 +1328,7 @@ function mcpOut_(b) {
 function mcpText_(t) { return {content: [{type: 'text', text: t}]}; }
 function mcp_(m, p) {
   if (m === 'initialize') return {protocolVersion: p.protocolVersion || '2025-06-18', capabilities: {tools: {}},
-    serverInfo: {name: 'fantasy-ballerz', title: 'Fantasy Ballerz', version: '2.92'},
+    serverInfo: {name: 'fantasy-ballerz', title: 'Fantasy Ballerz', version: '2.93'},
     instructions: MCP_INSTR};
   if (m === 'ping') return {};
   if (m === 'tools/list') return {tools: MCP_TOOLS};
@@ -1348,7 +1356,9 @@ function mcp_(m, p) {
     var nq = String(a.name || '').trim().toLowerCase(), norm = function (x) { return String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
     var hits = names.filter(function (n) { return norm(n) === norm(nq); });
     if (!hits.length) hits = names.filter(function (n) { return nq && norm(n).indexOf(norm(nq)) >= 0; });
-    if (!hits.length) return mcpText_('No player matches "' + a.name + '" among rostered players and the top 200 free agents.');
+    if (!hits.length) { var MO = ai.more || {}, mh = Object.keys(MO).filter(function (n) { return nq && norm(n).indexOf(norm(nq)) >= 0; });
+      if (mh.length) return mcpText_(when + '\n' + mh.slice(0, 5).map(function (n) { return MO[n]; }).join('\n'));
+      return mcpText_('No player matches "' + a.name + '". Only players who have played this season are listed.'); }
     return mcpText_(when + '\n' + hits.slice(0, 3).map(function (n) { return P[n]; }).join('\n\n') + (hits.length > 3 ? '\nAlso matched: ' + hits.slice(3, 12).join(', ') : ''));
   }
   if (p.name === 'get_moves') {
@@ -1356,6 +1366,22 @@ function mcp_(m, p) {
     var tk = a.team ? findTeam(a.team) : null; if (a.team && !tk) return mcpText_('No team matches "' + a.team + '".');
     return mcpText_(when + '\n' + (tk ? [tk] : ids).map(function (k) { return 'MOVES: ' + ai.teams[k].name + '\n' + (M[k] || 'No pickups this season.'); }).join('\n\n'));
   }
+  if (p.name === 'get_transactions') {
+    var X = ai.tx; if (!X) return mcpText_(when + NEW);
+    var tt = a.team ? findTeam(a.team) : null; if (a.team && !tt) return mcpText_('No team matches "' + a.team + '".');
+    var xs = X.filter(function (e) { return !tt || String(e.T) === String(tt) || String(e.T2) === String(tt); });
+    return mcpText_(when + '\nTRANSACTIONS' + (tt ? ' (' + ai.teams[tt].name + ')' : '') + ', oldest first (' + xs.length + '):\n' + (xs.map(function (e) { return e.t; }).join('\n') || 'None.'));
+  }
+  if (p.name === 'get_results') {
+    if (!ai.results) return mcpText_(when + NEW);
+    var rt = a.team ? findTeam(a.team) : null; if (a.team && !rt) return mcpText_('No team matches "' + a.team + '".');
+    var blocks = String(ai.results).split(/\n(?=WEEK )/);
+    if (a.week) blocks = blocks.filter(function (b) { return b.indexOf('WEEK ' + Number(a.week) + ' ') === 0; });
+    if (rt) blocks = blocks.map(function (b) { var ls = b.split('\n'); return [ls[0]].concat(ls.slice(1).filter(function (l) { return l.indexOf('- ') !== 0 || l.indexOf(ai.teams[rt].name) >= 0; })).join('\n'); });
+    return mcpText_(when + '\n' + (blocks.join('\n') || 'No results for that week.'));
+  }
+  if (p.name === 'get_schedule') return mcpText_(when + '\n' + (ai.sched || NEW));
+  if (p.name === 'get_draft') return mcpText_(when + '\n' + (ai.draft || 'No draft results in the app for this season.'));
   if (p.name === 'get_scoreboard') return mcpText_(when + '\n' + (ai.board || NEW));
   if (p.name === 'get_league_analytics') return mcpText_(when + '\n' + (ai.stats || NEW) + '\n\n' + String(ai.league || '').split('\nFREE AGENTS')[0]);
   if (p.name === 'get_team') {
