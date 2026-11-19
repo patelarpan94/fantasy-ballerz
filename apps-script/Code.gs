@@ -375,7 +375,24 @@ function accessLog_(days) {
 }
 
 /* --------------------------------------------------------------------- API */
-function doGet() { return out_({ok: true, app: 'Fantasy Ballerz', rev: rev_(), season: SEASON}); }
+function doGet(e) {
+  var q = (e && e.parameter) || {};
+  if (q.ai) return ContentService.createTextOutput(aiText_(q)).setMimeType(ContentService.MimeType.TEXT);   // 2.88 live data link for Claude
+  return out_({ok: true, app: 'Fantasy Ballerz', rev: rev_(), season: SEASON});
+}
+// BUG-378 (Arp: no new accounts): a plain read-only page of one team's data plus standings and free agents,
+// that Claude reads from a link in the Ask Claude message. Same "ai" doc the connector serves.
+function aiText_(q) {
+  var ai = getDoc_('ai', SEASON);
+  if (!ai || !ai.teams) return 'Fantasy Ballerz: no data yet. Someone in the league needs to open the app while logged in.';
+  var age = Math.round((Date.now() - (ai.at || 0)) / 60000), ids = Object.keys(ai.teams), k = String(q.ai), out = [];
+  out.push('FANTASY BALLERZ LEAGUE DATA (ESPN head-to-head categories), updated ' + Utilities.formatDate(new Date(ai.at || 0), 'America/New_York', 'EEE MMM d, h:mm a') + ' ET (' + (age < 1 ? 'just now' : age < 120 ? age + ' min ago' : Math.round(age / 60) + ' hours ago') + ').');
+  out.push('Teams: ' + ids.map(function (i) { return i + '. ' + ai.teams[i].name + (ai.teams[i].rec ? ' (' + ai.teams[i].rec + ')' : ''); }).join('; '));
+  if (ai.teams[k]) out.push('\n=== TEAM ' + k + ': ' + ai.teams[k].name + ' ===\n' + ai.teams[k].text);
+  if (q.all) ids.forEach(function (i) { if (i !== k) out.push('\n=== TEAM ' + i + ': ' + ai.teams[i].name + ' ===\n' + ai.teams[i].text); });
+  out.push('\n=== LEAGUE ===\n' + (ai.league || ''));
+  return out.join('\n');
+}
 function doPost(e) {
   var b;
   try { b = JSON.parse(e.postData.contents); } catch (x) { return out_({error: 'bad_request'}); }
