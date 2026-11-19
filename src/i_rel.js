@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.91",date:"2026-11-19",title:"Fresher data for Claude",notes:[
+    ["384","Fix","Claude kept reading old data after you made a move or changed the planner, because the app only sent new data every 20 minutes. Now an open app sends it within about 2 minutes of anything changing."]]},
   {v:"2.90",date:"2026-11-19",title:"Claude through the connector",notes:[
     ["382","Change","The Ask Claude buttons are gone (✳ on every screen, on player cards and in the planner). Use the league's Claude connector instead: Claude reads the league itself from any chat."],
     ["383","New","Help (?) has a new section, Ask Claude about the league, with the one-time steps to add the connector to your own Claude app and the link to copy."]]},

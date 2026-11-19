@@ -31,11 +31,18 @@ function aiFeedBuild(){const teams={};
     teams[T]={name:TEAMS[T].name,rec:STAND[T]?STAND[T].rec.join("-"):"",text};});
   let league="";try{league=[...askStandTxt(),...askFATxt(true)].join("\n").replace(/^\n/,"");}catch(e){console.warn(e);}
   return {season:SEASON,at:Date.now(),v:typeof RELEASES!=="undefined"&&RELEASES[0]?RELEASES[0].v:"",league,teams};}
+// BUG-384 (Arp: Claude still read old data after he changed his drop list): every 2 minutes the open app rebuilds
+// the data and uploads it as soon as anything changed (a move, the planner, a score), at most once every 2 minutes;
+// unchanged data still goes up every 20 minutes so Claude sees it's fresh
+const AIF_MIN=2*60e3;
+const aiHash=v=>{const t=JSON.stringify([v.league,v.teams]);let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return String(h);};
 async function aiFeedPush(force){try{
   if(!SESSION||!SESSION.role||typeof Store==="undefined"||Store.local||!Store._call||!L||!Object.keys(TEAMS).length||!DAYS.length)return false;
-  let last=0;try{last=+localStorage.getItem("dfAiAt")||0;}catch(e){}
-  if(!force&&Date.now()-last<AIF_EVERY)return false;
-  try{localStorage.setItem("dfAiAt",String(Date.now()));}catch(e){}
-  await Store._call("set",{c:"ai",i:SEASON,v:aiFeedBuild()});return true;}catch(e){console.warn("ai feed",e);return false;}}
-// first push a minute after load (data and the planner are ready by then), then every few minutes it checks the clock
-setTimeout(()=>{aiFeedPush();setInterval(()=>{if(!document.hidden)aiFeedPush();},3*60e3);},60e3);
+  let last=0,lh="";try{last=+localStorage.getItem("dfAiAt")||0;lh=localStorage.getItem("dfAiH")||"";}catch(e){}
+  const age=Date.now()-last;if(!force&&age<AIF_MIN)return false;
+  const v=aiFeedBuild(),h=aiHash(v);
+  if(!force&&h===lh&&age<AIF_EVERY)return false;
+  try{localStorage.setItem("dfAiAt",String(Date.now()));localStorage.setItem("dfAiH",h);}catch(e){}
+  await Store._call("set",{c:"ai",i:SEASON,v});return true;}catch(e){console.warn("ai feed",e);return false;}}
+// first check a minute after load (data and the planner are ready by then), then every 2 minutes while the app is on screen
+setTimeout(()=>{aiFeedPush();setInterval(()=>{if(!document.hidden)aiFeedPush();},AIF_MIN);},60e3);
