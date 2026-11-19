@@ -3,12 +3,14 @@
   "title": "Fantasy Ballerz",
   "short": "Ballerz",
   "backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec",
-  "assets": ""
+  "assets": "",
+  "mcp": "https://ballerz-claude.patelarpan94.workers.dev/live"
  },
  "uat": {
   "title": "Fantasy Ballerz UAT",
   "short": "Ballerz UAT",
   "backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec",
-  "assets": "../"
+  "assets": "../",
+  "mcp": "https://ballerz-claude.patelarpan94.workers.dev/uat"
  }
 }
