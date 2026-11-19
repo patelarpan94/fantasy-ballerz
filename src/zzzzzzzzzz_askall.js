@@ -26,7 +26,7 @@ const askInj=n=>{const ij=typeof injOf==="function"?injOf(n):null,s=INJ&&INJ[n];
 function askPl(p,days,nx,extra){const D=DIR[p.n]||{},s=recentPG(p.n,400),l=recentPG(p.n,14),l7=recentPG(p.n,7),pj=pgLine(D.pj),g=askDays(p.t||D.t,days);
   return `- ${p.n} (${p.t||D.t}, ${askPos(p.el&&p.el.length?p.el:D.el)}${extra||""})${askInj(p.n)}: ${askG(g)}${nx.length?`, next wk ${askGN(p.t||D.t,nx)}g`:""}${askOwn(p.n)} | Proj ${askLine(pj)} | Season${s?` ${s.g}gp`:""} ${askLine(s&&s.pg)} | L14 ${askLine(l&&l.pg)} | L7 ${askLine(l7&&l7.pg)}`;}
 
-function askBase(T,big){const opp=dOpp(T),days=DAYS.filter(sp=>sp>=TODAY),nx=askNext(),out=[];
+function askBase(T,big,noFA){const opp=dOpp(T),days=DAYS.filter(sp=>sp>=TODAY),nx=askNext(),out=[];
   const lim=typeof addLimitFor==="function"?addLimitFor(TODAY):0,used=typeof plUsedWk==="function"?plUsedWk(T):0,cap=DPL&&DPL.cap!=null&&DPL_K&&DPL_K.startsWith(T+":")?DPL.cap:null;
   const limN=lim||(cap!=null?used+cap:typeof PL_MAX!=="undefined"?PL_MAX:7);
   const pm=typeof posMaxL==="function"?posMaxL():{},pmTxt=Object.entries(pm).map(([k,v])=>`${k} max ${v}`).join(", ");
@@ -45,13 +45,17 @@ function askBase(T,big){const opp=dOpp(T),days=DAYS.filter(sp=>sp>=TODAY),nx=ask
   const dl=new Set(DPL&&DPL.dl||[]);
   dNowP(T).forEach(p=>{const sl=slotOn(p,TODAY);out.push(askPl(p,days,nx,sl===13?`, on IR: does not use an active spot, dropping him does not open one`:`, today ${SLOT[sl]||"BE"}${dl.has(p.n)?", I'm willing to drop":""}`));});
   if(opp){out.push(`\nOPPONENT ROSTER (${TEAMS[opp].name})`);dNowP(opp).forEach(p=>out.push(askPl(p,days,nx,slotOn(p,TODAY)===13?", IR":"")));}
-  // every free agent with a game left this matchup (or next week once this one is over), best first
+  if(!noFA)out.push(...askFATxt(big));
+  return out;}
+
+
+// every free agent with a game left this matchup (or next week once this one is over), best first
+function askFATxt(big){const days=DAYS.filter(sp=>sp>=TODAY),nx=askNext(),out=[];
   const pool=days.length?days:nx;
   const fa=Object.values(DIR).filter(D=>D.t&&D.t!=="FA"&&!ownerNow(D.n)&&(!INJ||INJ[D.n]!=="OUT")&&pool.some(sp=>gameOn(D.t,sp))).map(D=>{const s=recentPG(D.n,400),pj=pgLine(D.pj)||(s&&s.pg);return pj?{D,z:zOf(pj)}:null;}).filter(Boolean).sort((a,b)=>b.z-a.z).slice(0,big?80:40);
   if(fa.length){out.push(`\nFREE AGENTS WITH GAMES LEFT (${fa.length}, best projection first; healthy or day-to-day)`);
     fa.forEach(({D})=>{const wc=typeof wvClear==="function"?wvClear(D.n):0;out.push(askPl({n:D.n,t:D.t,el:D.el},days,nx,wc?`, on waivers, claim clears ${fmtET(wc).replace(/^(\w+), \w+ \d+, /,"$1 ")}`:""));});}
   return out;}
-
 function askPlanTxt(r){const out=[];if(!r||r.done||!r.opp)return out;
   out.push(`\nTHE APP'S WIN-THE-WEEK PLANNER (projection model, ${r.w0!=null?dPct(r.w0)+"%":"?"} win with no moves → ${r.w1!=null?dPct(r.w1)+"%":"?"} with its moves)`);
   const st=r.strat||[],nm=k=>st.filter(x=>x.eff===k).map(x=>x.c[0]);if(st.length)out.push(`Its strategy: target ${nm("t").join(", ")||"none"}; punt ${nm("p").join(", ")||"none"}.`);
@@ -102,7 +106,11 @@ function askOpen(ctx){const T=askT();if(!T||!TEAMS[T]){toast("Log in or pick a t
     <div class="askx-sug">${ASK_SUG[c.k].map(s=>`<button type="button" class="askx-q" data-askfill="${esc(s)}">${esc(s)}</button>`).join("")}</div>
     <textarea class="ask-q" id="askxQ" rows="3" placeholder="Ask anything about your team, or tap a question above.">${esc(ASK_Q)}</textarea>
     <div class="ask-b"><button class="btn sm ask-go" data-askxgo>Ask Claude ↗</button><button class="btn sm ghost" data-askxcp>Copy prompt</button></div>
-    <p class="muted dsm askx-n" id="askxN"></p></div>`);
+    <p class="muted dsm askx-n" id="askxN"></p>${typeof Store!=="undefined"&&Store.url&&!Store.local?`
+    <details class="askx-con"><summary>Ask Claude without pasting: add the league to Claude (one time)</summary>
+    <ol class="dsm"><li>In the Claude app or on claude.ai, open <b>Settings › Connectors</b> (on some plans it's <b>Customize › Connectors</b>).</li><li>Tap <b>Add custom connector</b>. Name: <b>Fantasy Ballerz${/\/uat\//.test(location.pathname)?" UAT":""}</b>. URL: the link below. Leave Advanced settings empty and tap Add.</li><li>In any chat, ask things like "Using Fantasy Ballerz, who should Cloud Team pick up today?" Claude reads the live league data itself.</li></ol>
+    <div class="askx-url"><code>${esc(Store.url)}</code><button type="button" class="btn sm ghost" data-askurl="${esc(Store.url)}">Copy link</button></div>
+    <p class="muted dsm">Free on every Claude plan (the free plan allows one custom connector). It's read-only: rosters, stats and matchups, no passcodes. The data updates whenever someone in the league has the app open.</p></details>`:""}</div>`);
   try{const p=askFull(T,""),u=new URLSearchParams({q:p}).toString().length+24;$("#askxN").textContent=`About ${Math.round(p.length/100)/10}k characters of data. ${u>ASK_URL_MAX?"That's too long for a link, so Ask Claude copies it and opens a new chat: paste it there.":"Claude opens with it filled in, and it's copied too."}`;}catch(e){console.warn(e);}}
 
 function askSend(p){askCopy(p);const u="https://claude.ai/new?"+new URLSearchParams({q:p}).toString();
@@ -114,6 +122,7 @@ askBuild=function(T){ASKX={k:"plan"};const q=(document.querySelector("[data-askq
 document.addEventListener("click",e=>{let b;
   if((b=e.target.closest("#askFab"))){e.stopPropagation();askOpen({k:"screen"});return;}
   if((b=e.target.closest("[data-askpl]"))){e.stopPropagation();askOpen({k:"player",n:b.dataset.askpl});return;}
+  if((b=e.target.closest("[data-askurl]"))){e.stopPropagation();toast(askCopy(b.dataset.askurl)?"Link copied. Paste it into Claude's Add custom connector.":"Couldn't copy.");return;}
   if((b=e.target.closest("[data-askfill]"))){e.stopPropagation();const t=$("#askxQ");if(t){t.value=b.dataset.askfill;ASK_Q=t.value;t.focus();}return;}
   if((b=e.target.closest("[data-askxgo],[data-askxcp]"))){e.stopPropagation();const T=askT(),q=($("#askxQ")||{}).value||"";ASK_Q=q;let p="";try{p=askFull(T,q);}catch(x){console.warn(x);}
     if(!p){toast("Couldn't build the prompt.");return;}
@@ -137,5 +146,5 @@ body.uiedit .askfab{display:none}
 .chatpane:not([hidden])~.askfab{display:none}
 .askx-see{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.askx-see span{font-size:.72rem;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,#d97757 14%,transparent);color:var(--ink)}
 .askx-sug{display:flex;flex-direction:column;gap:6px;margin:10px 0}.askx-q{font:inherit;font-size:.84rem;text-align:left;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}.askx-q:hover{border-color:#d97757}
-.askx-n{margin-top:8px}.askx-pc{margin-left:6px}
+.askx-n{margin-top:8px}.askx-con{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.askx-con summary{cursor:pointer;font-weight:700;font-size:.85rem;color:#d97757}.askx-con ol{padding-left:18px;margin:8px 0}.askx-url{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.askx-url code{font-size:.66rem;word-break:break-all;flex:1 1 200px;padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--muted) 10%,transparent)}.askx-pc{margin-left:6px}
 `;document.head.appendChild(s);}
