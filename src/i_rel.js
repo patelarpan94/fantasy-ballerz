@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.89",date:"2026-11-19",title:"Claude sees your moves",notes:[
+    ["381","New","Ask Claude and the Claude connector now see every pickup each team made this matchup: who was added and dropped and when, and what each one really did from the box scores (from Pickup impact), so Claude can tell you how your moves are going."]]},
   {v:"2.88",date:"2026-11-19",title:"Fantasy Ballerz in Claude",notes:[
     ["375","New","Ask Claude without pasting: add the league to your own Claude app once as a custom connector (Ask Claude sheet › \"Ask Claude without pasting\" has the steps and the link to copy). Then just ask Claude in any chat, like \"who should Cloud Team pick up today?\", and Claude reads the league's live data itself: every team's matchup by category, rosters, stats, injuries, the standings and every free agent. Read-only, no passcodes. Free on every Claude plan."],
     ["376","New","The app keeps that data fresh: a logged-in phone with the app open uploads the latest matchups, rosters and free agents about every 20 minutes."],

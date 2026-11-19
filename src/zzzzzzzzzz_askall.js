@@ -93,6 +93,7 @@ const ASK_SUG={
   screen:["Who should I pick up and drop this week?","Which categories can I still win this matchup?","How should I set my lineup the rest of this week?"]};
 
 function askFull(T,q){const c=askCtx(),out=askBase(T,c.k==="fa"||c.k==="plan");
+  if(typeof askMovesTxt==="function")out.push(...askMovesTxt(T));
   if(c.k==="plan"){const r=DPL&&DPL_K&&DPL_K.startsWith(T+":")?DPL:null;out.push(...askPlanTxt(r));}
   if(c.k==="player")out.push(...askPlayerTxt(c.n));
   if(c.k==="stand")out.push(...askStandTxt());
