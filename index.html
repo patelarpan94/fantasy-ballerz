@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261119202546", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/live"};var DF_ASSETS="";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycbyjnhCF002TeeWcwGzjwcXlT0F8mL_mr8eY2_uXvElZmW967dorBqzBNUffHoXiGmx6/exec", "env": "live", "build": "20261119203707", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/live"};var DF_ASSETS="";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4453,6 +4453,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.89",date:"2026-11-19",title:"Claude sees your moves",notes:[
+    ["381","New","Ask Claude and the Claude connector now see every pickup each team made this matchup: who was added and dropped and when, and what each one really did from the box scores (from Pickup impact), so Claude can tell you how your moves are going."]]},
   {v:"2.88",date:"2026-11-19",title:"Fantasy Ballerz in Claude",notes:[
     ["375","New","Ask Claude without pasting: add the league to your own Claude app once as a custom connector (Ask Claude sheet › \"Ask Claude without pasting\" has the steps and the link to copy). Then just ask Claude in any chat, like \"who should Cloud Team pick up today?\", and Claude reads the league's live data itself: every team's matchup by category, rosters, stats, injuries, the standings and every free agent. Read-only, no passcodes. Free on every Claude plan."],
     ["376","New","The app keeps that data fresh: a logged-in phone with the app open uploads the latest matchups, rosters and free agents about every 20 minutes."],
@@ -12160,6 +12162,7 @@ const ASK_SUG={
   screen:["Who should I pick up and drop this week?","Which categories can I still win this matchup?","How should I set my lineup the rest of this week?"]};
 
 function askFull(T,q){const c=askCtx(),out=askBase(T,c.k==="fa"||c.k==="plan");
+  if(typeof askMovesTxt==="function")out.push(...askMovesTxt(T));
   if(c.k==="plan"){const r=DPL&&DPL_K&&DPL_K.startsWith(T+":")?DPL:null;out.push(...askPlanTxt(r));}
   if(c.k==="player")out.push(...askPlayerTxt(c.n));
   if(c.k==="stand")out.push(...askStandTxt());
@@ -12243,8 +12246,23 @@ body.uiedit .askfab{display:none}
    passcodes or login data.
    ============================================================================ */
 const AIF_EVERY=20*60e3;
+// BUG-381 (Arp: Claude said it couldn't see the moves made this week): every pickup this team made in the
+// current matchup, from Pickup impact's real box scores (not projections), as plain text for Claude
+function askMovesTxt(T){if(typeof piAdds!=="function"||typeof dwkNow!=="function")return [];
+  const w=dwkNow();if(!w)return [];let rs=[];try{rs=piAdds(T,w).map(piScoreMove);}catch(e){console.warn(e);return [];}
+  const out=["","MOVES THIS MATCHUP (pickups already made, real box scores on days the pickup STARTED vs the player dropped on those days; not projections):"];
+  if(!rs.length){out.push("None yet.");return out;}
+  const nm=n=>n+(DIR[n]&&DIR[n].t?` (${DIR[n].t})`:"");
+  const net=r=>{const a=[];CATS.forEach(c=>{if(c[1]==="pct"){const d=r.pctD[c[0]]||0;if(Math.abs(d)>=.0005)a.push(`${c[0]} ${d>0?"+":"-"}${Math.abs(d*100).toFixed(1)}%`);}
+      else{const d=r.net[c[2]];if(d)a.push(`${c[0]} ${d>0?"+":"-"}${Math.abs(Math.round(d*10)/10)}`);}});return a.length?a.join(", "):"no change";};
+  rs.sort((a,b)=>a.from-b.from).forEach(r=>{
+    const res=!r.days.length?(r.bench?"only on the bench so far":"no starts yet"):r.won.length||r.cost.length?`${r.done?"final,":"so far,"} ${r.won.length?"won "+r.won.join(", "):""}${r.won.length&&r.cost.length?"; ":""}${r.cost.length?"cost "+r.cost.join(", "):""}`:`${r.done?"final,":"so far,"} no category changed hands`;
+    const pl=r.plan?` Planner pick${r.plan.pw!=null?` (planner expected +${(+r.plan.pw).toFixed(2)} categories${r.plan.pc&&r.plan.pc.length?" in "+r.plan.pc.join(", "):""})`:""}.`:"";
+    out.push(`- ${dow(r.from)} ${md(r.from)}: added ${nm(r.add)}, ${r.drop?"dropped "+nm(r.drop):"used an open spot"}${r.to!==Infinity&&r.to-1<r.w[2]?`, then dropped him ${dow(r.to)}`:""}. ${r.days.length} start${r.days.length===1?"":"s"}${r.bench?`, ${r.bench} game${r.bench===1?"":"s"} on bench`:""}. Net vs the dropped player: ${r.days.length?net(r):"none yet"}. Category effect: ${res}${r.res?` (turned the matchup from a ${r.res.from} into a ${r.res.to})`:""}.${pl}`);});
+  try{const S=piWeekSum(T,rs,w);if(S)out.push(`All pickups together this matchup: ${net(S.tot)}.`);}catch(e){}
+  return out;}
 function aiFeedBuild(){const teams={};
-  Object.keys(TEAMS).map(Number).forEach(T=>{let text="";try{const out=askBase(T,false,true).slice(1);
+  Object.keys(TEAMS).map(Number).forEach(T=>{let text="";try{const out=askBase(T,false,true).slice(1);out.push(...askMovesTxt(T));
       const r=DPL&&DPL_K&&DPL_K.startsWith(T+":")?DPL:null;if(r)out.push(...askPlanTxt(r));text=out.join("\n");}catch(e){console.warn(e);text="(couldn't build this team's data)";}
     teams[T]={name:TEAMS[T].name,rec:STAND[T]?STAND[T].rec.join("-"):"",text};});
   let league="";try{league=[...askStandTxt(),...askFATxt(true)].join("\n").replace(/^\n/,"");}catch(e){console.warn(e);}
