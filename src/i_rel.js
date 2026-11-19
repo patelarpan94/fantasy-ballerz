@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.87",date:"2026-11-19",title:"Ask Claude",notes:[
+    ["372","New","Win-the-week planner: new Ask Claude button. It opens Claude with your matchup already filled in: the score so far and the projected final in every category, your chance in each, your roster with games left and stats, the planner's moves and other options, the best free agents with games left, the opponent's roster and the league's pickup and waiver rules. Type your own question first if you want, like \"who should I pick up for steals?\" It uses your own Claude account. The prompt is copied too, so if the link is too long, paste it into Claude. Copy prompt copies it without opening Claude."]]},
   {v:"2.86",date:"2026-11-19",title:"Pickup impact",notes:[
     ["367","New","Analytics › Pickup impact: what every team's free agent and waiver pickups really did, from the box scores, not projections. Each pickup counts only the days he started and played, minus what the player he replaced did those same days, category by category (FG% and FT% as the change to the team's matchup percentage). It also shows the categories the pickup won or cost in the matchup. Numbers update each day as \"so far\", then lock as Final when the matchup ends, with the best and worst add of the week. Tap Day by day for every game. Use ‹ › for earlier matchups."],
     ["368","New","Dashboard: new Pickup impact tile with your pickups in the matchup the dashboard shows. It's added to the Pickups section of the New Era + board, and it's in + Add widget."],
