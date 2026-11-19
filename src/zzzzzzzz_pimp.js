@@ -95,13 +95,29 @@ function piPlanTxt(r){const e=r.plan;if(!e)return "";
   const real=!r.days.length?"no starts yet":`${r.won.length?`won ${r.won.map(esc).join(", ")}`:r.cost.length?"won no category":"no category changed"}${r.cost.length?`, cost ${r.cost.map(esc).join(", ")}`:""} over ${r.days.length} start${r.days.length===1?"":"s"}`;
   return `<small class="pi-pc"><b>Planner check:</b> the planner ${said}. Real${r.done?"":" so far"}: ${real}.</small>`;}
 function piDays(r){if(!r.days.length)return "";
-  return `<details class="pi-dd"><summary>Day by day (${r.days.length} start${r.days.length===1?"":"s"})</summary><table class="pi-tb"><thead><tr><th>Day</th><th>${esc(dashLast(r.add))}</th>${r.drop?`<th>${esc(dashLast(r.drop))}</th>`:""}</tr></thead><tbody>
+  return `<details class="pi-dd"><summary>Day by day (${r.days.length} start${r.days.length===1?"":"s"})</summary><table class="pi-tb" data-cdone="1"><thead><tr><th>Day</th><th>${esc(dashLast(r.add))}</th>${r.drop?`<th>${esc(dashLast(r.drop))}</th>`:""}</tr></thead><tbody>
     ${r.days.map(d=>`<tr><td>${esc(dow(d.sp))} ${esc(md(d.sp))}</td><td class="num">${piLine(d.l)}</td>${r.drop?`<td class="num">${piLine(d.d)}</td>`:""}</tr>`).join("")}</tbody></table></details>`;}
 function piRow(r,o){o=o||{};const mine=r.plan;
   return `<li class="pi-r">${dFace(r.add,(DIR[r.add]||{}).t,"sm")}<span class="pi-who"><span><b>+${o.tile?esc(dashLast(r.add)):dashNm(r.add)}</b>${r.drop?` <span class="muted">for ${o.tile?esc(dashLast(r.drop)):dashNm(r.drop)}</span>`:` <span class="muted">· open spot</span>`}${mine?`<i class="pi-v pp">Planner pick</i>`:""}${piVerdict(r)}</span>
     <small class="muted">${esc(dow(r.from))} ${esc(md(r.from))} · ${r.days.length} start${r.days.length===1?"":"s"}${r.bench?` · ${r.bench} on bench`:""}${r.to-1<r.w[2]&&r.to!==Infinity?` · dropped ${esc(dow(r.to))}`:""}</small>
     ${piChips(r,o.tile?3:0)}${o.tile?"":piResTxt(r)?`<small>${esc(piResTxt(r).trim())}</small>`:""}${o.tile?"":piPlanTxt(r)}${o.tile?"":piDays(r)}</span></li>`;}
 
+// BUG-371 (Arp: "a summary for the week so far, like +/- per cat as the days go on"): every pickup a team made,
+// added up per category, and how that total built up day by day (FG%/FT% are the running change to the team's percentage)
+function piWeekSum(T,rs,w){const days=dwkDays(w).filter(sp=>rs.some(r=>r.days.some(d=>d.sp===sp)));if(!days.length)return null;
+  const pk=piZero(),dr=piZero(),rows=[];
+  days.forEach(sp=>{const dn=piZero();rs.forEach(r=>r.days.forEach(d=>{if(d.sp!==sp)return;piAdd(pk,d.l);piAdd(dr,d.d);piAdd(dn,d.l);if(d.d)for(let i=0;i<11;i++)dn[i]-=+d.d[i]||0;}));
+    const a=dayTotals(T,dwkDays(w).filter(x=>x<=sp)),cf=a?a.map((v,i)=>v-pk[i]+dr[i]):null,pctD={};
+    CATS.forEach(c=>{if(c[1]==="pct")pctD[c[0]]=a&&cf?val(a,c)-val(cf,c):0;});rows.push({sp,net:dn,pctD,n:rs.reduce((s,r)=>s+r.days.filter(d=>d.sp===sp).length,0)});});
+  const last=rows[rows.length-1];return {rows,tot:{net:pk.map((v,i)=>v-dr[i]),pctD:last.pctD}};}
+function piCell(x,c){if(c[1]==="pct"){const d=x.pctD[c[0]]||0;return Math.abs(d)<.0005?`<td class="num muted">0</td>`:`<td class="num ${d>0?"up":"dn"}">${d>0?"+":"−"}${Math.abs(d*100).toFixed(1)}%</td>`;}
+  const d=x.net[c[2]];return d?`<td class="num ${d>0?"up":"dn"}">${piSign(d)}</td>`:`<td class="num muted">0</td>`;}
+function piWeekHtml(T,rs,w,tile){const S=piWeekSum(T,rs,w);if(!S)return "";const done=piDone(w);
+  const tb=`<table class="pi-wk" data-cdone="1"><thead><tr><th>Day</th>${CATS.map(c=>`<th>${esc(c[0])}</th>`).join("")}</tr></thead><tbody>
+    ${S.rows.map(x=>`<tr><td>${esc(dow(x.sp))}<small class="muted"> ${x.n} start${x.n===1?"":"s"}</small></td>${CATS.map(c=>piCell(x,c)).join("")}</tr>`).join("")}
+    <tr class="pi-wt"><td>${done?"Final":"So far"}</td>${CATS.map(c=>piCell(S.tot,c)).join("")}</tr></tbody></table>`;
+  return `<div class="pi-ws"><small><b>${done?"Week total":"Week so far"}</b> · all pickups</small>${piChips({net:S.tot.net,pctD:S.tot.pctD},0)}
+    <details class="pi-dd"${tile?"":" open"}><summary>Day by day</summary><div class="pi-wkw">${tb}</div><small class="muted">Each day's counting stats are that day's pickups minus the players they replaced. FG% and FT% are the running change to the team's percentage through that day.</small></details></div>`;}
 // ---- Analytics › Pickup impact ----
 function pimpView(){
   if(!L||!Object.keys(TEAMS).length)return `<section class="panel emptyst"><h2>No data yet</h2><p>Pickup impact fills in once rosters exist.</p></section>`;
@@ -119,7 +135,7 @@ function pimpView(){
   const by={};rs.forEach(r=>(by[r.T]=by[r.T]||[]).push(r));
   const teams=Object.keys(by).map(Number).sort((a,b)=>(b===me)-(a===me)||by[b].reduce((s,r)=>s+r.sc,0)-by[a].reduce((s,r)=>s+r.sc,0));
   const body=teams.length?teams.map(T=>{const l=by[T].sort((a,b)=>b.sc-a.sc),wn=l.reduce((s,r)=>s+r.won.length,0),cs=l.reduce((s,r)=>s+r.cost.length,0);
-    return `<section class="panel pi-t"><h3>${esc(TEAMS[T].name)}<small class="muted"> · ${l.length} add${l.length===1?"":"s"}${wn||cs?` · ${wn?`won ${wn} cat${wn===1?"":"s"}`:""}${wn&&cs?", ":""}${cs?`cost ${cs}`:""}`:""}</small></h3><ol class="pi-l">${l.map(r=>piRow(r)).join("")}</ol></section>`;}).join("")
+    return `<section class="panel pi-t"><h3>${esc(TEAMS[T].name)}<small class="muted"> · ${l.length} add${l.length===1?"":"s"}${wn||cs?` · ${wn?`won ${wn} cat${wn===1?"":"s"}`:""}${wn&&cs?", ":""}${cs?`cost ${cs}`:""}`:""}</small></h3>${piWeekHtml(T,l,w)}<ol class="pi-l">${l.map(r=>piRow(r)).join("")}</ol></section>`;}).join("")
     :`<section class="panel"><p class="muted">${PI.pp?"None of the planner's picks were added this matchup.":PI.f==="mine"?"You made no pickups this matchup.":"No pickups this matchup yet."}</p></section>`;
   return `<section class="panel pi-hd"><h2>Pickup impact</h2><p class="muted">What every pickup really did, from the box scores. It counts only days the pickup started and played, minus what the player he replaced did those same days. FG% and FT% show the change to the team's matchup percentage. ${done?"This matchup is final.":"Numbers update each day as box scores come in, and lock when the matchup ends."}</p>${nav}</section>${best}${body}
     <p class="anote">Category flips compare the real matchup score with the score you'd have without the pickup and with the dropped player back in his place. That assumes the dropped player would have started on those days. Trades and IR moves aren't counted.</p>`;}
@@ -136,7 +152,7 @@ DW.pi={name:"Pickup impact",desc:"What your pickups really did this matchup, fro
     const more=`<button class="btn sm ghost pi-go" data-pi="go:${W0[0]}">Every team's pickups ›</button>`;
     if(!rs.length)return `<p class="dempty">No pickups ${piDone(W0)?"in this matchup":"this matchup yet"}. When ${T===myTeamNum()?"you add":"they add"} someone, his real stats vs the player dropped show here.</p>${more}`;
     const wn=rs.reduce((s,r)=>s+r.won.length,0),cs=rs.reduce((s,r)=>s+r.cost.length,0);
-    return `<p class="pi-sum"><b>${rs.length}</b> pickup${rs.length===1?"":"s"} · ${piDone(W0)?"Final":"so far"}${wn?` · <span class="ok">won ${wn} cat${wn===1?"":"s"}</span>`:""}${cs?` · <span class="bad">cost ${cs}</span>`:""}</p><ol class="pi-l">${rs.map(r=>piRow(r,{tile:1})).join("")}</ol>${more}`;}};
+    return `<p class="pi-sum"><b>${rs.length}</b> pickup${rs.length===1?"":"s"} · ${piDone(W0)?"Final":"so far"}${wn?` · <span class="ok">won ${wn} cat${wn===1?"":"s"}</span>`:""}${cs?` · <span class="bad">cost ${cs}</span>`:""}</p>${piWeekHtml(T,rs,W0,1)}<ol class="pi-l">${rs.map(r=>piRow(r,{tile:1})).join("")}</ol>${more}`;}};
 // New Era +: in the Pickups section after the pickup advisor; added once to boards already set up
 {const i=NEP_DEF.findIndex(x=>x[0]==="pa");if(!NEP_DEF.some(x=>x[0]==="pi"))NEP_DEF.splice(i>=0?i+1:NEP_DEF.length,0,["pi","w"]);}
 // BUG-370: the tile was only added to the New Era + board, so Arp didn't see it on the board he uses.
@@ -171,4 +187,9 @@ function piOnce(){if(!prefKey()||!UI.dash)return;const c=dashCur(),done=Array.is
 .pi-tb{width:100%;border-collapse:collapse;margin-top:4px;font-size:.74rem}.pi-tb th,.pi-tb td{text-align:left;padding:3px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 .pi-sum{margin:0 0 8px;font-size:.82rem}.pi-sum .ok,.pi-aw .ok{color:var(--win)}.pi-sum .bad,.pi-aw .bad{color:var(--loss)}
 .pi-go{margin-top:8px}
+.pi-ws{display:flex;flex-direction:column;gap:5px;margin:0 0 10px;padding:9px 11px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.pi-wkw{overflow-x:auto;max-width:100%}
+.pi-wk{border-collapse:collapse;font-size:.74rem;margin:4px 0;min-width:100%}.pi-wk th,.pi-wk td{padding:3px 7px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.pi-wk th:first-child,.pi-wk td:first-child{text-align:left}.pi-wk td.up{color:var(--win);font-weight:700}.pi-wk td.dn{color:var(--loss);font-weight:700}
+.pi-wk tr.pi-wt td{font-weight:800;border-top:2px solid var(--line)}
 `;document.head.appendChild(s);}
