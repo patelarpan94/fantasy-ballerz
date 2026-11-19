@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.90",date:"2026-11-19",title:"Claude through the connector",notes:[
+    ["382","Change","The Ask Claude buttons are gone (✳ on every screen, on player cards and in the planner). Use the league's Claude connector instead: Claude reads the league itself from any chat."],
+    ["383","New","Help (?) has a new section, Ask Claude about the league, with the one-time steps to add the connector to your own Claude app and the link to copy."]]},
   {v:"2.89",date:"2026-11-19",title:"Claude sees your moves",notes:[
     ["381","New","Ask Claude and the Claude connector now see every pickup each team made this matchup: who was added and dropped and when, and what each one really did from the box scores (from Pickup impact), so Claude can tell you how your moves are going."]]},
   {v:"2.88",date:"2026-11-19",title:"Fantasy Ballerz in Claude",notes:[
