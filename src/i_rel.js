@@ -4,6 +4,12 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.93",date:"2026-11-19",title:"More for Claude",notes:[
+    ["387","New","Claude connector: the full transaction log of the season (every add, drop and trade by every team)."],
+    ["388","New","Claude connector: week-by-week results, every matchup's totals in every category and who won each, so Claude can show category standings by week and spot what a team keeps losing."],
+    ["389","New","Claude connector: the schedule ahead, who plays whom every remaining week and NBA games per team for the next six fantasy weeks."],
+    ["390","New","Claude connector: every free agent who has played this season (a short line each beyond the top 200), up to 30 recent games per player, and last NBA season's averages."],
+    ["391","New","Claude connector: this season's draft results, with who has each player now."]]},
   {v:"2.92",date:"2026-11-19",title:"Claude sees the whole league",notes:[
     ["385","New","The Claude connector can now look up any player (who has him, up to 15 recent box scores, news), every pickup of the season with what it really did, this week's scoreboard for every matchup, and league analytics: season category standings with each team's rank, power rankings, category strengths for trade ideas, playoff chances and the playoff schedule."],
     ["386","Change","The connector's instructions now tell Claude how to use all of it: pull data generously, compare options with numbers, and offer trade, streaming and playoff ideas. It also knows it can open any team, not just yours and your opponent."]]},
