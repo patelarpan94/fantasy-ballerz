@@ -13,7 +13,7 @@
      prompt is too long for a link: open Claude and paste.
    - Never includes passcodes, logins or anything outside the league's rosters and stats.
    ============================================================================ */
-const ASK_URL_MAX=7800; // keep the link under ~8 KB, longer links can fail to open
+const ASK_URL_MAX=14000; // a typical prompt is ~11 KB as a link; claude.ai took that size in a test (2026-11-19). Longer: open a blank chat, paste
 let ASK_Q="";
 const askN=v=>v==null||!isFinite(v)?"-":Math.abs(v)>=100?Math.round(v).toString():(Math.round(v*10)/10).toString();
 const askPct=(m,a)=>a?(m/a).toFixed(3).replace(/^0/,""):"-";
