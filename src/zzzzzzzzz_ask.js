@@ -72,6 +72,7 @@ function askBuild(T){const r=DPL;if(!r||r.done||!r.opp)return "";const q=(docume
 
 document.addEventListener("click",e=>{let b;
   if((b=e.target.closest("[data-askgo]"))){e.stopPropagation();const T=+b.closest("[data-askt]").dataset.askt,p=askBuild(T);if(!p){toast("The planner is still working. Try again in a second.");return;}
+    if(typeof askGo==="function"){askGo(T,ASK_Q,p);return;}
     askCopy(p);const u="https://claude.ai/new?"+new URLSearchParams({q:p}).toString();
     if(u.length<=ASK_URL_MAX){window.open(u,"_blank","noopener");toast("Opening Claude with your matchup. The prompt is copied too.");}
     else{window.open("https://claude.ai/new","_blank","noopener");toast("Prompt copied. Paste it into the new Claude chat.");}

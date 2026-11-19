@@ -107,14 +107,24 @@ function askOpen(ctx){const T=askT();if(!T||!TEAMS[T]){toast("Log in or pick a t
     <div class="askx-see">${sees.map(s=>`<span>${esc(s)}</span>`).join("")}</div>
     <div class="askx-sug">${ASK_SUG[c.k].map(s=>`<button type="button" class="askx-q" data-askfill="${esc(s)}">${esc(s)}</button>`).join("")}</div>
     <textarea class="ask-q" id="askxQ" rows="3" placeholder="Ask anything about your team, or tap a question above.">${esc(ASK_Q)}</textarea>
-    <div class="ask-b"><button class="btn sm ask-go" data-askxgo>Ask Claude ↗</button><button class="btn sm ghost" data-askxcp>Copy prompt</button></div>
+    <div class="ask-b"><button class="btn sm ask-go" data-askxgo>Ask Claude ↗</button><button class="btn sm ghost" data-askxcp>Copy full data</button></div>
     <p class="muted dsm askx-n" id="askxN"></p>${askMcpUrl()?`
     <details class="askx-con"><summary>Ask Claude without pasting: add the league to Claude (one time)</summary>
     <ol class="dsm"><li>In the Claude app or on claude.ai, open <b>Settings › Connectors</b> (on some plans it's <b>Customize › Connectors</b>).</li><li>Tap <b>Add custom connector</b>. Name: <b>Fantasy Ballerz${/\/uat\//.test(location.pathname)?" UAT":""}</b>. URL: the link below. Leave Advanced settings empty and tap Add.</li><li>In any chat, ask things like "Using Fantasy Ballerz, who should Cloud Team pick up today?" Claude reads the live league data itself.</li></ol>
     <div class="askx-url"><code>${esc(askMcpUrl())}</code><button type="button" class="btn sm ghost" data-askurl="${esc(askMcpUrl())}">Copy link</button></div>
     <p class="muted dsm">Free on every Claude plan (the free plan allows one custom connector). It's read-only: rosters, stats and matchups, no passcodes. The data updates whenever someone in the league has the app open.</p></details>`:""}</div>`);
-  try{const p=askFull(T,""),u=new URLSearchParams({q:p}).toString().length+24;$("#askxN").textContent=`About ${Math.round(p.length/100)/10}k characters of data. ${u>ASK_URL_MAX?"That's too long for a link, so Ask Claude copies it and opens a new chat: paste it there.":"Claude opens with it filled in, and it's copied too."}`;}catch(e){console.warn(e);}}
+  try{$("#askxN").textContent="Claude opens with a short message and a link to your live league data, so it reads everything itself. The full data is copied too: if Claude says it can't open the link, paste it.";}catch(e){console.warn(e);}}
 
+// BUG-378 (Arp: no new accounts): Claude reads the live data from a link on the league server (doGet ?ai=<team>),
+// so the message is short and opens filled in. The full prompt is copied too, in case Claude can't open the link.
+function askLinkMsg(T,q){const be=(window.DF_CONFIG&&window.DF_CONFIG.backend)||"",c=askCtx();if(!be)return "";
+  const link=be+"?ai="+T+(c.k==="trade"?"&all=1":"");
+  return `You are my fantasy basketball advisor for our ESPN head-to-head categories league. First open and read this live data from our league app. It has the rules, my matchup by category, my roster and my opponent's with stats, the standings and every free agent: ${link}\n\nI'm ${TEAMS[T].name} (team ${T}).${c.k==="player"?` I'm asking about ${c.n}.`:""}${c.k==="trade"?" The link includes every team's roster.":""} Use all the data: compare every option, weigh the categories I can still win or lose, games left, recent form and injuries, then give me a clear recommendation with your reasons. IR slots are separate from the active roster spots. If you can't open the link, tell me and I'll paste the data.\n\nMy question: ${q&&q.trim()?q.trim():ASK_SUG[c.k][0]}`;}
+function askGo(T,q,full){try{if(typeof aiFeedPush==="function")aiFeedPush(true);}catch(e){}
+  if(full)askCopy(full);const m=askLinkMsg(T,q);
+  if(!m){if(full)askSend(full);return;}
+  window.open("https://claude.ai/new?"+new URLSearchParams({q:m}).toString(),"_blank","noopener");
+  toast("Opening Claude with a live data link. If Claude can't open it, paste: the full data is copied.");}
 function askSend(p){askCopy(p);const u="https://claude.ai/new?"+new URLSearchParams({q:p}).toString();
   if(u.length<=ASK_URL_MAX){window.open(u,"_blank","noopener");toast("Opening Claude. The prompt is copied too.");}
   else{window.open("https://claude.ai/new","_blank","noopener");toast("Prompt copied. Paste it into the new Claude chat.");}}
@@ -128,7 +138,7 @@ document.addEventListener("click",e=>{let b;
   if((b=e.target.closest("[data-askfill]"))){e.stopPropagation();const t=$("#askxQ");if(t){t.value=b.dataset.askfill;ASK_Q=t.value;t.focus();}return;}
   if((b=e.target.closest("[data-askxgo],[data-askxcp]"))){e.stopPropagation();const T=askT(),q=($("#askxQ")||{}).value||"";ASK_Q=q;let p="";try{p=askFull(T,q);}catch(x){console.warn(x);}
     if(!p){toast("Couldn't build the prompt.");return;}
-    if(b.dataset.askxgo!=null)askSend(p);else toast(askCopy(p)?"Prompt copied. Paste it into Claude.":"Couldn't copy. Your browser blocked it.");return;}
+    if(b.dataset.askxgo!=null)askGo(T,q,p);else toast(askCopy(p)?"Prompt copied. Paste it into Claude.":"Couldn't copy. Your browser blocked it.");return;}
 },true);
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="askxQ")ASK_Q=e.target.value;},true);
 
