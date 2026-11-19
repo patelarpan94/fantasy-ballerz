@@ -4,6 +4,10 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.86",date:"2026-11-19",title:"Pickup impact",notes:[
+    ["367","New","Analytics › Pickup impact: what every team's free agent and waiver pickups really did, from the box scores, not projections. Each pickup counts only the days he started and played, minus what the player he replaced did those same days, category by category (FG% and FT% as the change to the team's matchup percentage). It also shows the categories the pickup won or cost in the matchup. Numbers update each day as \"so far\", then lock as Final when the matchup ends, with the best and worst add of the week. Tap Day by day for every game. Use ‹ › for earlier matchups."],
+    ["368","New","Dashboard: new Pickup impact tile with your pickups in the matchup the dashboard shows. It's added to the Pickups section of the New Era + board, and it's in + Add widget."],
+    ["369","New","Pickups the Win-the-week planner suggested and you made get a Planner pick tag in Pickup impact, with a Planner check: what the planner expected vs what really happened."]]},
   {v:"2.85",date:"2026-11-17",title:"Better iPhone Duo layout",notes:[
     ["354","Fix","The ‹ › matchup arrows on the dashboard were invisible on the dark New Era + stages. They show now."],
     ["355","Fix","League › Draft results: the draft board piled every pick into the first column. It's a grid again, on every screen."],
