@@ -139,7 +139,16 @@ DW.pi={name:"Pickup impact",desc:"What your pickups really did this matchup, fro
     return `<p class="pi-sum"><b>${rs.length}</b> pickup${rs.length===1?"":"s"} · ${piDone(W0)?"Final":"so far"}${wn?` · <span class="ok">won ${wn} cat${wn===1?"":"s"}</span>`:""}${cs?` · <span class="bad">cost ${cs}</span>`:""}</p><ol class="pi-l">${rs.map(r=>piRow(r,{tile:1})).join("")}</ol>${more}`;}};
 // New Era +: in the Pickups section after the pickup advisor; added once to boards already set up
 {const i=NEP_DEF.findIndex(x=>x[0]==="pa");if(!NEP_DEF.some(x=>x[0]==="pi"))NEP_DEF.splice(i>=0?i+1:NEP_DEF.length,0,["pi","w"]);}
-{const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{nepOnce("pi1","pi","w","pa");}catch(e){}return _rr.apply(this,arguments);};}
+// BUG-370: the tile was only added to the New Era + board, so Arp didn't see it on the board he uses.
+// Now it's added once to whichever board you open (after the pickup tiles, or under the Pickups/Moves heading, else at the end).
+{const i=DASH_DEF.findIndex(x=>x[0]==="sm");if(!DASH_DEF.some(x=>x[0]==="pi"))DASH_DEF.splice(i>=0?i+1:DASH_DEF.length,0,["pi","w"]);}
+function piOnce(){if(!prefKey()||!UI.dash)return;const c=dashCur(),done=Array.isArray(UI.dash.pib)?UI.dash.pib:[];if(done.includes(c))return;
+  const mark=extra=>dashBoardSet({...extra,pib:[...done,c].slice(-12)});const w=dashW().slice();if(w.some(x=>x.k==="pi"))return mark({});
+  let i=-1;["pa","pl","sm","qa","mw"].some(k=>(i=w.findIndex(x=>x.k===k))>=0);
+  if(i<0){const h=w.findIndex(x=>x.k==="hd"&&x.o&&(x.o.sec==="pk"||/pickup|moves/i.test(String(x.o.t||""))));if(h>=0){i=h;while(i+1<w.length&&w[i+1].k!=="hd")i++;}}
+  w.splice(i>=0?i+1:w.length,0,{id:"pi"+Date.now().toString(36),k:"pi",s:"w",o:{}});
+  if(c==="main")mark({w});else mark({boards:dashBoards().map(b=>b.id===c?{...b,w}:b)});}
+{const _rr=renderRosters;renderRosters=function(){if(nav==="dash"&&!DASH_DRAG&&!DASH_EDIT)try{piOnce();}catch(e){}return _rr.apply(this,arguments);};}
 
 {const s=document.createElement("style");s.textContent=`
 .pi-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 6px}.pi-nav b{font-size:1rem}
