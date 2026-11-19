@@ -379,6 +379,7 @@ function doGet() { return out_({ok: true, app: 'Fantasy Ballerz', rev: rev_(), s
 function doPost(e) {
   var b;
   try { b = JSON.parse(e.postData.contents); } catch (x) { return out_({error: 'bad_request'}); }
+  if (b && b.jsonrpc) return mcpOut_(b);       // Claude connector (MCP), see mcp_ below
   try { return out_(api_(b)); }
   catch (x) { return out_({error: x.code || 'server', message: String(x.message || x)}); }
 }
@@ -1263,4 +1264,52 @@ function ownership_(LG) {
     });
   });
   return any ? o : null;
+}
+
+
+/* ------------------------------------------------- Claude connector (MCP)
+   2.88 (Arp 2026-11-19: "a better way to use Claude on top"). Friends add this
+   web app's /exec URL as a custom connector in their own Claude app; Claude then
+   asks for the league's data itself. Read-only, no passcodes or logins: it only
+   serves the "ai" brief that open apps write (rules, matchups, rosters, stats,
+   free agents), the same data the in-app Ask Claude prompt has. */
+var MCP_TOOLS = [
+  {name: 'list_teams', description: 'List the teams in the Fantasy Ballerz league (number, name, record) and when the data was last updated. Call this first if you do not know which team is the user\'s, then ask the user which team is theirs.',
+   inputSchema: {type: 'object', properties: {}}},
+  {name: 'get_team', description: 'Everything about one team right now: league rules (pickup limit, waivers, IR, roster lock), this week\'s head-to-head matchup by category (now, projected final, chance to win), the roster and the opponent\'s roster with ESPN projections, season, last 14 and last 7 days per game, games left this week and next, injuries, and the app planner\'s suggested moves when available.',
+   inputSchema: {type: 'object', properties: {team: {type: 'string', description: 'Team name (or part of it) or team number from list_teams'}}, required: ['team']}},
+  {name: 'get_free_agents', description: 'The standings and every free agent with a game left (up to 80, best ESPN projection first) with projection, season, last 14 and last 7 days per game, games this week and next, % rostered on ESPN, waiver status and injury notes. Use it to compare pickups.',
+   inputSchema: {type: 'object', properties: {}}}
+];
+function mcpOut_(b) {
+  if (b.id === undefined || b.id === null) return ContentService.createTextOutput('');   // a notification: nothing to answer
+  var r;
+  try { r = {jsonrpc: '2.0', id: b.id, result: mcp_(b.method, b.params || {})}; }
+  catch (x) { r = {jsonrpc: '2.0', id: b.id, error: {code: x.rpc || -32603, message: String(x.message || x)}}; }
+  return out_(r);
+}
+function mcpText_(t) { return {content: [{type: 'text', text: t}]}; }
+function mcp_(m, p) {
+  if (m === 'initialize') return {protocolVersion: p.protocolVersion || '2025-06-18', capabilities: {tools: {}},
+    serverInfo: {name: 'fantasy-ballerz', title: 'Fantasy Ballerz', version: '2.88'},
+    instructions: 'Live data from the Fantasy Ballerz fantasy basketball league (ESPN head-to-head categories). Find out which team is the user\'s (list_teams, then ask), then use get_team and get_free_agents to give specific advice: who to pick up and drop and when, lineup and trade ideas. IR slots are separate from active roster spots. No betting or money talk.'};
+  if (m === 'ping') return {};
+  if (m === 'tools/list') return {tools: MCP_TOOLS};
+  if (m === 'resources/list') return {resources: []};
+  if (m === 'prompts/list') return {prompts: []};
+  if (m !== 'tools/call') { var e = new Error('Method not found: ' + m); e.rpc = -32601; throw e; }
+  var ai = getDoc_('ai', SEASON);
+  if (!ai || !ai.teams) return mcpText_('No data yet. Someone in the league needs to open the Fantasy Ballerz app while logged in; it uploads the data within a few minutes.');
+  var age = Math.round((Date.now() - (ai.at || 0)) / 60000), when = 'Data updated ' + (age < 1 ? 'just now' : age < 120 ? age + ' min ago' : Math.round(age / 60) + ' hours ago') + ' (' + Utilities.formatDate(new Date(ai.at || 0), 'America/New_York', 'EEE MMM d, h:mm a') + ' ET).' + (age > 360 ? ' This is old: games may have been played since. Opening the app refreshes it.' : '');
+  var a = p.arguments || {}, ids = Object.keys(ai.teams);
+  if (p.name === 'list_teams') return mcpText_(when + '\n' + ids.map(function (k) { var t = ai.teams[k]; return k + '. ' + t.name + (t.rec ? ' (' + t.rec + ')' : ''); }).join('\n'));
+  if (p.name === 'get_free_agents') return mcpText_(when + '\n' + (ai.league || ''));
+  if (p.name === 'get_team') {
+    var q = String(a.team || '').trim().toLowerCase(), hit = ai.teams[q] ? q : null;
+    if (!hit) ids.forEach(function (k) { if (!hit && String(ai.teams[k].name).toLowerCase() === q) hit = k; });
+    if (!hit) ids.forEach(function (k) { if (!hit && q && String(ai.teams[k].name).toLowerCase().indexOf(q) >= 0) hit = k; });
+    if (!hit) return mcpText_('No team matches "' + a.team + '". Teams: ' + ids.map(function (k) { return k + '. ' + ai.teams[k].name; }).join('; '));
+    return mcpText_(when + '\n' + ai.teams[hit].text);
+  }
+  var e2 = new Error('Unknown tool: ' + p.name); e2.rpc = -32602; throw e2;
 }
