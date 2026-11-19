@@ -10,8 +10,23 @@
    passcodes or login data.
    ============================================================================ */
 const AIF_EVERY=20*60e3;
+// BUG-381 (Arp: Claude said it couldn't see the moves made this week): every pickup this team made in the
+// current matchup, from Pickup impact's real box scores (not projections), as plain text for Claude
+function askMovesTxt(T){if(typeof piAdds!=="function"||typeof dwkNow!=="function")return [];
+  const w=dwkNow();if(!w)return [];let rs=[];try{rs=piAdds(T,w).map(piScoreMove);}catch(e){console.warn(e);return [];}
+  const out=["","MOVES THIS MATCHUP (pickups already made, real box scores on days the pickup STARTED vs the player dropped on those days; not projections):"];
+  if(!rs.length){out.push("None yet.");return out;}
+  const nm=n=>n+(DIR[n]&&DIR[n].t?` (${DIR[n].t})`:"");
+  const net=r=>{const a=[];CATS.forEach(c=>{if(c[1]==="pct"){const d=r.pctD[c[0]]||0;if(Math.abs(d)>=.0005)a.push(`${c[0]} ${d>0?"+":"-"}${Math.abs(d*100).toFixed(1)}%`);}
+      else{const d=r.net[c[2]];if(d)a.push(`${c[0]} ${d>0?"+":"-"}${Math.abs(Math.round(d*10)/10)}`);}});return a.length?a.join(", "):"no change";};
+  rs.sort((a,b)=>a.from-b.from).forEach(r=>{
+    const res=!r.days.length?(r.bench?"only on the bench so far":"no starts yet"):r.won.length||r.cost.length?`${r.done?"final,":"so far,"} ${r.won.length?"won "+r.won.join(", "):""}${r.won.length&&r.cost.length?"; ":""}${r.cost.length?"cost "+r.cost.join(", "):""}`:`${r.done?"final,":"so far,"} no category changed hands`;
+    const pl=r.plan?` Planner pick${r.plan.pw!=null?` (planner expected +${(+r.plan.pw).toFixed(2)} categories${r.plan.pc&&r.plan.pc.length?" in "+r.plan.pc.join(", "):""})`:""}.`:"";
+    out.push(`- ${dow(r.from)} ${md(r.from)}: added ${nm(r.add)}, ${r.drop?"dropped "+nm(r.drop):"used an open spot"}${r.to!==Infinity&&r.to-1<r.w[2]?`, then dropped him ${dow(r.to)}`:""}. ${r.days.length} start${r.days.length===1?"":"s"}${r.bench?`, ${r.bench} game${r.bench===1?"":"s"} on bench`:""}. Net vs the dropped player: ${r.days.length?net(r):"none yet"}. Category effect: ${res}${r.res?` (turned the matchup from a ${r.res.from} into a ${r.res.to})`:""}.${pl}`);});
+  try{const S=piWeekSum(T,rs,w);if(S)out.push(`All pickups together this matchup: ${net(S.tot)}.`);}catch(e){}
+  return out;}
 function aiFeedBuild(){const teams={};
-  Object.keys(TEAMS).map(Number).forEach(T=>{let text="";try{const out=askBase(T,false,true).slice(1);
+  Object.keys(TEAMS).map(Number).forEach(T=>{let text="";try{const out=askBase(T,false,true).slice(1);out.push(...askMovesTxt(T));
       const r=DPL&&DPL_K&&DPL_K.startsWith(T+":")?DPL:null;if(r)out.push(...askPlanTxt(r));text=out.join("\n");}catch(e){console.warn(e);text="(couldn't build this team's data)";}
     teams[T]={name:TEAMS[T].name,rec:STAND[T]?STAND[T].rec.join("-"):"",text};});
   let league="";try{league=[...askStandTxt(),...askFATxt(true)].join("\n").replace(/^\n/,"");}catch(e){console.warn(e);}
