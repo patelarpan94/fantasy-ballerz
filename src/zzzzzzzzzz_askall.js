@@ -16,6 +16,8 @@
      no passcodes; each friend uses their own Claude account.
    ============================================================================ */
 let ASKX={k:"screen",n:null};
+// BUG-377: Claude's connectors don't follow Apps Script's 302, so the connector link is a relay (tools/claude-relay/worker.js), set per site in config.json "mcp"
+const askMcpUrl=()=>(window.DF_CONFIG&&window.DF_CONFIG.mcp)||"";
 const askT=()=>typeof dashT==="function"?dashT():myTeamNum();
 const askNext=()=>{const w=weekOf(TODAY),n=WEEKS.find(x=>x[0]===w[0]+1);if(!n)return [];const a=[];for(let sp=n[1];sp<=n[2];sp++)a.push(sp);return a;};
 const askGN=(t,days)=>days.filter(sp=>gameOn(t,sp)).length;
@@ -106,10 +108,10 @@ function askOpen(ctx){const T=askT();if(!T||!TEAMS[T]){toast("Log in or pick a t
     <div class="askx-sug">${ASK_SUG[c.k].map(s=>`<button type="button" class="askx-q" data-askfill="${esc(s)}">${esc(s)}</button>`).join("")}</div>
     <textarea class="ask-q" id="askxQ" rows="3" placeholder="Ask anything about your team, or tap a question above.">${esc(ASK_Q)}</textarea>
     <div class="ask-b"><button class="btn sm ask-go" data-askxgo>Ask Claude ↗</button><button class="btn sm ghost" data-askxcp>Copy prompt</button></div>
-    <p class="muted dsm askx-n" id="askxN"></p>${typeof Store!=="undefined"&&Store.url&&!Store.local?`
+    <p class="muted dsm askx-n" id="askxN"></p>${askMcpUrl()?`
     <details class="askx-con"><summary>Ask Claude without pasting: add the league to Claude (one time)</summary>
     <ol class="dsm"><li>In the Claude app or on claude.ai, open <b>Settings › Connectors</b> (on some plans it's <b>Customize › Connectors</b>).</li><li>Tap <b>Add custom connector</b>. Name: <b>Fantasy Ballerz${/\/uat\//.test(location.pathname)?" UAT":""}</b>. URL: the link below. Leave Advanced settings empty and tap Add.</li><li>In any chat, ask things like "Using Fantasy Ballerz, who should Cloud Team pick up today?" Claude reads the live league data itself.</li></ol>
-    <div class="askx-url"><code>${esc(Store.url)}</code><button type="button" class="btn sm ghost" data-askurl="${esc(Store.url)}">Copy link</button></div>
+    <div class="askx-url"><code>${esc(askMcpUrl())}</code><button type="button" class="btn sm ghost" data-askurl="${esc(askMcpUrl())}">Copy link</button></div>
     <p class="muted dsm">Free on every Claude plan (the free plan allows one custom connector). It's read-only: rosters, stats and matchups, no passcodes. The data updates whenever someone in the league has the app open.</p></details>`:""}</div>`);
   try{const p=askFull(T,""),u=new URLSearchParams({q:p}).toString().length+24;$("#askxN").textContent=`About ${Math.round(p.length/100)/10}k characters of data. ${u>ASK_URL_MAX?"That's too long for a link, so Ask Claude copies it and opens a new chat: paste it there.":"Claude opens with it filled in, and it's copied too."}`;}catch(e){console.warn(e);}}
 
