@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261119203800", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/uat"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261119210902", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/uat"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4462,6 +4462,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.91",date:"2026-11-19",title:"Fresher data for Claude",notes:[
+    ["384","Fix","Claude kept reading old data after you made a move or changed the planner, because the app only sent new data every 20 minutes. Now an open app sends it within about 2 minutes of anything changing."]]},
   {v:"2.90",date:"2026-11-19",title:"Claude through the connector",notes:[
     ["382","Change","The Ask Claude buttons are gone (✳ on every screen, on player cards and in the planner). Use the league's Claude connector instead: Claude reads the league itself from any chat."],
     ["383","New","Help (?) has a new section, Ask Claude about the league, with the one-time steps to add the connector to your own Claude app and the link to copy."]]},
@@ -12279,14 +12281,21 @@ function aiFeedBuild(){const teams={};
     teams[T]={name:TEAMS[T].name,rec:STAND[T]?STAND[T].rec.join("-"):"",text};});
   let league="";try{league=[...askStandTxt(),...askFATxt(true)].join("\n").replace(/^\n/,"");}catch(e){console.warn(e);}
   return {season:SEASON,at:Date.now(),v:typeof RELEASES!=="undefined"&&RELEASES[0]?RELEASES[0].v:"",league,teams};}
+// BUG-384 (Arp: Claude still read old data after he changed his drop list): every 2 minutes the open app rebuilds
+// the data and uploads it as soon as anything changed (a move, the planner, a score), at most once every 2 minutes;
+// unchanged data still goes up every 20 minutes so Claude sees it's fresh
+const AIF_MIN=2*60e3;
+const aiHash=v=>{const t=JSON.stringify([v.league,v.teams]);let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return String(h);};
 async function aiFeedPush(force){try{
   if(!SESSION||!SESSION.role||typeof Store==="undefined"||Store.local||!Store._call||!L||!Object.keys(TEAMS).length||!DAYS.length)return false;
-  let last=0;try{last=+localStorage.getItem("dfAiAt")||0;}catch(e){}
-  if(!force&&Date.now()-last<AIF_EVERY)return false;
-  try{localStorage.setItem("dfAiAt",String(Date.now()));}catch(e){}
-  await Store._call("set",{c:"ai",i:SEASON,v:aiFeedBuild()});return true;}catch(e){console.warn("ai feed",e);return false;}}
-// first push a minute after load (data and the planner are ready by then), then every few minutes it checks the clock
-setTimeout(()=>{aiFeedPush();setInterval(()=>{if(!document.hidden)aiFeedPush();},3*60e3);},60e3);
+  let last=0,lh="";try{last=+localStorage.getItem("dfAiAt")||0;lh=localStorage.getItem("dfAiH")||"";}catch(e){}
+  const age=Date.now()-last;if(!force&&age<AIF_MIN)return false;
+  const v=aiFeedBuild(),h=aiHash(v);
+  if(!force&&h===lh&&age<AIF_EVERY)return false;
+  try{localStorage.setItem("dfAiAt",String(Date.now()));localStorage.setItem("dfAiH",h);}catch(e){}
+  await Store._call("set",{c:"ai",i:SEASON,v});return true;}catch(e){console.warn("ai feed",e);return false;}}
+// first check a minute after load (data and the planner are ready by then), then every 2 minutes while the app is on screen
+setTimeout(()=>{aiFeedPush();setInterval(()=>{if(!document.hidden)aiFeedPush();},AIF_MIN);},60e3);
 /* ============================================================================
    CONNECTOR ONLY (2.90, 2026-11-19). Arp: "remove the claude button as we will use
    the connector. Make instructions available somewhere." The Ask Claude buttons
