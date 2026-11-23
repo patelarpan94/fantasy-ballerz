@@ -4,6 +4,9 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.94",date:"2026-11-23",title:"Keeps your place",notes:[
+    ["392","Fix","On iPhone the page sometimes jumped while you were reading it, because every data refresh redraws the screen and iPhone doesn't hold your spot when something above you grows or shrinks. Refreshes now keep whatever is at the top of your screen exactly where it was."],
+    ["393","Fix","Opening the app again after a while could throw you back to the top: a new version or iPhone closing the app in the background makes it reload. The app now remembers where you were on each screen and goes back there (for up to 3 hours), unless you've already started scrolling."]]},
   {v:"2.93",date:"2026-11-19",title:"More for Claude",notes:[
     ["387","New","Claude connector: the full transaction log of the season (every add, drop and trade by every team)."],
     ["388","New","Claude connector: week-by-week results, every matchup's totals in every category and who won each, so Claude can show category standings by week and spot what a team keeps losing."],
