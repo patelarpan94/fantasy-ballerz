@@ -156,19 +156,31 @@ function mirrorOwnership(){
     prev=cur;});
 }
 // ---- daily lineups: the latest saved lineup on or before the day; new players fill open starting slots ----
+// BUG-394: ESPN only lets you set lineups inside the current matchup, so a lineup "saved" for a later matchup is just
+// today's lineup carried forward. Days after this matchup ends get the best lineup instead (like a manager who sets it
+// every day): healthy players with a game start, by rank; OUT players count again from their expected return date; IR stays on IR.
+const luWkEnd=()=>{const t=Math.min(Math.max(TODAY,1),SEASON_END),w=WEEKS.find(([,a,b])=>t>=a&&t<=b);return w?w[2]:t;};
+const luBack=(n,sp)=>{if(INJ[n]!=="OUT")return true;const r=((typeof NBA!=="undefined"&&NBA&&NBA.injd)||{})[n]?.r;
+  return !!r&&sp>TODAY&&new Date(r+"T12:00:00")<dateOf(sp+1);};
+function bestFitLineup(ros,sp,ir){
+  const plays=n=>!!gameOn(DIR[n]?.t,sp)&&luBack(n,sp),rank=n=>DIR[n]?.srk||DIR[n]?.rk||999,out={};
+  const cand=ros.filter(n=>!ir.has(n)).sort((a,b)=>(plays(b)-plays(a))||(rank(a)-rank(b))),owner=new Array(LINEUP.length).fill(null);
+  const tryA=(n,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!canPlayN(n,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=n;return true;}}return false;};
+  // players with no game fill spots left over; players still OUT that day sit, so they never count in projections
+  cand.filter(plays).forEach(n=>tryA(n,[]));cand.filter(n=>!plays(n)&&luBack(n,sp)).forEach(n=>tryA(n,[]));
+  ros.forEach(n=>out[n]=ir.has(n)?13:12);owner.forEach((n,j)=>{if(n)out[n]=LINEUP[j];});return out;}
 function lineupFor(T,sp,ros){
+  const later=sp>TODAY&&sp>luWkEnd();
   if(mirror()){let bd=-1;for(const k in ESPNDAYS){const d=+k;if(d<=sp&&d>bd&&ESPNDAYS[k].r?.["t"+T])bd=d;}
     if(bd<0)for(const k in ESPNDAYS){const d=+k;if(ESPNDAYS[k].r?.["t"+T]&&(bd<0||d<bd))bd=d;}
     const m={};if(bd>=0)ESPNDAYS[bd].r["t"+T].forEach(e=>m[e[0]]=e[1]);const out={};
-    if(bd<0||sp<=bd){ros.forEach(n=>out[n]=m[n]??12);return out;}
-    // a day ESPN hasn't saved yet: assume the best lineup (healthy players with a game start, by rank), IR stays on IR
-    const plays=n=>!!gameOn(DIR[n]?.t,sp)&&INJ[n]!=="OUT",rank=n=>DIR[n]?.srk||DIR[n]?.rk||999;
-    const cand=ros.filter(n=>m[n]!==13).sort((a,b)=>(plays(b)-plays(a))||(rank(a)-rank(b))),owner=new Array(LINEUP.length).fill(null);
-    const tryA=(n,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!canPlayN(n,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=n;return true;}}return false;};
-    cand.filter(plays).forEach(n=>tryA(n,[]));cand.filter(n=>!plays(n)).forEach(n=>tryA(n,[]));
-    ros.forEach(n=>out[n]=m[n]===13?13:12);owner.forEach((n,j)=>{if(n)out[n]=LINEUP[j];});return out;}
+    if(bd<0||(sp<=bd&&!later)){ros.forEach(n=>out[n]=m[n]??12);return out;}
+    // a day ESPN hasn't saved yet, or one in a later matchup: assume the best lineup
+    return bestFitLineup(ros,sp,new Set(ros.filter(n=>m[n]===13)));}
   const snaps=(LUDOCS[T]||{}).snaps||{};let base=null,bd=-1;
   for(const k in snaps){const d=+k;if(d<=sp&&d>bd){bd=d;base=snaps[k];}}
+  // a later matchup with no lineup saved for that exact day: best lineup, IR players from the last saved lineup stay on IR
+  if(later&&bd!==sp)return bestFitLineup(ros,sp,new Set(ros.filter(n=>base&&base[n]===13)));
   const out={},used={},take=(n,s)=>{out[n]=s;used[s]=(used[s]||0)+1;};
   if(base)ros.forEach(n=>{const s=base[n];if(s==null||s===12)return;if((used[s]||0)<(CAP[s]||0)&&canPlayN(n,s))take(n,s);});
   ros.forEach(n=>{if(out[n]!=null)return;if(base&&base[n]!=null){out[n]=12;return;}

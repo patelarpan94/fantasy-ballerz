@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ballerz UAT">
 <meta name="theme-color" content="#17202c">
 <style>html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}body{margin:0;min-height:100vh;min-height:100dvh}button,.key{touch-action:manipulation}@media (max-width:640px){input,select,textarea{font-size:16px!important}}body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--topbg,#17202c);z-index:8;pointer-events:none}</style>
-<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261123173816", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/uat"};var DF_ASSETS="../";</script>
+<script>window.DF_CONFIG={"backend": "https://script.google.com/macros/s/AKfycby3ghL7eesprTdB1BCH0Jblp8_8zt3u9VhVwRazRg-6fvgDD3h78ANdud_8JGQ7R3j9/exec", "env": "uat", "build": "20261123175422", "mcp": "https://ballerz-claude.patelarpan94.workers.dev/uat"};var DF_ASSETS="../";</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -2346,19 +2346,31 @@ function mirrorOwnership(){
     prev=cur;});
 }
 // ---- daily lineups: the latest saved lineup on or before the day; new players fill open starting slots ----
+// BUG-394: ESPN only lets you set lineups inside the current matchup, so a lineup "saved" for a later matchup is just
+// today's lineup carried forward. Days after this matchup ends get the best lineup instead (like a manager who sets it
+// every day): healthy players with a game start, by rank; OUT players count again from their expected return date; IR stays on IR.
+const luWkEnd=()=>{const t=Math.min(Math.max(TODAY,1),SEASON_END),w=WEEKS.find(([,a,b])=>t>=a&&t<=b);return w?w[2]:t;};
+const luBack=(n,sp)=>{if(INJ[n]!=="OUT")return true;const r=((typeof NBA!=="undefined"&&NBA&&NBA.injd)||{})[n]?.r;
+  return !!r&&sp>TODAY&&new Date(r+"T12:00:00")<dateOf(sp+1);};
+function bestFitLineup(ros,sp,ir){
+  const plays=n=>!!gameOn(DIR[n]?.t,sp)&&luBack(n,sp),rank=n=>DIR[n]?.srk||DIR[n]?.rk||999,out={};
+  const cand=ros.filter(n=>!ir.has(n)).sort((a,b)=>(plays(b)-plays(a))||(rank(a)-rank(b))),owner=new Array(LINEUP.length).fill(null);
+  const tryA=(n,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!canPlayN(n,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=n;return true;}}return false;};
+  // players with no game fill spots left over; players still OUT that day sit, so they never count in projections
+  cand.filter(plays).forEach(n=>tryA(n,[]));cand.filter(n=>!plays(n)&&luBack(n,sp)).forEach(n=>tryA(n,[]));
+  ros.forEach(n=>out[n]=ir.has(n)?13:12);owner.forEach((n,j)=>{if(n)out[n]=LINEUP[j];});return out;}
 function lineupFor(T,sp,ros){
+  const later=sp>TODAY&&sp>luWkEnd();
   if(mirror()){let bd=-1;for(const k in ESPNDAYS){const d=+k;if(d<=sp&&d>bd&&ESPNDAYS[k].r?.["t"+T])bd=d;}
     if(bd<0)for(const k in ESPNDAYS){const d=+k;if(ESPNDAYS[k].r?.["t"+T]&&(bd<0||d<bd))bd=d;}
     const m={};if(bd>=0)ESPNDAYS[bd].r["t"+T].forEach(e=>m[e[0]]=e[1]);const out={};
-    if(bd<0||sp<=bd){ros.forEach(n=>out[n]=m[n]??12);return out;}
-    // a day ESPN hasn't saved yet: assume the best lineup (healthy players with a game start, by rank), IR stays on IR
-    const plays=n=>!!gameOn(DIR[n]?.t,sp)&&INJ[n]!=="OUT",rank=n=>DIR[n]?.srk||DIR[n]?.rk||999;
-    const cand=ros.filter(n=>m[n]!==13).sort((a,b)=>(plays(b)-plays(a))||(rank(a)-rank(b))),owner=new Array(LINEUP.length).fill(null);
-    const tryA=(n,seen)=>{for(let j=0;j<LINEUP.length;j++){if(seen[j]||!canPlayN(n,LINEUP[j]))continue;seen[j]=1;if(owner[j]==null||tryA(owner[j],seen)){owner[j]=n;return true;}}return false;};
-    cand.filter(plays).forEach(n=>tryA(n,[]));cand.filter(n=>!plays(n)).forEach(n=>tryA(n,[]));
-    ros.forEach(n=>out[n]=m[n]===13?13:12);owner.forEach((n,j)=>{if(n)out[n]=LINEUP[j];});return out;}
+    if(bd<0||(sp<=bd&&!later)){ros.forEach(n=>out[n]=m[n]??12);return out;}
+    // a day ESPN hasn't saved yet, or one in a later matchup: assume the best lineup
+    return bestFitLineup(ros,sp,new Set(ros.filter(n=>m[n]===13)));}
   const snaps=(LUDOCS[T]||{}).snaps||{};let base=null,bd=-1;
   for(const k in snaps){const d=+k;if(d<=sp&&d>bd){bd=d;base=snaps[k];}}
+  // a later matchup with no lineup saved for that exact day: best lineup, IR players from the last saved lineup stay on IR
+  if(later&&bd!==sp)return bestFitLineup(ros,sp,new Set(ros.filter(n=>base&&base[n]===13)));
   const out={},used={},take=(n,s)=>{out[n]=s;used[s]=(used[s]||0)+1;};
   if(base)ros.forEach(n=>{const s=base[n];if(s==null||s===12)return;if((used[s]||0)<(CAP[s]||0)&&canPlayN(n,s))take(n,s);});
   ros.forEach(n=>{if(out[n]!=null)return;if(base&&base[n]!=null){out[n]=12;return;}
@@ -2531,6 +2543,8 @@ const weekName=n=>isPlayoff(n)?(n===CAL.length?"Championship":`Playoffs round ${
 const weekLabel=([w,a,b])=>`${weekName(w)} · ${md(a)} – ${dateOf(a).getMonth()===dateOf(b).getMonth()?dateOf(b).getDate():md(b)}`;
 const fmtTime=m=>m==null?"TBD":`${((Math.floor(m/60)+11)%12)+1}${m%60?":"+String(m%60).padStart(2,"0"):""}${m>=720?"p":"a"}`;
 const healthy=p=>p.s!=null&&p.s!==13&&p.st!=="OUT";
+// BUG-394: in a later matchup the best lineup (a_core bestFitLineup) already sits OUT players until their return date, so only IR is left out
+const healthyWk=p=>healthy(p)||(p.s!=null&&p.s!==13&&DAYS.length>0&&DAYS[0]>TODAY&&DAYS[0]>luWkEnd());
 const slotOn=(p,sp)=>p.sl&&sp in p.sl?p.sl[sp]:p.s;
 const startedOn=(p,sp)=>{const s=slotOn(p,sp);return s!=null&&s<12;};
 const viewDay=()=>selDay??(TODAY<wk[1]?wk[1]:TODAY>wk[2]?wk[2]:TODAY);
@@ -3808,7 +3822,7 @@ function analyticsView(){
   let fc="";const opp=M.opp;
   if(opp&&TEAMS[opp]){
     const proj=T=>{const now=score(T),rem=new Array(11).fill(0);
-      TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
+      TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
       return {now,fin:now.map((v,i)=>v+rem[i])};};
     const a=proj(me),b=proj(opp);let w=0,l=0,t=0;
     const rows=CATS.map(c=>{const va=val(a.fin,c),vb=val(b.fin,c),na=val(a.now,c),nb=val(b.now,c),diff=va-vb,rel=Math.abs(diff)/Math.max(Math.abs(va),Math.abs(vb),1e-9);
@@ -3972,7 +3986,7 @@ function liveLeft(t,sp){if(sp!==TODAY)return 1;if(typeof finalToday==="function"
   const mc=/(\d+):(\d+)/.exec(d),ms=/^\s*([\d.]+)\s*-/.exec(d),mm=/end/i.test(d)?0:mc?+mc[1]+mc[2]/60:ms?+ms[1]/60:6;
   return Math.max(0,Math.min(1,((4-n)*12+mm)/48));}
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
-  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)){const f=liveLeft(p.t,sp);pg.forEach((v,i)=>rem[i]+=v*f);}});});
+  TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)){const f=liveLeft(p.t,sp);pg.forEach((v,i)=>rem[i]+=v*f);}});});
   return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's chance from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
@@ -4048,7 +4062,7 @@ function setMLay(v){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(ty
 }
 // one day: starters' actual stats, plus projections for starters still to play that day
 function dayProj(T,sp){const {t,gp}=totals(TEAMS[T].P,[sp]),rem=new Array(11).fill(0);
-  if(sp>=TODAY)TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
+  if(sp>=TODAY)TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
   return {now:t,gp,fin:t.map((v,i)=>v+rem[i])};}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-cbday]");if(!b)return;selDay=b.dataset.cbday?+b.dataset.cbday:null;MOVING=null;try{renderBox();renderDays();renderHero();}catch(x){}renderRosters();});
 function teamHeader(){
@@ -4158,7 +4172,7 @@ function openFit(T,sp,el){
 }
 function catNeeds(T){
   const opp=opponentOf(T),w={};CATS.forEach(c=>w[c[0]]=1);if(!opp||!TEAMS[opp])return {w,why:{}};
-  const proj=id=>{const now=score(id),rem=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});return now.map((v,i)=>v+rem[i]);};
+  const proj=id=>{const now=score(id),rem=new Array(11).fill(0);TEAMS[id].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});return now.map((v,i)=>v+rem[i]);};
   const a=proj(T),b=proj(opp),why={};
   CATS.forEach(c=>{const va=val(a,c),vb=val(b,c),rel=Math.abs(va-vb)/Math.max(Math.abs(va),Math.abs(vb),1e-9);
     w[c[0]]=rel<.04?1.6:rel<.12?1.25:.5;why[c[0]]=rel<.12?(va>=vb?"close lead":"close deficit"):(va>vb?"safe":"out of reach");});
@@ -4462,6 +4476,8 @@ document.addEventListener("click",e=>{
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.95",date:"2026-11-23",title:"Future matchups play your best lineup",notes:[
+    ["394","Fix","ESPN only lets you set a lineup inside the current matchup, so for later matchups the app was just carrying today's lineup forward (sitting players who had games and starting players who didn't). Every day after this matchup now uses the best lineup from each roster instead: healthy players with a game start, ranked best first and fitted to the position slots; OUT players start again from their expected return date; IR stays on IR. Today, past days and the rest of this matchup still use the lineup actually set. Projections, win chances, games left and lineups for later matchups all follow it."]]},
   {v:"2.94",date:"2026-11-23",title:"Keeps your place",notes:[
     ["392","Fix","On iPhone the page sometimes jumped while you were reading it, because every data refresh redraws the screen and iPhone doesn't hold your spot when something above you grows or shrinks. Refreshes now keep whatever is at the top of your screen exactly where it was."],
     ["393","Fix","Opening the app again after a while could throw you back to the top: a new version or iPhone closing the app in the background makes it reload. The app now remembers where you were on each screen and goes back there (for up to 3 hours), unless you've already started scrolling."]]},
@@ -6558,7 +6574,7 @@ function trkLine(title,labels,A,B,nameA,nameB,o){
   return `<figure class="mini trkx"><figcaption><b>${title}</b><span class="vals num"><span class="vk me"></span><span class="me-t">${ea?fmt(ea[1]):"–"}</span><span class="vk op"></span><span class="op-t">${eb?fmt(eb[1]):"–"}</span></span></figcaption>
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${o.mid!=null?`<line class="midl" x1="${Lm}" x2="${W-R}" y1="${y(o.mid)}" y2="${y(o.mid)}"/>`:""}${ticks}${xl}${line(B,"op",nameB)}${line(A,"me",nameA)}${endl(eb,yB,"op")}${endl(ea,yA,"me")}</svg>${o.note?`<p class="trkn">${o.note}</p>`:""}</figure>`;}
 function trkExtra(){const me=cur,op=M.opp;if(!TEAMS[me]||!op||!TEAMS[op])return "";
-  const rem=(T,after)=>{const r=new Array(11).fill(0);TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(sp>after&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>r[i]+=v);});});return r;};
+  const rem=(T,after)=>{const r=new Array(11).fill(0);TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(sp>after&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>r[i]+=v);});});return r;};
   const run={me:new Array(11).fill(0),op:new Array(11).fill(0)},lab=[["Start","Before the matchup"]],wa=[],wb=[];
   const p0=winProb({fin:rem(me,DAYS[0]-1)},{fin:rem(op,DAYS[0]-1)});wa.push(p0);wb.push(1-p0);
   DAYS.filter(sp=>sp<TODAY).forEach(sp=>{[["me",me],["op",op]].forEach(([k,T])=>{const d=dayTotals(T,[sp]);if(d)d.forEach((v,i)=>run[k][i]+=v);});
@@ -8136,7 +8152,7 @@ function dSeason(){const ids=Object.keys(TEAMS).map(Number).filter(x=>TEAMS[x].P
 const dRanks=(T,{ids,S})=>CATS.map(c=>({c,r:1+ids.filter(y=>val(S[y],c)>val(S[T],c)+1e-9).length,v:val(S[T],c)}));
 // the matchup day by day: running totals for both teams, projected finish and win chance after each day
 function dMatchDays(T,opp){const days=dDays().filter(sp=>sp<TODAY||(sp===TODAY&&hasDayData(sp)));
-  const rem=(id,after)=>{const r=new Array(11).fill(0);TEAMS[id].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(d=>{if(d>after&&gameOn(p.t,d)&&startedOn(p,d))pg.forEach((v,i)=>r[i]+=v);});});return r;};
+  const rem=(id,after)=>{const r=new Array(11).fill(0);TEAMS[id].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(d=>{if(d>after&&gameOn(p.t,d)&&startedOn(p,d))pg.forEach((v,i)=>r[i]+=v);});});return r;};
   const pts=[{sp:null,a:ZERO(),b:ZERO()}].concat(days.map(sp=>{const ds=DAYS.filter(d=>d<=sp);return {sp,a:dayTotals(T,ds)||ZERO(),b:dayTotals(opp,ds)||ZERO()};}));
   return pts.map(x=>{const after=x.sp==null?DAYS[0]-1:x.sp,ra=rem(T,after),rb=rem(opp,after),A={now:x.a,fin:x.a.map((v,i)=>v+ra[i]),done:false},B={now:x.b,fin:x.b.map((v,i)=>v+rb[i]),done:false};
     return {...x,p:winProb(A,B),w:h2h(x.a,x.b)};});}

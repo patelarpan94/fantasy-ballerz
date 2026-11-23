@@ -9,6 +9,8 @@ const weekName=n=>isPlayoff(n)?(n===CAL.length?"Championship":`Playoffs round ${
 const weekLabel=([w,a,b])=>`${weekName(w)} · ${md(a)} – ${dateOf(a).getMonth()===dateOf(b).getMonth()?dateOf(b).getDate():md(b)}`;
 const fmtTime=m=>m==null?"TBD":`${((Math.floor(m/60)+11)%12)+1}${m%60?":"+String(m%60).padStart(2,"0"):""}${m>=720?"p":"a"}`;
 const healthy=p=>p.s!=null&&p.s!==13&&p.st!=="OUT";
+// BUG-394: in a later matchup the best lineup (a_core bestFitLineup) already sits OUT players until their return date, so only IR is left out
+const healthyWk=p=>healthy(p)||(p.s!=null&&p.s!==13&&DAYS.length>0&&DAYS[0]>TODAY&&DAYS[0]>luWkEnd());
 const slotOn=(p,sp)=>p.sl&&sp in p.sl?p.sl[sp]:p.s;
 const startedOn=(p,sp)=>{const s=slotOn(p,sp);return s!=null&&s<12;};
 const viewDay=()=>selDay??(TODAY<wk[1]?wk[1]:TODAY>wk[2]?wk[2]:TODAY);

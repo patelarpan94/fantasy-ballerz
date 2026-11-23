@@ -32,7 +32,7 @@ function liveLeft(t,sp){if(sp!==TODAY)return 1;if(typeof finalToday==="function"
   const mc=/(\d+):(\d+)/.exec(d),ms=/^\s*([\d.]+)\s*-/.exec(d),mm=/end/i.test(d)?0:mc?+mc[1]+mc[2]/60:ms?+ms[1]/60:6;
   return Math.max(0,Math.min(1,((4-n)*12+mm)/48));}
 function fcProj(T){const now=score(T),rem=new Array(11).fill(0);
-  TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)){const f=liveLeft(p.t,sp);pg.forEach((v,i)=>rem[i]+=v*f);}});});
+  TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp)){const f=liveLeft(p.t,sp);pg.forEach((v,i)=>rem[i]+=v*f);}});});
   return {now,fin:now.map((v,i)=>v+rem[i]),done:DAYS.length>0&&DAYS[DAYS.length-1]<TODAY};}
 // chance to win the matchup: each category's chance from its projected margin, then P(more category wins than losses)
 function winProb(a,b){
@@ -108,7 +108,7 @@ function setMLay(v){MLAY=v;try{localStorage.setItem("dfMLay",v);}catch(x){}if(ty
 }
 // one day: starters' actual stats, plus projections for starters still to play that day
 function dayProj(T,sp){const {t,gp}=totals(TEAMS[T].P,[sp]),rem=new Array(11).fill(0);
-  if(sp>=TODAY)TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
+  if(sp>=TODAY)TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(pg&&upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});
   return {now:t,gp,fin:t.map((v,i)=>v+rem[i])};}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-cbday]");if(!b)return;selDay=b.dataset.cbday?+b.dataset.cbday:null;MOVING=null;try{renderBox();renderDays();renderHero();}catch(x){}renderRosters();});
 function teamHeader(){

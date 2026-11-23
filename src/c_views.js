@@ -957,7 +957,7 @@ function analyticsView(){
   let fc="";const opp=M.opp;
   if(opp&&TEAMS[opp]){
     const proj=T=>{const now=score(T),rem=new Array(11).fill(0);
-      TEAMS[T].P.filter(healthy).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
+      TEAMS[T].P.filter(healthyWk).forEach(p=>{const pg=pjOf(p);if(!pg)return;DAYS.forEach(sp=>{if(upcoming(p.t,sp)&&gameOn(p.t,sp)&&startedOn(p,sp))pg.forEach((v,i)=>rem[i]+=v);});});
       return {now,fin:now.map((v,i)=>v+rem[i])};};
     const a=proj(me),b=proj(opp);let w=0,l=0,t=0;
     const rows=CATS.map(c=>{const va=val(a.fin,c),vb=val(b.fin,c),na=val(a.now,c),nb=val(b.now,c),diff=va-vb,rel=Math.abs(diff)/Math.max(Math.abs(va),Math.abs(vb),1e-9);
