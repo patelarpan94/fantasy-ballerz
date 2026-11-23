@@ -4,6 +4,8 @@
    Every change gets the next ID (BUG - 001, BUG - 002, ...), never reused.
    ============================================================================ */
 const RELEASES=[
+  {v:"2.95",date:"2026-11-23",title:"Future matchups play your best lineup",notes:[
+    ["394","Fix","ESPN only lets you set a lineup inside the current matchup, so for later matchups the app was just carrying today's lineup forward (sitting players who had games and starting players who didn't). Every day after this matchup now uses the best lineup from each roster instead: healthy players with a game start, ranked best first and fitted to the position slots; OUT players start again from their expected return date; IR stays on IR. Today, past days and the rest of this matchup still use the lineup actually set. Projections, win chances, games left and lineups for later matchups all follow it."]]},
   {v:"2.94",date:"2026-11-23",title:"Keeps your place",notes:[
     ["392","Fix","On iPhone the page sometimes jumped while you were reading it, because every data refresh redraws the screen and iPhone doesn't hold your spot when something above you grows or shrinks. Refreshes now keep whatever is at the top of your screen exactly where it was."],
     ["393","Fix","Opening the app again after a while could throw you back to the top: a new version or iPhone closing the app in the background makes it reload. The app now remembers where you were on each screen and goes back there (for up to 3 hours), unless you've already started scrolling."]]},
